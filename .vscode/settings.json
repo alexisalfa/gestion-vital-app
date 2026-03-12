@@ -1,0 +1,24 @@
+{
+  "python.analysis.extraPaths": [
+    "./",
+    "./app"
+  ],
+  "python.analysis.typeCheckingMode": "basic",
+  
+  "cSpell.words": [
+    "agrega",
+    "asegurar",
+    "ayuda",
+    "codificación",
+    "configuración",
+    "errores",
+    "Esta",
+    "evitar",
+    "hable",
+    "insurtech",
+    "PGCLIENTENCODING",
+    "puro",
+    "PYTHONIOENCODING",
+    "Seguridad"
+  ]
+}

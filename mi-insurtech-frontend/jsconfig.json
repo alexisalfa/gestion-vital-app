@@ -1,0 +1,11 @@
+// jsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"] // Este alias cubre src/components, src/lib, etc.
+    },
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}

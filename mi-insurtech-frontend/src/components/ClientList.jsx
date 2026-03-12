@@ -1,0 +1,272 @@
+// src/components/ClientList.jsx
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/lib/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useConfirmation } from './ConfirmationContext'; 
+import { Loader2, Search, FileDown, FileText, Edit2, Trash2, Users, Mail, Phone } from 'lucide-react'; 
+
+function ClientList({
+  clients = [],
+  onEditClient,
+  onDeleteClient,
+  searchTerm,
+  emailFilter,
+  setSearchTerm,
+  setEmailFilter,
+  onSearch,
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  onPageChange,
+  onExport, 
+  onExportPdf, 
+  dateFormat, 
+  getDateFormatOptions 
+}) {
+  const { toast } = useToast();
+  const { confirm } = useConfirmation(); 
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isExporting, setIsExporting] = useState(false); 
+
+  // Generador de Avatares
+  const getInitials = (nombre, apellido) => {
+    return `${nombre?.charAt(0) || ''}${apellido?.charAt(0) || ''}`.toUpperCase();
+  };
+
+  const getAvatarColor = (nombre) => {
+    const colors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];
+    const index = nombre ? nombre.charCodeAt(0) % colors.length : 0;
+    return colors[index];
+  };
+
+  useEffect(() => {
+    if (searchTerm.length >= 2 && clients.length > 0) {
+      const filteredSuggestions = clients
+        .filter(client =>
+          client.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          client.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (client.identificacion && client.identificacion.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          client.email.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map(client => ({
+          id: client.id,
+          name: `${client.nombre} ${client.apellido} (${client.identificacion || 'N/A'})`,
+        }))
+        .slice(0, 5); 
+      
+      setSuggestions(filteredSuggestions);
+      setShowSuggestions(filteredSuggestions.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [searchTerm, clients]); 
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    onSearch(searchTerm, emailFilter); 
+    setShowSuggestions(false); 
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setEmailFilter('');
+    onSearch('', ''); 
+    setShowSuggestions(false); 
+  };
+
+  const handleDeleteClick = (client) => {
+    confirm({
+      title: "¿Eliminar Cliente?",
+      message: `Estás a punto de borrar el registro de ${client.nombre} ${client.apellido}. Esta acción no se puede deshacer.`,
+      onConfirm: () => onDeleteClient(client.id),
+    });
+  };
+
+  const clientCsvHeaders = useMemo(() => [
+    { key: 'id', label: 'ID Cliente' },
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'apellido', label: 'Apellido' },
+    { key: 'email', label: 'Email' },
+    { key: 'telefono', label: 'Teléfono' },
+    { key: 'identificacion', label: 'Cédula' }, 
+    { key: 'fecha_nacimiento', label: 'Fecha Nacimiento', type: 'date' }, 
+  ], []);
+
+  const clientPdfHeaders = useMemo(() => [
+    { label: 'Nombre', key: 'nombre' },
+    { label: 'Apellido', key: 'apellido' },
+    { label: 'Email', key: 'email' },
+    { label: 'Cédula', key: 'identificacion' }, 
+    { label: 'Teléfono', key: 'telefono' },
+  ], []);
+
+  const handleExportCsv = () => {
+    setIsExporting(true);
+    onExport(clients, 'directorio_clientes', clientCsvHeaders);
+    setIsExporting(false);
+  };
+
+  const handleExportPdf = () => {
+    setIsExporting(true);
+    onExportPdf(clients, 'directorio_clientes', clientPdfHeaders, 'Directorio Oficial de Clientes');
+    setIsExporting(false);
+  };
+
+  const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mt-6">
+      
+      {/* Cabecera de Lista y Filtros */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-4">
+        <div className="w-full lg:w-2/3">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Users className="h-6 w-6 text-blue-600" />
+            Directorio de Clientes
+            <span className="bg-blue-100 text-blue-700 text-xs py-1 px-3 rounded-full ml-2">{totalItems} Registros</span>
+          </h3>
+          
+          <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 relative"> 
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nombre o cédula..."
+                autoComplete="off" 
+                className="pl-9 bg-gray-50 focus:bg-white border-gray-200"
+                onFocus={() => { if (searchTerm.length >= 2 && suggestions.length > 0) setShowSuggestions(true); }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-48 overflow-y-auto">
+                  {suggestions.map((s) => (
+                    <li key={s.id} className="px-4 py-3 cursor-pointer hover:bg-blue-50 text-sm border-b border-gray-50 last:border-0" onMouseDown={() => { setSearchTerm(s.name); onSearch(s.name, emailFilter); setShowSuggestions(false); }}>
+                      {s.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <Button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white shadow-md">Filtrar</Button>
+              <Button type="button" variant="outline" className="text-gray-600 border-gray-300 hover:bg-gray-100" onClick={handleClearFilters}>Limpiar</Button>
+            </div>
+          </form>
+        </div>
+
+        {/* Botones de Exportación Premium */}
+        <div className="flex gap-2 w-full lg:w-auto">
+          <Button onClick={handleExportCsv} variant="outline" className="flex-1 lg:flex-none border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800" disabled={isExporting || clients.length === 0}>
+            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+            CSV
+          </Button>
+          <Button onClick={handleExportPdf} variant="outline" className="flex-1 lg:flex-none border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800" disabled={isExporting || clients.length === 0}>
+            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+            PDF
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabla Premium o Empty State */}
+      {clients.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+          <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
+            <Users className="h-10 w-10 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-800">Ningún cliente encontrado</h3>
+          <p className="text-sm text-gray-500 max-w-sm text-center mt-1">
+            Parece que aún no tienes clientes registrados o la búsqueda no arrojó resultados. Comienza creando un nuevo perfil arriba.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50/80">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cédula / Doc.</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Teléfono</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {clients.map((client) => (
+                <tr key={client.id} className="hover:bg-blue-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(client.nombre)}`}>
+                        {getInitials(client.nombre, client.apellido)}
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-bold text-gray-900">{client.nombre} {client.apellido}</div>
+                        <div className="text-xs text-gray-500 flex items-center mt-0.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>
+                          Activo
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-gray-100 text-gray-800 border border-gray-200">
+                      {client.identificacion || client.cedula || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-gray-400"/> {client.telefono || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-gray-400"/> {client.email || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
+                    <Button variant="ghost" size="icon" onClick={() => onEditClient(client)} className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full" title="Editar">
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(client)} className="text-rose-500 hover:text-rose-700 hover:bg-rose-100 rounded-full" title="Eliminar">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Paginación */}
+      {totalPages > 1 && (
+        <nav className="flex justify-center mt-6">
+          <ul className="flex items-center space-x-1 bg-gray-50 p-1 rounded-lg border border-gray-200 shadow-sm">
+            <li>
+              <Button variant="ghost" className="h-8 px-3 text-gray-600 hover:bg-white" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
+                Anterior
+              </Button>
+            </li>
+            {pages.map(page => (
+              <li key={page}>
+                <Button variant={currentPage === page ? "default" : "ghost"} className={`h-8 w-8 p-0 ${currentPage === page ? "bg-blue-600 text-white shadow" : "text-gray-600 hover:bg-white"}`} onClick={() => onPageChange(page)}>
+                  {page}
+                </Button>
+              </li>
+            ))}
+            <li>
+              <Button variant="ghost" className="h-8 px-3 text-gray-600 hover:bg-white" onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                Siguiente
+              </Button>
+            </li>
+          </ul>
+        </nav>
+      )}
+    </div>
+  );
+}
+
+export default ClientList;
