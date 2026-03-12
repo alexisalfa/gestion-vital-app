@@ -31,7 +31,7 @@ app = FastAPI(
 # --- CONFIGURACIÓN DE CORS ---
 origins = [
     os.getenv("FRONTEND_URL", "http://localhost:5173"),
-    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5173","https://gestion-vital.onrender.com"
 ]
 
 app.add_middleware(
