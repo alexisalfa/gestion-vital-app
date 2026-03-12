@@ -32,7 +32,7 @@ function SettingsPage({
   
   // NUEVO: Estado para saber si el backend nos confirma que ya pagó
   const [isProFromBackend, setIsProFromBackend] = useState(false);
-  const apiBaseUrl = 'http://localhost:8000/api/v1';
+  const apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1';
 
   // Estados locales para los valores del formulario
   const [localSelectedLanguage, setLocalSelectedLanguage] = useState(selectedLanguage);

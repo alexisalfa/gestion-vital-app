@@ -4,7 +4,7 @@ import { useToast } from '@/lib/use-toast';
 import EmpresaAseguradoraForm from '@/components/EmpresaAseguradoraForm';
 import EmpresaAseguradoraList from '@/components/EmpresaAseguradoraList';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://gestion-vital-app.onrender.com';
 
 function EmpresasAseguradorasPage({ token }) {
   const { toast } = useToast();

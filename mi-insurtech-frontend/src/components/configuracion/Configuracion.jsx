@@ -21,7 +21,7 @@ const Configuracion = ({ userConfig }) => {
   const handleUpgrade = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/payments/create-checkout-session', {
+      const response = await fetch('https://gestion-vital-app.onrender.com/api/v1/payments/create-checkout-session', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

@@ -35,7 +35,7 @@ function ComisionList({
   setEstadoPagoFilter, 
   setFechaInicioFilter, 
   setFechaFinFilter,
-  apiBaseUrl = 'http://localhost:8000/api/v1', // URL Base
+  apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1', // URL Base
 }) {
   const { confirm } = useConfirmation();
   const { toast } = useToast();

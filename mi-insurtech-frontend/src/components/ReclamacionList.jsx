@@ -14,7 +14,7 @@ function ReclamacionList({
   reclamaciones = [], onEditReclamacion, onDeleteReclamacion, searchTerm, estadoFilter, clienteIdFilter, polizaIdFilter,
   fechaReclamacionInicioFilter, fechaReclamacionFinFilter, setSearchTerm, setEstadoFilter, setClienteIdFilter, setPolizaIdFilter,
   setFechaReclamacionInicioFilter, setFechaReclamacionFinFilter, onSearch, onReclamacionUpdated, currentPage, itemsPerPage, totalItems, onPageChange,
-  onExport, onExportPdf, clients = [], polizas = [], currencySymbol = '$', dateFormat, getDateFormatOptions, apiBaseUrl = 'http://localhost:8000/api/v1'
+  onExport, onExportPdf, clients = [], polizas = [], currencySymbol = '$', dateFormat, getDateFormatOptions, apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1'
 }) {
   const { confirm } = useConfirmation();
   const { toast } = useToast();

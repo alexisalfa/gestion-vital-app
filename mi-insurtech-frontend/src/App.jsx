@@ -45,7 +45,7 @@ const RECLAMACIONES_PER_PAGE = 10;
 const EMPRESAS_ASEGURADORAS_PER_PAGE = 10;
 const ASESORES_PER_PAGE = 10;
 const COMISIONES_PER_PAGE = 10;
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'https://gestion-vital-app.onrender.com/api/v1';
 
 // Opciones de configuración
 const LANGUAGE_OPTIONS = [
@@ -93,7 +93,7 @@ function App() {
   const [editingEmpresaAseguradora, setEditingEmpresaAseguradora] = useState(null);
   const [editingAsesor, setEditingAsesor] = useState(null);
   const [editingComision, setEditingComision] = useState(null); 
-  const [apiBaseUrl] = useState('http://localhost:8000/api/v1');
+  const [apiBaseUrl] = useState('https://gestion-vital-app.onrender.com/api/v1');
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
   const [quickAddModal, setQuickAddModal] = useState(null); // 'cliente' o 'siniestro'
