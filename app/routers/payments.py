@@ -32,7 +32,7 @@ async def create_checkout_session(current_user: User = Depends(get_current_user)
     try:
         # TRUCO: Volvemos a leer las variables justo antes de cobrar
         stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-        frontend_url = os.getenv("FRONTEND_URL")
+        frontend_url = os.getenv("FRONTEND_URL", "https://gestion-vital.onrender.com")
         
         # LOGS DE DEPURACIÓN (Aparecerán en Render)
         print(f"💸 Intentando crear pago para: {user_email}")
