@@ -194,6 +194,11 @@ async def create_paypal_order(current_user: User = Depends(get_current_user)):
 
 @router.post("/paypal/capture-order")
 async def capture_paypal_order(request: Request, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    
+    # 1. ALCABALA PARA CALMAR A PYLANCE (Aseguramos que no sea None)
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="Usuario no válido")
+
     data = await request.json()
     order_id = data.get("orderID")
 
@@ -220,8 +225,9 @@ async def capture_paypal_order(request: Request, current_user: User = Depends(ge
                     config.licencia_activa = True
                     config.license_key = f"AKA-PRO-{str(uuid.uuid4())[:8].upper()}"
                     
+                    # 2. CAST EXPLÍCITO A INT PARA EL MODELO PAGO
                     nuevo_pago = Pago(
-                        user_id=current_user.id, 
+                        user_id=int(current_user.id), 
                         monto=99.00, 
                         moneda="USD", 
                         referencia_pasarela=capture_data["id"], 
