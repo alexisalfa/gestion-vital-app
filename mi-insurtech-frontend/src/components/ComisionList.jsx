@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect';
 import { Trash2Icon, PencilIcon, FileDown, FileText, Search, Banknote } from 'lucide-react';
 import { useConfirmation } from './ConfirmationContext'; 
-import { useToast } from '@/lib/use-toast'; // Importamos toast para los mensajes
+import { useToast } from '@/lib/use-toast'; 
 import Pagination from './Pagination'; 
 
 function ComisionList({
@@ -17,7 +17,7 @@ function ComisionList({
   onEditComision, 
   onDeleteComision, 
   onSearch, 
-  onPagoExitoso, // <--- NUEVO: Cable para recargar la tabla desde App.jsx
+  onPagoExitoso,
   currentPage, 
   itemsPerPage, 
   totalItems, 
@@ -35,7 +35,7 @@ function ComisionList({
   setEstadoPagoFilter, 
   setFechaInicioFilter, 
   setFechaFinFilter,
-  apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1', // URL Base
+  apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1',
 }) {
   const { confirm } = useConfirmation();
   const { toast } = useToast();
@@ -60,7 +60,6 @@ function ComisionList({
           variant: "success" 
         });
         
-        // Magia automática: Avisamos a App.jsx que recargue los datos
         if (onPagoExitoso) {
           onPagoExitoso();
         }
@@ -91,7 +90,6 @@ function ComisionList({
     }).format(amount || 0);
   };
 
-  // --- MANEJADORES DE FILTROS ---
   const handleSearchClick = (e) => {
     if (e) e.preventDefault();
     onSearch(asesorIdFilter, estadoPagoFilter, fechaInicioFilter, fechaFinFilter);
@@ -105,22 +103,33 @@ function ComisionList({
     onSearch('', '', '', '');
   };
 
-  // --- EXPORTACIÓN ---
-  const handleExportCsv = () => {
-    setIsExporting(true);
-    const headers = [
-      { key: 'asesor_nombre', label: 'Asesor' }, 
-      { key: 'poliza_numero', label: 'Póliza' },
-      { key: 'monto_final', label: 'Comisión' }, 
-      { key: 'fecha_generacion', label: 'Fecha' }, 
-      { key: 'estatus_pago', label: 'Estado' }
-    ];
-    const data = comisiones.map(c => ({
+  // --- 🛠️ REPARACIÓN DE EXPORTACIÓN ---
+  const comisionHeaders = [
+    { key: 'asesor_nombre', label: 'Asesor' }, 
+    { key: 'poliza_numero', label: 'Póliza' },
+    { key: 'monto_final', label: 'Comisión' }, 
+    { key: 'fecha_generacion', label: 'Fecha' }, 
+    { key: 'estatus_pago', label: 'Estado' }
+  ];
+
+  const getExportData = () => {
+    return comisiones.map(c => ({
       ...c,
       asesor_nombre: asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A',
       poliza_numero: polizas.find(p => String(p.id) === String(c.id_poliza))?.numero_poliza || 'N/A'
     }));
-    onExport(data, 'reporte_comisiones', headers);
+  };
+
+  const handleExportCsv = () => {
+    setIsExporting(true);
+    onExport(getExportData(), 'reporte_comisiones', comisionHeaders);
+    setIsExporting(false);
+  };
+
+  const handleExportPdf = () => {
+    setIsExporting(true);
+    // Ahora le pasamos correctamente los encabezados y el título
+    onExportPdf(getExportData(), 'reporte_comisiones', comisionHeaders, 'Reporte de Comisiones');
     setIsExporting(false);
   };
 
@@ -135,10 +144,20 @@ function ComisionList({
             <Banknote className="h-6 w-6 text-blue-600" /> Registro de Liquidaciones
           </h3>
           <div className="flex gap-2">
-            <Button onClick={handleExportCsv} variant="outline" className="border-green-200 text-green-700 hover:bg-green-50">
+            <Button 
+              onClick={handleExportCsv} 
+              variant="outline" 
+              className="border-green-200 text-green-700 hover:bg-green-50"
+              disabled={isExporting || comisiones.length === 0}
+            >
               <FileDown className="h-4 w-4 mr-2" /> CSV
             </Button>
-            <Button onClick={() => onExportPdf(comisiones, 'comisiones', [], 'Comisiones')} variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">
+            <Button 
+              onClick={handleExportPdf} 
+              variant="outline" 
+              className="border-red-200 text-red-700 hover:bg-red-50"
+              disabled={isExporting || comisiones.length === 0}
+            >
               <FileText className="h-4 w-4 mr-2" /> PDF
             </Button>
           </div>
@@ -167,7 +186,12 @@ function ComisionList({
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-bold text-gray-500 uppercase">Desde</Label>
-              <Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-white" />
+              <Input 
+                type="date" 
+                value={fechaInicioFilter} 
+                onChange={e => setFechaInicioFilter(e.target.value)} 
+                className="bg-white" 
+              />
             </div>
             <div className="flex items-end gap-2">
               <Button type="submit" className="flex-1 bg-slate-800 text-white font-bold">
