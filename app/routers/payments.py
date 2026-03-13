@@ -1,5 +1,6 @@
 import stripe
 import os
+import traceback
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlmodel import Session, select
@@ -17,7 +18,7 @@ load_dotenv()
 
 router = APIRouter(prefix="/payments", tags=["Pagos con Stripe"])
 
-# Configuración de Stripe desde el archivo .env
+# Configuración inicial de Stripe (Por si acaso)
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
@@ -29,6 +30,20 @@ async def create_checkout_session(current_user: User = Depends(get_current_user)
     user_email = current_user.email if current_user.email else "sin_email@test.com"
 
     try:
+        # TRUCO: Volvemos a leer las variables justo antes de cobrar
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+        frontend_url = os.getenv("FRONTEND_URL")
+        
+        # LOGS DE DEPURACIÓN (Aparecerán en Render)
+        print(f"💸 Intentando crear pago para: {user_email}")
+        print(f"🔑 Tipo de llave Stripe leída: {type(stripe.api_key)}")
+        if stripe.api_key:
+            print(f"🔑 Llave Stripe empieza con: {str(stripe.api_key)[:7]}...")
+        else:
+            print("❌ ALERTA: La llave STRIPE_SECRET_KEY está VACÍA o no se leyó.")
+            
+        print(f"🌐 URL de retorno frontend: {frontend_url}")
+        
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
@@ -44,13 +59,23 @@ async def create_checkout_session(current_user: User = Depends(get_current_user)
                 "user_id": str(current_user.id), 
                 "user_email": str(user_email)
             },
-            # Redirecciones seguras a la raíz para evitar errores 404 de Vite
-            success_url=f"{os.getenv('FRONTEND_URL')}/?payment=success",
-            cancel_url=f"{os.getenv('FRONTEND_URL')}/?payment=cancel",
+            # Redirecciones seguras usando la variable de entorno
+            success_url=f"{frontend_url}/?payment=success",
+            cancel_url=f"{frontend_url}/?payment=cancel",
         )
+        print(f"✅ Sesión de Stripe creada con éxito. URL: {checkout_session.url}")
         return {"url": checkout_session.url}
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # ¡AQUÍ PRENDEMOS LA LUZ EN RENDER!
+        print("=======================================")
+        print(f"🔥 ERROR CRÍTICO AL CREAR PAGO STRIPE 🔥")
+        print(f"Motivo: {str(e)}")
+        print("--- Radiografía completa (Traceback) ---")
+        traceback.print_exc()
+        print("=======================================")
+        
+        raise HTTPException(status_code=500, detail=f"Error en pasarela de pago: {str(e)}")
 
 @router.post("/webhook")
 async def stripe_webhook(
@@ -61,12 +86,11 @@ async def stripe_webhook(
     payload = await request.body()
     
     try:
-        # Validamos que la firma de Stripe coincida con nuestro secreto del .env
+        # Validamos la firma
         event = stripe.Webhook.construct_event(
-            payload, stripe_signature, STRIPE_WEBHOOK_SECRET
+            payload, stripe_signature, os.getenv("STRIPE_WEBHOOK_SECRET")
         )
     except stripe.error.SignatureVerificationError as e: # type: ignore
-        # Usamos type: ignore para que Pylance no marque falso error
         print(f"⚠️ Error de validación de firma de Webhook: {e}")
         raise HTTPException(status_code=400, detail="Firma de Stripe inválida")
     except Exception as e:
@@ -77,18 +101,15 @@ async def stripe_webhook(
     if event['type'] == 'checkout.session.completed':
         session_data = event['data']['object']
         
-        # Extraer datos vitales de la sesión de Stripe
         user_id = session_data.get('metadata', {}).get('user_id')
-        session_id = session_data.get('id')  # ID único de la transacción de Stripe
-        amount_total = session_data.get('amount_total', 0)  # Viene en centavos (ej. 9900)
+        session_id = session_data.get('id')
+        amount_total = session_data.get('amount_total', 0)
 
         if user_id:
-            # Buscar la configuración del usuario en la BD
             statement = select(Configuracion).where(Configuracion.user_id == int(user_id))
             config = session.exec(statement).first()
 
             if config:
-                # 1. ACTUALIZAR LA SUSCRIPCIÓN A PRO
                 nueva_llave = f"AKA-PRO-{str(uuid.uuid4())[:8].upper()}"
                 
                 config.fecha_vencimiento = datetime.now() + timedelta(days=365)
@@ -99,7 +120,6 @@ async def stripe_webhook(
 
                 session.add(config)
 
-                # 2. REGISTRAR EL RECIBO EN EL HISTORIAL DE PAGOS
                 nuevo_pago = Pago(
                     user_id=int(user_id),
                     monto=amount_total / 100.0,  
@@ -109,8 +129,6 @@ async def stripe_webhook(
                 )
                 
                 session.add(nuevo_pago)
-                
-                # Guardamos ambos registros (Configuración y Pago) en una sola transacción
                 session.commit()
                 print(f"✅ PAGO EXITOSO: Licencia PRO activada y transacción {session_id} registrada para usuario {user_id}")
 
