@@ -80,6 +80,7 @@ const Dashboard = ({
 
   // Variables para validar si hay datos para mostrar en los gráficos
   const hasPieData = (statistics?.total_primas > 0 || statistics?.total_reclamaciones_pendientes > 0);
+  const hasBarData = barData.some(item => item.total > 0);
 
   // Función para determinar el color de la tarjeta nueva
   const getRatioColor = (ratio) => {
@@ -157,7 +158,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
-        {/* 4. Red Operativa (INTACTO - RECUPERADO) */}
+        {/* 4. Red Operativa (INTACTO) */}
         <Card className="border-l-4 border-l-indigo-500 shadow-sm transition-all hover:scale-[1.02]">
           <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
             <CardTitle className="text-xs font-bold">Red Operativa</CardTitle>
@@ -171,7 +172,7 @@ const Dashboard = ({
           </CardContent>
         </Card>
 
-        {/* 5. NUEVA: Ratio de Siniestralidad (AGREGADA COMO EXTRA) */}
+        {/* 5. Ratio de Siniestralidad (INTACTO) */}
         <Card className="border-l-4 border-l-rose-500 shadow-sm transition-all hover:scale-[1.02]">
           <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
             <CardTitle className="text-xs font-bold">Siniestralidad</CardTitle>
@@ -198,44 +199,76 @@ const Dashboard = ({
 
       </div>
 
-      {/* GRÁFICOS (INTACTOS) */}
+      {/* GRÁFICOS (AHORA CON SIMULACIÓN UNIFICADA) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Gráfico Circular con Estado Vacío */}
-        <Card className="shadow-md border-none p-4 h-[350px]">
-          <h4 className="text-sm font-bold mb-4 flex items-center gap-2"><PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros</h4>
+        {/* Gráfico Circular con Simulación */}
+        <Card className="shadow-md border-none p-4 h-[350px] relative">
+          <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+            <PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros
+          </h4>
           
-          {hasPieData ? (
+          <div className={`w-full h-full pb-10 transition-opacity duration-300 ${!hasPieData ? 'opacity-30' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                <Pie 
+                  data={hasPieData ? pieData : [{ name: 'Primas Activas', value: 50, color: '#10b981' }, { name: 'Reclamaciones', value: 50, color: '#ef4444' }]} 
+                  innerRadius={60} 
+                  outerRadius={80} 
+                  paddingAngle={5} 
+                  dataKey="value"
+                >
+                  {(hasPieData ? pieData : [{ color: '#10b981' }, { color: '#ef4444' }]).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
                 </Pie>
-                {/* APLICANDO FORMATMONEY AL TOOLTIP DEL GRÁFICO */}
-                <Tooltip formatter={(value) => formatMoney(value, currencySymbol, currentLanguage)} />
-                <Legend verticalAlign="bottom" height={36} />
+                {hasPieData && <Tooltip formatter={(value) => formatMoney(value, currencySymbol, currentLanguage)} />}
+                {hasPieData && <Legend verticalAlign="bottom" height={36} />}
               </PieChart>
             </ResponsiveContainer>
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 pb-10">
-              <PieChartIcon size={48} className="mb-3 opacity-20" />
-              <p className="text-sm font-medium">Sin datos suficientes</p>
-              <p className="text-[10px] text-gray-400">Registra pólizas para visualizar</p>
+          </div>
+
+          {/* Etiqueta oscura central (Solo aparece si NO hay datos) */}
+          {!hasPieData && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-gray-800 text-amber-400 text-sm font-bold rounded-full px-5 py-2.5 shadow-xl flex items-center gap-2">
+                ✨ Simulación de lo que esperas
+              </div>
             </div>
           )}
         </Card>
 
-        <Card className="shadow-md border-none p-4 h-[350px]">
-          <h4 className="text-sm font-bold mb-4 flex items-center gap-2"><BarChart3 size={16} className="text-blue-600"/> Distribución Operativa</h4>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: '#f3f4f6'}} />
-              <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Gráfico de Barras con Simulación */}
+        <Card className="shadow-md border-none p-4 h-[350px] relative">
+          <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+            <BarChart3 size={16} className="text-blue-600"/> Distribución Operativa
+          </h4>
+          
+          <div className={`w-full h-full pb-10 transition-opacity duration-300 ${!hasBarData ? 'opacity-30' : 'opacity-100'}`}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={hasBarData ? barData : [
+                { name: 'Clientes', total: 4 },
+                { name: 'Pólizas', total: 2 },
+                { name: 'Asesores', total: 3 },
+                { name: 'Empresas', total: 1 }
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                {hasBarData && <Tooltip cursor={{fill: '#f3f4f6'}} />}
+                <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Etiqueta oscura central (Solo aparece si NO hay datos) */}
+          {!hasBarData && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-gray-800 text-amber-400 text-sm font-bold rounded-full px-5 py-2.5 shadow-xl flex items-center gap-2">
+                ✨ Simulación de lo que esperas
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>
