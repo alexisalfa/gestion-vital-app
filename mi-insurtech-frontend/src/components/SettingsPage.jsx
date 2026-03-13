@@ -8,6 +8,9 @@ import { HeadlessSafeSelect } from './HeadlessSafeSelect';
 import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/lib/use-toast';
 
+// NUEVO: Importamos las herramientas de PayPal
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
+
 function SettingsPage({
   selectedLanguage,
   currencySymbol,
@@ -30,7 +33,7 @@ function SettingsPage({
   const { toast } = useToast();
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   
-  // NUEVO: Estado para saber si el backend nos confirma que ya pagó
+  // Estado para saber si el backend nos confirma que ya pagó
   const [isProFromBackend, setIsProFromBackend] = useState(false);
   const apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1';
 
@@ -41,7 +44,7 @@ function SettingsPage({
   const [localSelectedCountry, setLocalSelectedCountry] = useState(selectedCountry);
   const [localLicenseKey, setLocalLicenseKey] = useState(licenseKey);
 
-  // 1. NUEVO: Función para verificar el estado real en la Base de Datos
+  // 1. Función para verificar el estado real en la Base de Datos
   const checkRealProStatus = async () => {
     try {
       const token = localStorage.getItem('access_token');
@@ -78,7 +81,7 @@ function SettingsPage({
       // Limpiamos la URL para que no vuelva a saltar si recarga
       window.history.replaceState(null, '', window.location.pathname);
 
-      // NUEVO: Le damos 1.5 segundos al Webhook para que guarde en la BD, 
+      // Le damos 1.5 segundos al Webhook para que guarde en la BD, 
       // y luego forzamos una recarga silenciosa de los datos para encender el panel verde
       setTimeout(() => {
         checkRealProStatus();
@@ -142,7 +145,7 @@ function SettingsPage({
     onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
   };
 
-  // NUEVO: La licencia será válida si el Frontend tiene la llave maestra O si el Backend dice que es PRO
+  // La licencia será válida si el Frontend tiene la llave maestra O si el Backend dice que es PRO
   const effectivelyValid = isLicenseValid || isProFromBackend;
   
   const LicenseStatusIcon = effectivelyValid ? CheckCircle : XCircle;
@@ -152,7 +155,7 @@ function SettingsPage({
   return (
     <div className="flex flex-col items-center p-4 space-y-6">
       
-      {/* PANEL DE STRIPE (Licencia PRO) */}
+      {/* PANEL DE STRIPE Y PAYPAL (Licencia PRO) */}
       <Card className="w-full max-w-2xl border-2 border-indigo-100 shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-4">
           <h3 className="text-white text-lg font-bold flex items-center gap-2">
@@ -182,17 +185,76 @@ function SettingsPage({
             </div>
 
             {!effectivelyValid && (
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[280px]">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[280px] space-y-3">
                 <p className="text-2xl font-black text-gray-800 mb-1">$99.00 <span className="text-sm font-normal text-gray-500">/ año</span></p>
+                
+                {/* BOTÓN DE STRIPE */}
                 <Button 
                   onClick={handleUpgradeToPro} 
                   disabled={isLoadingPayment}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg transition-transform hover:scale-105"
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
-                  {isLoadingPayment ? "Conectando..." : "Mejorar a PRO"}
+                  {isLoadingPayment ? "Conectando..." : "Pagar con Tarjeta"}
                 </Button>
-                <p className="text-[10px] text-gray-400 mt-2 text-center">Pagos seguros procesados por Stripe®</p>
+
+                {/* SEPARADOR VISUAL */}
+                <div className="flex items-center py-2">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink-0 mx-2 text-gray-400 text-xs font-semibold">O</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                {/* BOTONES DE PAYPAL (NUEVO) */}
+                <div className="w-full relative z-0">
+                  <PayPalScriptProvider options={{ "client-id": "TU_CLIENT_ID_DE_PAYPAL_AQUI", currency: "USD" }}>
+                    <PayPalButtons 
+                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 40 }}
+                      createOrder={async () => {
+                        const token = localStorage.getItem('access_token');
+                        const res = await fetch(`${apiBaseUrl}/payments/paypal/create-order`, {
+                          method: "POST",
+                          headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const order = await res.json();
+                        return order.id;
+                      }}
+                      onApprove={async (data, actions) => {
+                        const token = localStorage.getItem('access_token');
+                        const res = await fetch(`${apiBaseUrl}/payments/paypal/capture-order`, {
+                          method: "POST",
+                          headers: { 
+                            'Authorization': `Bearer ${token}`, 
+                            'Content-Type': 'application/json' 
+                          },
+                          body: JSON.stringify({ orderID: data.orderID })
+                        });
+                        const captureData = await res.json();
+                        
+                        if (captureData.status === "success") {
+                          toast({ 
+                            title: "¡Pago Exitoso! 🎉", 
+                            description: "Licencia PRO activada con PayPal.", 
+                            variant: "success", 
+                            duration: 8000 
+                          });
+                          // Actualizamos la pantalla para que se ponga en verde
+                          setTimeout(() => checkRealProStatus(), 1500);
+                        }
+                      }}
+                      onError={(err) => {
+                        console.error("Error PayPal:", err);
+                        toast({ 
+                          title: "Error en PayPal", 
+                          description: "No se pudo procesar el pago o la ventana fue cerrada.", 
+                          variant: "destructive" 
+                        });
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                </div>
+
+                <p className="text-[10px] text-gray-400 mt-2 text-center">Pagos seguros procesados por Stripe® y PayPal®</p>
               </div>
             )}
           </div>
@@ -223,7 +285,7 @@ function SettingsPage({
             />
           </div>
 
-          {/* Configuración de Moneda (AQUÍ ESTÁ EL CAMBIO) */}
+          {/* Configuración de Moneda */}
           <div>
             <Label htmlFor="currency-select" className="mb-2 block text-sm font-medium text-gray-700">
               Símbolo de Moneda
@@ -296,7 +358,7 @@ function SettingsPage({
               <span>{licenseStatusText}</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Si compraste vía Stripe, el sistema se activa automáticamente. Usa esto solo para claves maestras.
+              Si compraste vía Stripe o PayPal, el sistema se activa automáticamente. Usa esto solo para claves maestras.
             </p>
           </div>
 
