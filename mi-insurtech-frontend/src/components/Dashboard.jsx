@@ -93,8 +93,12 @@ const Dashboard = ({
     <div className="space-y-6 animate-in fade-in duration-500">
       
       {/* BANNER DE LICENCIA DINÁMICO */}
-      <div className={`rounded-xl p-4 text-white shadow-lg flex items-center justify-between border-b-4 ${
-        timeLeft === "EXPIRADO" ? "bg-black border-gray-800" : "bg-gradient-to-r from-orange-500 to-red-600 border-red-700"
+      <div className={`rounded-xl p-4 text-white shadow-lg flex items-center justify-between border-b-4 transition-colors duration-500 ${
+        timeLeft === "LICENCIA ACTIVA" 
+          ? "bg-gradient-to-r from-blue-700 to-indigo-900 border-indigo-950" 
+          : timeLeft === "EXPIRADO" 
+            ? "bg-black border-gray-800" 
+            : "bg-gradient-to-r from-orange-500 to-red-600 border-red-700"
       }`}>
         <div className="flex items-center gap-3">
           <Clock className={`h-6 w-6 ${timeLeft !== "EXPIRADO" && timeLeft !== "LICENCIA ACTIVA" ? "animate-pulse" : ""}`} />
