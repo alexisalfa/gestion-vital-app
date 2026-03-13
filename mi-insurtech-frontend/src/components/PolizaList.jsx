@@ -168,11 +168,18 @@ function PolizaList({
       // Si todo sale bien:
       setIsPagoModalOpen(false);
       setPolizaToPay(null);
-      alert(`¡Pago de ${currencySymbol} ${datosPago.monto} registrado exitosamente!`);
+      toast({ 
+        title: "Pago Registrado", 
+        description: `Se procesó el pago de ${currencySymbol} ${datosPago.monto} correctamente.`, 
+        variant: "success" 
+      });
       
-      // Recargamos la tabla para que la póliza aparezca ahora como "Activa"
-      onSearch(searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter);
-
+      // FORZAMOS LA RECARGA DE DATOS DESDE EL PADRE
+      // Usamos setTimeout para asegurar que el modal se cierre primero antes de recargar
+      setTimeout(() => {
+        // Al pasar las variables vacías, le decimos al sistema que traiga todo fresco
+        onSearch('', '', '', '', '', '');
+      }, 300);
     } catch (error) {
       console.error("Error registrando pago:", error);
       alert(`Hubo un error al procesar el pago: ${error.message}`);
