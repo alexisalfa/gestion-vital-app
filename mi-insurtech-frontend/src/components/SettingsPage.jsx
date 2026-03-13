@@ -223,7 +223,7 @@ function SettingsPage({
             />
           </div>
 
-          {/* Configuración de Moneda */}
+          {/* Configuración de Moneda (AQUÍ ESTÁ EL CAMBIO) */}
           <div>
             <Label htmlFor="currency-select" className="mb-2 block text-sm font-medium text-gray-700">
               Símbolo de Moneda
@@ -232,7 +232,16 @@ function SettingsPage({
               id="currency-select"
               value={localCurrencySymbol}
               onChange={setLocalCurrencySymbol}
-              options={currencyOptions}
+              options={[
+                { id: '$', nombre: '$ (Dólar / Peso)' },
+                { id: '€', nombre: '€ (Euro)' },
+                { id: 'Bs', nombre: 'Bs (Bolívar)' },
+                { id: 'COP', nombre: 'COP (Peso Colombiano)' },
+                { id: 'MXN', nombre: 'MXN (Peso Mexicano)' },
+                { id: 'CLP', nombre: 'CLP (Peso Chileno)' },
+                { id: 'R$', nombre: 'R$ (Real Brasileño)' },
+                { id: '£', nombre: '£ (Libra Esterlina)' }
+              ]}
               placeholder="Selecciona un símbolo de moneda"
               className="w-full"
             />
