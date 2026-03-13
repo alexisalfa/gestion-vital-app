@@ -29,7 +29,7 @@ def verificar_licencia_activa(
         )
 
     # 3. Verificar fecha de vencimiento
-    if config.fecha_vencimiento and config.fecha_vencimiento < date.today():
+    if config.fecha_vencimiento and config.fecha_vencimiento.date() < date.today():
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=f"Licencia vencida el {config.fecha_vencimiento}. Por favor, renueve su suscripción."
