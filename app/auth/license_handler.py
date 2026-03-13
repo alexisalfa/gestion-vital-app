@@ -28,7 +28,7 @@ def verificar_licencia_activa(
         )
 
     # VERIFICACIÓN DE TIEMPO (El bloqueo automático)
-    if datetime.now().date() > config.fecha_vencimiento:
+    if datetime.now().date() > config.fecha_vencimiento.date():
         # Aquí es donde ocurre la magia: el usuario existe, pero no puede pasar
         mensaje = "Tu periodo de prueba de 24h ha vencido." if config.es_prueba else "Tu licencia anual ha expirado."
         raise HTTPException(
