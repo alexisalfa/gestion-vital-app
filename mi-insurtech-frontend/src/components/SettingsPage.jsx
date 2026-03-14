@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect'; 
-// NUEVO: Agregamos íconos para el panel bancario
-import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send } from 'lucide-react';
+// NUEVO: Agregamos íconos necesarios para el diseño "Cashea Style"
+import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays } from 'lucide-react';
 import { useToast } from '@/lib/use-toast';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
 
@@ -28,11 +28,26 @@ function SettingsPage({
   const [localSelectedCountry, setLocalSelectedCountry] = useState(selectedCountry);
   const [localLicenseKey, setLocalLicenseKey] = useState(licenseKey);
 
-  // NUEVOS ESTADOS PARA EL PAGO LOCAL (FALSO AUTOMÁTICO)
+  // ESTADOS PARA EL PAGO LOCAL (CASHEA STYLE VIP)
   const [showLocalPaymentForm, setShowLocalPaymentForm] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
+  const [emittingBank, setEmittingBank] = useState(''); // Nuevo campo Banco Emisor
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
+
+  // Lista de Bancos Venezolanos para el selector
+  const venezuelanBanks = [
+    { id: '0105', nombre: 'Mercantil' },
+    { id: '0102', nombre: 'Venezuela' },
+    { id: '0108', nombre: 'Provincial' },
+    { id: '0134', nombre: 'Banesco' },
+    { id: '0172', nombre: 'Bancaribe' },
+    { id: '0114', nombre: 'Bancaribe' },
+    { id: '0163', nombre: 'Tesoro' },
+    { id: '0168', nombre: 'Bancrecer' },
+    { id: '0191', nombre: 'BNC' },
+    { id: 'zelle', nombre: 'Zelle (No aplica banco emisor)' }
+  ];
 
   const checkRealProStatus = async () => {
     try {
@@ -88,29 +103,33 @@ function SettingsPage({
     }
   };
 
-  // NUEVA FUNCIÓN: Envío del reporte de pago local (Fase 1 simulada)
+  // Función: Envío del reporte de pago local (Simulado)
   const handleLocalPaymentSubmit = () => {
-    if (!paymentReference || !paymentDate) {
-      toast({ title: "Datos incompletos", description: "Por favor ingresa el número de referencia y la fecha.", variant: "destructive" });
-      return;
+    if (!paymentReference || !paymentDate || (showLocalPaymentForm && emittingBank === '' && !emittingBank.includes('zelle'))) {
+        // Validamos que si es Bs, ingrese el banco, pero si es Zelle, no es obligatorio
+        if(emittingBank === '' && (paymentReference.length < 10)) { // Simple chequeo si parece Zelle o PM
+             toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor (si aplica).", variant: "destructive" });
+             return;
+        }
     }
     
     setIsSubmittingLocal(true);
     
-    // Simulamos que el sistema está guardando el reporte en la Base de Datos
+    // Simulación del reporte
     setTimeout(() => {
       setIsSubmittingLocal(false);
       setShowLocalPaymentForm(false);
       setPaymentReference('');
       setPaymentDate('');
+      setEmittingBank('');
       
       toast({ 
-        title: "¡Reporte Enviado! ⏳", 
-        description: "Estamos validando tu transacción con el banco. Te notificaremos en breve y tu cuenta será activada.", 
+        title: "¡Reporte Recibido! ⏳", 
+        description: "Nuestro 'Famoso Pasante' está validando tu transacción. Te notificaremos en breve y activaremos tu cuenta PRO.", 
         variant: "success", 
         duration: 8000 
       });
-    }, 2000);
+    }, 2500);
   };
 
   const handleSave = () => onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
@@ -203,47 +222,91 @@ function SettingsPage({
                     <Smartphone className="mr-2 h-4 w-4" /> Reportar Pago Móvil / Zelle
                   </Button>
 
-                  {/* FORMULARIO DESPLEGABLE TIPO CASHEA */}
+                  {/* FORMULARIO DESPLEGABLE TIPO CASHEA (ULTRA VIP DESIGN) */}
                   {showLocalPaymentForm && (
-                    <div className="mt-4 p-4 bg-white border border-slate-200 rounded-xl shadow-inner animate-in slide-in-from-top-2 duration-300">
-                      <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
-                        <Landmark className="h-4 w-4 text-indigo-600"/> Cuentas Recaudadoras
-                      </h4>
+                    <div className="mt-4 p-5 bg-white border border-slate-200 rounded-2xl shadow-inner animate-in slide-in-from-top-2 duration-300 space-y-4">
                       
-                      <div className="text-xs text-slate-600 space-y-2 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                        <p className="flex justify-between"><strong>Pago Móvil:</strong> <span>Banesco (0134)</span></p>
-                        <p className="flex justify-between"><strong>Teléfono:</strong> <span>0424-4530606</span></p>
-                        <p className="flex justify-between"><strong>RIF/CI:</strong> <span>V-12345678</span></p>
-                        <div className="border-t border-slate-200 my-1"></div>
-                        <p className="flex justify-between"><strong>Zelle:</strong> <span>ventas.gtelca@gmail.com</span></p>
+                      {/* Cabecera del Panel de Reporte */}
+                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                        <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100">
+                          <Landmark className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-800 text-base">Reporte de Pago Local <span className="text-xs font-normal text-slate-500">(Cashea Style)</span></h4>
+                          <p className="text-xs text-slate-500">Transfiere exactamente el monto en Bs. a la tasa BCV del día. Luego ingresa los datos abajo.</p>
+                        </div>
+                      </div>
+                      
+                      {/* CAJA DE DATOS RECAUDADORES ACTUALIZADOS */}
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                         {/* Pago Movil */}
+                         <div className="flex items-start gap-3">
+                           <Smartphone className="h-5 w-5 text-indigo-500 mt-0.5"/>
+                           <div className="text-xs text-slate-600 flex-1 space-y-1">
+                             <p className="font-semibold text-slate-700">Datos para Pago Móvil (Bs.)</p>
+                             <p className="flex justify-between"><strong>Banco:</strong> <span>Mercantil (0105)</span></p>
+                             <p className="flex justify-between"><strong>Teléfono:</strong> <span>0424-4530606</span></p>
+                             <p className="flex justify-between"><strong>CI/RIF:</strong> <span>J-504781745</span></p>
+                           </div>
+                         </div>
+
+                         <div className="border-t border-slate-200 my-1"></div>
+
+                         {/* Zelle */}
+                         <div className="flex items-start gap-3">
+                           <Landmark className="h-5 w-5 text-green-500 mt-0.5"/>
+                           <div className="text-xs text-slate-600 flex-1 space-y-1">
+                             <p className="font-semibold text-slate-700">Datos para Zelle ($)</p>
+                             <p className="flex justify-between"><strong>Email:</strong> <span className="text-indigo-600 font-medium">gtelca.ventas@gmail.com</span></p>
+                           </div>
+                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs font-semibold text-slate-600">Número de Referencia</Label>
-                          <Input 
-                            value={paymentReference} 
-                            onChange={e => setPaymentReference(e.target.value)} 
-                            placeholder="Ej. 1234567890" 
-                            className="h-8 text-sm bg-slate-50" 
-                          />
+                      {/* DETALLES DE LA TRANSACCIÓN */}
+                      <div className="space-y-3 pt-1">
+                        <h5 className="font-bold text-slate-700 text-sm">Detalles de tu transacción</h5>
+                        
+                        {/* Referencia y Fecha Lado a Lado */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><ShieldCheck className="h-3 w-3"/> Número de Referencia</Label>
+                                <Input 
+                                    value={paymentReference} 
+                                    onChange={e => setPaymentReference(e.target.value)} 
+                                    placeholder="Ej. 123456" 
+                                    className="h-9 text-sm bg-slate-50 border-slate-200" 
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5"/> Fecha del Pago</Label>
+                                <Input 
+                                    type="date" 
+                                    value={paymentDate} 
+                                    onChange={e => setPaymentDate(e.target.value)} 
+                                    className="h-9 text-sm bg-slate-50 border-slate-200" 
+                                />
+                            </div>
                         </div>
+
+                        {/* BANCO EMISOR (NUEVO) */}
                         <div className="space-y-1">
-                          <Label className="text-xs font-semibold text-slate-600">Fecha de Transferencia</Label>
-                          <Input 
-                            type="date" 
-                            value={paymentDate} 
-                            onChange={e => setPaymentDate(e.target.value)} 
-                            className="h-8 text-sm bg-slate-50" 
-                          />
+                            <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Landmark className="h-3.5 w-3.5"/> Banco Emisor (Opcional para Zelle)</Label>
+                            <HeadlessSafeSelect 
+                                value={emittingBank} 
+                                onChange={setEmittingBank} 
+                                options={venezuelanBanks} 
+                                placeholder="Selecciona el banco desde donde pagaste" 
+                                className="w-full bg-slate-50 border-slate-200 text-sm"
+                            />
                         </div>
                         
+                        {/* Botón de Envío Final (Verde) */}
                         <Button 
                           onClick={handleLocalPaymentSubmit} 
                           disabled={isSubmittingLocal} 
-                          className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9"
+                          className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 shadow transition-transform hover:scale-105"
                         >
-                          {isSubmittingLocal ? "Validando..." : <><Send className="h-3.5 w-3.5 mr-2"/> Notificar Pago</>}
+                          {isSubmittingLocal ? "Validando..." : <><Send className="h-4 w-4 mr-2"/> Enviar Reporte de Pago</>}
                         </Button>
                       </div>
                     </div>
