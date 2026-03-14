@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect'; 
-import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
+// NUEVO: Agregamos el ícono Smartphone para el botón de WhatsApp
+import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone } from 'lucide-react';
 import { useToast } from '@/lib/use-toast';
 
-// NUEVO: Importamos las herramientas de PayPal
+// Importamos las herramientas de PayPal
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
 
 function SettingsPage({
@@ -141,6 +142,15 @@ function SettingsPage({
     }
   };
 
+  // Función para disparar el pago por WhatsApp (Pago Local)
+  const handleWhatsAppPayment = () => {
+    const phoneNumber = "584244530606";
+    const message = "Hola, equipo de Gestión Vital. Deseo activar mi licencia PRO. ¿Me indican los datos para transferir el equivalente a $99 en Bolívares o Zelle?";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleSave = () => {
     onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
   };
@@ -198,14 +208,14 @@ function SettingsPage({
                   {isLoadingPayment ? "Conectando..." : "Pagar con Tarjeta"}
                 </Button>
 
-                {/* SEPARADOR VISUAL */}
+                {/* SEPARADOR VISUAL 1 */}
                 <div className="flex items-center py-2">
                   <div className="flex-grow border-t border-gray-300"></div>
                   <span className="flex-shrink-0 mx-2 text-gray-400 text-xs font-semibold">O</span>
                   <div className="flex-grow border-t border-gray-300"></div>
                 </div>
 
-                {/* BOTONES DE PAYPAL (NUEVO) */}
+                {/* BOTONES DE PAYPAL */}
                 <div className="w-full relative z-0">
                   <PayPalScriptProvider options={{ "client-id": "AYNbitigiyGUkE6fkxVloFhjT5qYHhRdrEAE4kVCARG9TuYlQDxdQSZzp51CG8u9InDQYRfCrTPxklNh", currency: "USD" }}>
                     <PayPalButtons 
@@ -238,7 +248,6 @@ function SettingsPage({
                             variant: "success", 
                             duration: 8000 
                           });
-                          // Actualizamos la pantalla para que se ponga en verde
                           setTimeout(() => checkRealProStatus(), 1500);
                         }
                       }}
@@ -254,7 +263,23 @@ function SettingsPage({
                   </PayPalScriptProvider>
                 </div>
 
-                <p className="text-[10px] text-gray-400 mt-2 text-center">Pagos seguros procesados por Stripe® y PayPal®</p>
+                {/* SEPARADOR VISUAL 2 (PARA EL PAGO LOCAL) */}
+                <div className="flex items-center pt-2 pb-1">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink-0 mx-2 text-gray-400 text-xs font-semibold">PAGO LOCAL</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                {/* BOTÓN DE WHATSAPP (Bs / Zelle) */}
+                <Button 
+                  onClick={handleWhatsAppPayment} 
+                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold shadow-md transition-transform hover:scale-105"
+                >
+                  <Smartphone className="mr-2 h-4 w-4" />
+                  Pago Móvil / Zelle
+                </Button>
+
+                <p className="text-[10px] text-gray-400 mt-2 text-center">Pagos seguros procesados por Stripe®, PayPal® o Trato Directo</p>
               </div>
             )}
           </div>
