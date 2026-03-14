@@ -207,7 +207,7 @@ function SettingsPage({
 
                 {/* BOTONES DE PAYPAL (NUEVO) */}
                 <div className="w-full relative z-0">
-                  <PayPalScriptProvider options={{ "client-id": "TU_CLIENT_ID_DE_PAYPAL_AQUI", currency: "USD" }}>
+                  <PayPalScriptProvider options={{ "client-id": "AYNbitigiyGUkE6fkxVloFhjT5qYHhRdrEAE4kVCARG9TuYlQDxdQSZzp51CG8u9InDQYRfCrTPxklNh", currency: "USD" }}>
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 40 }}
                       createOrder={async () => {
