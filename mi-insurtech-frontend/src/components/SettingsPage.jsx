@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect'; 
-// NUEVO: Agregamos íconos para el panel de administración secreto (Lock, KeyRound, Settings2)
 import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays, Lock, KeyRound, Settings2 } from 'lucide-react';
 import { useToast } from '@/lib/use-toast';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
@@ -21,25 +20,23 @@ function SettingsPage({
   const [isProFromBackend, setIsProFromBackend] = useState(false);
   const apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1';
 
-  // Estados locales para los valores del formulario general
+  // Estados locales
   const [localSelectedLanguage, setLocalSelectedLanguage] = useState(selectedLanguage);
   const [localCurrencySymbol, setLocalCurrencySymbol] = useState(currencySymbol);
   const [localDateFormat, setLocalDateFormat] = useState(dateFormat);
   const [localSelectedCountry, setLocalSelectedCountry] = useState(selectedCountry);
   const [localLicenseKey, setLocalLicenseKey] = useState(licenseKey);
 
-  // ESTADOS PARA EL PAGO LOCAL (CASHEA STYLE)
+  // Estados Pago Local
   const [showLocalPaymentForm, setShowLocalPaymentForm] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
   const [emittingBank, setEmittingBank] = useState('');
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
-  // ==========================================
-  // NUEVOS ESTADOS: PANEL DE ADMINISTRACIÓN
-  // ==========================================
+  // Estados Panel Admin Global
   const [globalPrice, setGlobalPrice] = useState(99.00);
-  const [globalRate, setGlobalRate] = useState(36.25); // Tasa BCV de ejemplo
+  const [globalRate, setGlobalRate] = useState(36.25);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -47,17 +44,30 @@ function SettingsPage({
   const [tempRate, setTempRate] = useState(36.25);
 
   const venezuelanBanks = [
-    { id: '0105', nombre: 'Mercantil' },
-    { id: '0102', nombre: 'Venezuela' },
-    { id: '0108', nombre: 'Provincial' },
-    { id: '0134', nombre: 'Banesco' },
-    { id: '0172', nombre: 'Bancaribe' },
-    { id: '0114', nombre: 'Bancaribe' },
-    { id: '0163', nombre: 'Tesoro' },
-    { id: '0168', nombre: 'Bancrecer' },
-    { id: '0191', nombre: 'BNC' },
-    { id: 'zelle', nombre: 'Zelle (No aplica banco emisor)' }
+    { id: '0105', nombre: 'Mercantil' }, { id: '0102', nombre: 'Venezuela' },
+    { id: '0108', nombre: 'Provincial' }, { id: '0134', nombre: 'Banesco' },
+    { id: '0172', nombre: 'Bancaribe' }, { id: '0114', nombre: 'Bancaribe' },
+    { id: '0163', nombre: 'Tesoro' }, { id: '0168', nombre: 'Bancrecer' },
+    { id: '0191', nombre: 'BNC' }, { id: 'zelle', nombre: 'Zelle (No aplica)' }
   ];
+
+  // ==========================================
+  // CONEXIÓN CON EL BACKEND (LEYENDO LA BÓVEDA)
+  // ==========================================
+  const fetchGlobalParams = async () => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/parametros-globales`);
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalRate(data.tasa_bcv);
+        setGlobalPrice(data.precio_licencia);
+        setTempRate(data.tasa_bcv);
+        setTempPrice(data.precio_licencia);
+      }
+    } catch (error) {
+      console.error("Error obteniendo parámetros globales:", error);
+    }
+  };
 
   const checkRealProStatus = async () => {
     try {
@@ -76,7 +86,10 @@ function SettingsPage({
     }
   };
 
-  useEffect(() => { checkRealProStatus(); }, []);
+  useEffect(() => { 
+    checkRealProStatus(); 
+    fetchGlobalParams(); // Buscamos la tasa al cargar la página
+  }, []);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -120,22 +133,11 @@ function SettingsPage({
              return;
         }
     }
-    
     setIsSubmittingLocal(true);
-    
     setTimeout(() => {
-      setIsSubmittingLocal(false);
-      setShowLocalPaymentForm(false);
-      setPaymentReference('');
-      setPaymentDate('');
-      setEmittingBank('');
-      
-      toast({ 
-        title: "¡Reporte Recibido! ⏳", 
-        description: "Nuestro equipo está validando tu transacción. Te notificaremos en breve y activaremos tu cuenta PRO.", 
-        variant: "success", 
-        duration: 8000 
-      });
+      setIsSubmittingLocal(false); setShowLocalPaymentForm(false);
+      setPaymentReference(''); setPaymentDate(''); setEmittingBank('');
+      toast({ title: "¡Reporte Recibido! ⏳", description: "Nuestro equipo está validando tu transacción. Te notificaremos en breve.", variant: "success", duration: 8000 });
     }, 2500);
   };
 
@@ -154,11 +156,34 @@ function SettingsPage({
     setAdminPasswordInput('');
   };
 
-  const handleSaveAdminSettings = () => {
-    setGlobalPrice(parseFloat(tempPrice));
-    setGlobalRate(parseFloat(tempRate));
-    setShowAdminPanel(false);
-    toast({ title: "Valores Globales Actualizados", description: "El nuevo precio y la tasa BCV están en línea para todos los clientes.", variant: "default" });
+  // NUEVO: Enviar los datos guardados al servidor (Backend)
+  const handleSaveAdminSettings = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${apiBaseUrl}/parametros-globales`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tasa_bcv: parseFloat(tempRate),
+          precio_licencia: parseFloat(tempPrice)
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalRate(data.tasa_bcv);
+        setGlobalPrice(data.precio_licencia);
+        setShowAdminPanel(false);
+        toast({ title: "Valores Guardados", description: "La tasa BCV y el precio han sido actualizados en la base de datos.", variant: "success" });
+      } else {
+        toast({ title: "Error", description: "No se pudieron guardar los cambios en el servidor.", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error de conexión", description: "Revisa tu conexión a internet.", variant: "destructive" });
+    }
   };
 
   const effectivelyValid = isLicenseValid || isProFromBackend;
@@ -195,7 +220,6 @@ function SettingsPage({
 
             {!effectivelyValid && (
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 min-w-[320px] max-w-sm flex-shrink-0">
-                {/* PRECIO DINÁMICO CONECTADO AL ADMIN */}
                 <p className="text-2xl font-black text-center text-gray-800 mb-4">${globalPrice.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ año</span></p>
                 
                 <div className="space-y-3">
@@ -216,8 +240,7 @@ function SettingsPage({
                         createOrder={async () => {
                           const token = localStorage.getItem('access_token');
                           const res = await fetch(`${apiBaseUrl}/payments/paypal/create-order`, { method: "POST", headers: { 'Authorization': `Bearer ${token}` } });
-                          const order = await res.json();
-                          return order.id;
+                          const order = await res.json(); return order.id;
                         }}
                         onApprove={async (data, actions) => {
                           const token = localStorage.getItem('access_token');
@@ -253,16 +276,13 @@ function SettingsPage({
                     <div className="mt-4 p-5 bg-white border border-slate-200 rounded-2xl shadow-inner animate-in slide-in-from-top-2 duration-300 space-y-4">
                       
                       <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                        <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100">
-                          <Landmark className="h-6 w-6 text-indigo-600" />
-                        </div>
+                        <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100"><Landmark className="h-6 w-6 text-indigo-600" /></div>
                         <div className="flex-1">
                           <h4 className="font-bold text-slate-800 text-base">Reporte de Pago Local</h4>
                           <p className="text-xs text-slate-500">Transfiere el monto exacto y registra los datos abajo.</p>
                         </div>
                       </div>
 
-                      {/* CALCULADORA AUTOMÁTICA DE BOLÍVARES */}
                       <div className="bg-indigo-600 p-3 rounded-xl border border-indigo-700 text-center shadow-sm">
                         <p className="text-xs font-medium text-indigo-100 mb-1">Monto exacto a transferir (Bs.)</p>
                         <p className="text-2xl font-black text-white tracking-wide">Bs. {(globalPrice * globalRate).toLocaleString('es-VE', {minimumFractionDigits: 2})}</p>
@@ -319,7 +339,6 @@ function SettingsPage({
         </CardContent>
       </Card>
 
-      {/* PANEL DE CONFIGURACIÓN REGIONAL */}
       <Card className="w-full max-w-2xl shadow-lg rounded-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">Configuración General</CardTitle>
@@ -364,44 +383,23 @@ function SettingsPage({
 
             {!isAdminAuthenticated ? (
               <div className="flex gap-2">
-                <Input 
-                  type="password" 
-                  value={adminPasswordInput} 
-                  onChange={(e) => setAdminPasswordInput(e.target.value)} 
-                  placeholder="Introduce la Clave Maestra" 
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-                />
-                <Button onClick={handleAdminAuth} className="bg-emerald-600 hover:bg-emerald-500 text-white">
-                  <KeyRound size={16} className="mr-2" /> Desbloquear
-                </Button>
+                <Input type="password" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} placeholder="Introduce la Clave Maestra" className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"/>
+                <Button onClick={handleAdminAuth} className="bg-emerald-600 hover:bg-emerald-500 text-white"><KeyRound size={16} className="mr-2" /> Desbloquear</Button>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Costo de Licencia (USD)</Label>
-                    <Input 
-                      type="number" 
-                      value={tempPrice} 
-                      onChange={(e) => setTempPrice(e.target.value)} 
-                      className="bg-slate-800 border-slate-700 text-white font-mono text-lg"
-                    />
+                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Costo Licencia (USD)</Label>
+                    <Input type="number" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Tasa BCV del Día (Bs)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      value={tempRate} 
-                      onChange={(e) => setTempRate(e.target.value)} 
-                      className="bg-slate-800 border-slate-700 text-white font-mono text-lg"
-                    />
+                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Tasa BCV (Bs)</Label>
+                    <Input type="number" step="0.01" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                 </div>
                 <div className="flex justify-end pt-2 border-t border-slate-800">
-                  <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">
-                    Guardar y Aplicar Globalmente
-                  </Button>
+                  <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">Guardar y Aplicar Globalmente</Button>
                 </div>
               </div>
             )}
