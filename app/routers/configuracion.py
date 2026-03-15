@@ -1,18 +1,24 @@
 # app/routers/configuracion.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from pydantic import BaseModel  # <-- NUEVO: Importamos el creador de moldes
 from app.db.database import get_session
 from app.models.configuracion import Configuracion
 from app.models.user import User
 from app.auth.auth_bearer import get_current_user
-
-# NUEVO: Importamos el modelo de la bóveda
 from app.models.parametro_global import ParametroGlobal 
 
 router = APIRouter(tags=["Configuración"])
 
 # ==========================================
-# RUTAS DE CONFIGURACIÓN DEL USUARIO (EXISTENTES)
+# MOLDE RECEPTOR (SCHEMA)
+# ==========================================
+class ParametrosUpdate(BaseModel):
+    tasa_bcv: float
+    precio_licencia: float
+
+# ==========================================
+# RUTAS DE CONFIGURACIÓN DEL USUARIO
 # ==========================================
 @router.get("/configuracion", response_model=Configuracion)
 def obtener_configuracion(
@@ -58,14 +64,13 @@ def actualizar_configuracion(
     return db_config
 
 # ==========================================
-# NUEVAS RUTAS: BÓVEDA DEL CEO (GLOBALES)
+# RUTAS GLOBALES DE LA BÓVEDA DEL CEO
 # ==========================================
 @router.get("/parametros-globales")
 def obtener_parametros_globales(session: Session = Depends(get_session)):
     statement = select(ParametroGlobal)
     parametros = session.exec(statement).first()
     
-    # Si no existe en la base de datos, lo creamos con valores por defecto
     if not parametros:
         parametros = ParametroGlobal(tasa_bcv=36.25, precio_licencia=99.00)
         session.add(parametros)
@@ -76,12 +81,10 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
 
 @router.put("/parametros-globales")
 def actualizar_parametros_globales(
-    datos: ParametroGlobal,
+    datos: ParametrosUpdate,  # <-- NUEVO: Usamos el molde receptor simple aquí
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    print(f"--- CEO ACTUALIZANDO PARÁMETROS GLOBALES: Tasa {datos.tasa_bcv}, Precio {datos.precio_licencia} ---") # ESTA ES LA LÍNEA NUEVA
-    
     if current_user.id is None:
         raise HTTPException(status_code=401)
 
@@ -89,12 +92,14 @@ def actualizar_parametros_globales(
     parametros_db = session.exec(statement).first()
 
     if not parametros_db:
-        session.add(datos)
+        # Si por alguna razón no existía en la DB, lo creamos
+        nuevo_parametro = ParametroGlobal(tasa_bcv=datos.tasa_bcv, precio_licencia=datos.precio_licencia)
+        session.add(nuevo_parametro)
         session.commit()
-        session.refresh(datos)
-        return datos
+        session.refresh(nuevo_parametro)
+        return nuevo_parametro
     else:
-        # Actualizamos los valores existentes
+        # Actualizamos la Base de Datos con los valores validados
         parametros_db.tasa_bcv = datos.tasa_bcv
         parametros_db.precio_licencia = datos.precio_licencia
         session.add(parametros_db)
