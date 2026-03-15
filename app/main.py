@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import create_db_and_tables
-from app.models.parametro_global import ParametroGlobal
+from app.models.parametro_global import ParametroGlobal, HistorialTasa
 import os
 from dotenv import load_dotenv
 
