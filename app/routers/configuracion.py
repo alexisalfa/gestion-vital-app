@@ -1,7 +1,7 @@
 # app/routers/configuracion.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from pydantic import BaseModel  # <-- NUEVO: Importamos el creador de moldes
+from pydantic import BaseModel  
 from app.db.database import get_session
 from app.models.configuracion import Configuracion
 from app.models.user import User
@@ -11,7 +11,7 @@ from app.models.parametro_global import ParametroGlobal
 router = APIRouter(tags=["Configuración"])
 
 # ==========================================
-# MOLDE RECEPTOR (SCHEMA)
+# MOLDE RECEPTOR (SCHEMA PARA EVITAR EL ERROR 422)
 # ==========================================
 class ParametrosUpdate(BaseModel):
     tasa_bcv: float
@@ -81,7 +81,7 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
 
 @router.put("/parametros-globales")
 def actualizar_parametros_globales(
-    datos: ParametrosUpdate,  # <-- NUEVO: Usamos el molde receptor simple aquí
+    datos: ParametrosUpdate,  # Usamos el molde receptor aquí
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -92,14 +92,12 @@ def actualizar_parametros_globales(
     parametros_db = session.exec(statement).first()
 
     if not parametros_db:
-        # Si por alguna razón no existía en la DB, lo creamos
         nuevo_parametro = ParametroGlobal(tasa_bcv=datos.tasa_bcv, precio_licencia=datos.precio_licencia)
         session.add(nuevo_parametro)
         session.commit()
         session.refresh(nuevo_parametro)
         return nuevo_parametro
     else:
-        # Actualizamos la Base de Datos con los valores validados
         parametros_db.tasa_bcv = datos.tasa_bcv
         parametros_db.precio_licencia = datos.precio_licencia
         session.add(parametros_db)
