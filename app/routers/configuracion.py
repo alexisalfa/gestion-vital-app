@@ -1,5 +1,5 @@
 # app/routers/configuracion.py
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime
@@ -7,18 +7,19 @@ from app.db.database import get_session
 from app.models.configuracion import Configuracion
 from app.models.user import User
 from app.auth.auth_bearer import get_current_user
-
-# Importamos los nuevos modelos
 from app.models.parametro_global import ParametroGlobal, HistorialTasa 
 
 router = APIRouter(tags=["Configuración"])
 
+# ==========================================
+# EL MOLDE (Solo escrito UNA vez)
+# ==========================================
 class ParametrosUpdate(BaseModel):
     tasa_bcv: float
     precio_licencia: float
 
 # ==========================================
-# RUTAS DE CONFIGURACIÓN DEL USUARIO (Se mantienen igual)
+# RUTAS DE CONFIGURACIÓN DEL USUARIO
 # ==========================================
 @router.get("/configuracion", response_model=Configuracion)
 def obtener_configuracion(session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
@@ -62,25 +63,22 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
 
 @router.put("/parametros-globales")
 def actualizar_parametros_globales(
-    datos: dict,  # <-- EL TRUCO: Acepta cualquier JSON sin rechazarlo
+    datos: ParametrosUpdate,  # <-- Usamos el molde correcto
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     if current_user.id is None:
         raise HTTPException(status_code=401)
 
-    # Forzamos a Render a imprimir esto INMEDIATAMENTE en la consola negra
     print(f"🔥 DEBUG BODY RECIBIDO EN LA BÓVEDA: {datos} 🔥", flush=True)
 
-    # Extraemos los números a la fuerza
-    tasa = float(datos.get("tasa_bcv", 36.25))
-    precio = float(datos.get("precio_licencia", 99.00))
+    tasa = datos.tasa_bcv
+    precio = datos.precio_licencia
 
     statement = select(ParametroGlobal)
     parametros_db = session.exec(statement).first()
     fuente_actualizacion = "MANUAL_CEO"
 
-    # Guardamos en la tabla principal
     if not parametros_db:
         parametros_db = ParametroGlobal(
             tasa_bcv=tasa,
@@ -96,7 +94,6 @@ def actualizar_parametros_globales(
         parametros_db.ultima_actualizacion = datetime.utcnow()
         session.add(parametros_db)
 
-    # Guardamos el rastro en el Historial de Auditoría
     nuevo_historial = HistorialTasa(
         moneda_base="USD",
         moneda_destino="VES",
@@ -109,18 +106,14 @@ def actualizar_parametros_globales(
     session.refresh(parametros_db)
     return parametros_db
 
-# --- NUEVO: MICROSERVICIO FINTECH DE CONVERSIÓN ---
+# --- MICROSERVICIO FINTECH DE CONVERSIÓN ---
 @router.get("/convert")
 def convert_currency(amount: float, from_currency: str = "USD", to_currency: str = "VES", db: Session = Depends(get_session)):
-    
-    # Buscamos la tasa actual en la bóveda
     statement = select(ParametroGlobal)
     parametros = db.exec(statement).first()
-    
     if not parametros:
         raise HTTPException(status_code=500, detail="Tasas de cambio no configuradas en el sistema")
 
-    # Lógica del motor de conversión
     rate = 1.0
     if from_currency == "USD" and to_currency == "VES":
         rate = parametros.tasa_bcv
