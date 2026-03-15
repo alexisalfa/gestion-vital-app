@@ -1,5 +1,5 @@
 # app/routers/configuracion.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime
@@ -61,39 +61,46 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
     return parametros
 
 @router.put("/parametros-globales")
-def actualizar_parametros_globales(
-    datos: ParametrosUpdate,
+async def actualizar_parametros_globales(
+    request: Request, # <-- Aceptamos el paquete crudo sin molde
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     if current_user.id is None: raise HTTPException(status_code=401)
 
+    # 1. Abrimos el paquete a la fuerza
+    datos_crudos = await request.json()
+    print(f"--- PAQUETE RECIBIDO EN ADUANA: {datos_crudos} ---")
+
+    # Extraemos los valores (con un plan de respaldo por si acaso)
+    tasa = float(datos_crudos.get("tasa_bcv", 36.25))
+    precio = float(datos_crudos.get("precio_licencia", 99.00))
+
     statement = select(ParametroGlobal)
     parametros_db = session.exec(statement).first()
+    fuente_actualizacion = "MANUAL_CEO"
 
-    fuente_actualizacion = "MANUAL_CEO" # Como entra por este endpoint (Frontend), sabemos que fuiste tú
-
-    # 1. Actualizamos los parámetros globales
+    # 2. Guardamos en la tabla de Parámetros
     if not parametros_db:
         parametros_db = ParametroGlobal(
-            tasa_bcv=datos.tasa_bcv, 
-            precio_licencia=datos.precio_licencia,
+            tasa_bcv=tasa, 
+            precio_licencia=precio,
             fuente_tasa=fuente_actualizacion,
             ultima_actualizacion=datetime.utcnow()
         )
         session.add(parametros_db)
     else:
-        parametros_db.tasa_bcv = datos.tasa_bcv
-        parametros_db.precio_licencia = datos.precio_licencia
+        parametros_db.tasa_bcv = tasa
+        parametros_db.precio_licencia = precio
         parametros_db.fuente_tasa = fuente_actualizacion
         parametros_db.ultima_actualizacion = datetime.utcnow()
         session.add(parametros_db)
 
-    # 2. Guardamos la evidencia en el Historial (Auditoría)
+    # 3. Guardamos en el Historial de Auditoría
     nuevo_historial = HistorialTasa(
         moneda_base="USD",
         moneda_destino="VES",
-        tasa=datos.tasa_bcv,
+        tasa=tasa,
         fuente=fuente_actualizacion
     )
     session.add(nuevo_historial)
