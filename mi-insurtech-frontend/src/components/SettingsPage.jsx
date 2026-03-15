@@ -156,9 +156,19 @@ function SettingsPage({
     setAdminPasswordInput('');
   };
 
-  // NUEVO: Enviar los datos guardados al servidor (Backend)
+  // NUEVO: Enviar los datos con protección anti-comas
   const handleSaveAdminSettings = async () => {
     try {
+      // 1. Convertimos las comas en puntos para que la base de datos lo acepte
+      const cleanRate = parseFloat(String(tempRate).replace(',', '.'));
+      const cleanPrice = parseFloat(String(tempPrice).replace(',', '.'));
+
+      // 2. Verificamos que sean números reales
+      if (isNaN(cleanRate) || isNaN(cleanPrice)) {
+        toast({ title: "Error de Formato", description: "Por favor verifica que solo estés ingresando números.", variant: "destructive" });
+        return;
+      }
+
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${apiBaseUrl}/parametros-globales`, {
         method: 'PUT',
@@ -167,8 +177,8 @@ function SettingsPage({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          tasa_bcv: parseFloat(tempRate),
-          precio_licencia: parseFloat(tempPrice)
+          tasa_bcv: cleanRate,
+          precio_licencia: cleanPrice
         })
       });
 
@@ -391,11 +401,11 @@ function SettingsPage({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <Label className="text-slate-400 text-xs uppercase tracking-wider">Costo Licencia (USD)</Label>
-                    <Input type="number" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
+                    <Input type="text" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-slate-400 text-xs uppercase tracking-wider">Tasa BCV (Bs)</Label>
-                    <Input type="number" step="0.01" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
+                    <Input type="text" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                 </div>
                 <div className="flex justify-end pt-2 border-t border-slate-800">
