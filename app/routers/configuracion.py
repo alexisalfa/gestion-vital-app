@@ -80,6 +80,8 @@ def actualizar_parametros_globales(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
+    print(f"--- CEO ACTUALIZANDO PARÁMETROS GLOBALES: Tasa {datos.tasa_bcv}, Precio {datos.precio_licencia} ---") # ESTA ES LA LÍNEA NUEVA
+    
     if current_user.id is None:
         raise HTTPException(status_code=401)
 
