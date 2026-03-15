@@ -61,29 +61,29 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
     return parametros
 
 @router.put("/parametros-globales")
-async def actualizar_parametros_globales(
-    request: Request, # <-- Aceptamos el paquete crudo sin molde
+def actualizar_parametros_globales(
+    datos: dict,  # <-- EL TRUCO: Acepta cualquier JSON sin rechazarlo
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.id is None: raise HTTPException(status_code=401)
+    if current_user.id is None:
+        raise HTTPException(status_code=401)
 
-    # 1. Abrimos el paquete a la fuerza
-    datos_crudos = await request.json()
-    print(f"--- PAQUETE RECIBIDO EN ADUANA: {datos_crudos} ---")
+    # Forzamos a Render a imprimir esto INMEDIATAMENTE en la consola negra
+    print(f"🔥 DEBUG BODY RECIBIDO EN LA BÓVEDA: {datos} 🔥", flush=True)
 
-    # Extraemos los valores (con un plan de respaldo por si acaso)
-    tasa = float(datos_crudos.get("tasa_bcv", 36.25))
-    precio = float(datos_crudos.get("precio_licencia", 99.00))
+    # Extraemos los números a la fuerza
+    tasa = float(datos.get("tasa_bcv", 36.25))
+    precio = float(datos.get("precio_licencia", 99.00))
 
     statement = select(ParametroGlobal)
     parametros_db = session.exec(statement).first()
     fuente_actualizacion = "MANUAL_CEO"
 
-    # 2. Guardamos en la tabla de Parámetros
+    # Guardamos en la tabla principal
     if not parametros_db:
         parametros_db = ParametroGlobal(
-            tasa_bcv=tasa, 
+            tasa_bcv=tasa,
             precio_licencia=precio,
             fuente_tasa=fuente_actualizacion,
             ultima_actualizacion=datetime.utcnow()
@@ -96,7 +96,7 @@ async def actualizar_parametros_globales(
         parametros_db.ultima_actualizacion = datetime.utcnow()
         session.add(parametros_db)
 
-    # 3. Guardamos en el Historial de Auditoría
+    # Guardamos el rastro en el Historial de Auditoría
     nuevo_historial = HistorialTasa(
         moneda_base="USD",
         moneda_destino="VES",
