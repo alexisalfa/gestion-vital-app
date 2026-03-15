@@ -1,7 +1,7 @@
 # app/routers/configuracion.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from pydantic import BaseModel  
+from pydantic import BaseModel  # <-- ESTO ES LO QUE ARREGLA EL ERROR 422
 from app.db.database import get_session
 from app.models.configuracion import Configuracion
 from app.models.user import User
@@ -11,7 +11,7 @@ from app.models.parametro_global import ParametroGlobal
 router = APIRouter(tags=["Configuración"])
 
 # ==========================================
-# MOLDE RECEPTOR (SCHEMA PARA EVITAR EL ERROR 422)
+# EL "MOLDE" PARA RECIBIR DATOS DEL FRONTEND
 # ==========================================
 class ParametrosUpdate(BaseModel):
     tasa_bcv: float
@@ -81,7 +81,7 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
 
 @router.put("/parametros-globales")
 def actualizar_parametros_globales(
-    datos: ParametrosUpdate,  # Usamos el molde receptor aquí
+    datos: ParametrosUpdate,  # <-- AQUÍ USAMOS EL MOLDE PARA QUE NO RECHACE EL DATO
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
