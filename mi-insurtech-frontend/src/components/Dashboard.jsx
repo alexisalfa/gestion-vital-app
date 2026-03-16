@@ -25,7 +25,8 @@ const Dashboard = ({
   statistics, 
   upcomingPolicies = [], 
   currencySymbol = '$',
-  lossRatio = { ratio: 0, totalSiniestros: 0 } // RECIBIMOS EL DATO SIN BORRAR NADA
+  lossRatio = { ratio: 0, totalSiniestros: 0 }, // RECIBIMOS EL DATO SIN BORRAR NADA
+  isLoadingStats // <-- 🚨 GUILLOTINA: Ahora escuchamos al servidor para saber si terminó de cargar
 }) => {
   const [timeLeft, setTimeLeft] = useState("Cargando...");
   
@@ -35,8 +36,21 @@ const Dashboard = ({
 
   // --- LÓGICA DEL RELOJ DINÁMICO ---
   useEffect(() => {
+    // 1. Si el servidor está pensando, mostramos que está cargando
+    if (isLoadingStats) {
+      setTimeLeft("Cargando...");
+      return;
+    }
+
+    // 2. 🚨 LA GUILLOTINA 🚨: Si el servidor terminó pero no hay estadísticas (Bloqueo 403), forzamos EXPIRADO
+    if (!statistics || Object.keys(statistics).length === 0) {
+      setTimeLeft("EXPIRADO");
+      return;
+    }
+
     const esTrial = statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba === true;
     
+    // 3. Si no es prueba y tiene sus datos completos, es Activa
     if (!esTrial || !statistics?.fecha_vencimiento) {
       setTimeLeft("LICENCIA ACTIVA");
       return;
@@ -63,7 +77,7 @@ const Dashboard = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [statistics]);
+  }, [statistics, isLoadingStats]); // <-- Agregamos isLoadingStats a las dependencias
 
   // --- DATOS DINÁMICOS PARA GRÁFICOS ---
   const pieData = useMemo(() => [
