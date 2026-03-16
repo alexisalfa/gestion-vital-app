@@ -25,16 +25,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/lib/use-toast';
 import { ConfirmationProvider } from './components/ConfirmationContext';
 import { saveAs } from 'file-saver';
-// ⚡ IMPORTACIONES ACTUALIZADAS (SE AGREGÓ DollarSign PARA EL DINERO EN LA CALLE)
 import { ChevronRight, ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign } from 'lucide-react';
 import DashboardCharts from './components/DashboardCharts';
 import ClienteImport from './components/ClienteImport';
 import { Button } from '@/components/ui/button';
-
-// --- IMPORTACIÓN DEL MOTOR DE IDIOMAS ---
 import { useTranslation } from 'react-i18next';
-
-// Importar jsPDF y jspdf-autotable
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -96,14 +91,13 @@ function App() {
   const [apiBaseUrl] = useState('https://gestion-vital-app.onrender.com/api/v1');
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
-  const [quickAddModal, setQuickAddModal] = useState(null); // 'cliente' o 'siniestro'
+  const [quickAddModal, setQuickAddModal] = useState(null); 
 
   const handleCloseQuickAdd = () => {
     setQuickAddModal(null);
     setIsQuickMenuOpen(false);
   };
 
-  // Estados para datos de listas
   const [clientes, setClientes] = useState([]);
   const [polizas, setPolizas] = useState([]);
   const [reclamaciones, setReclamaciones] = useState([]);
@@ -111,7 +105,6 @@ function App() {
   const [asesores, setAsesores] = useState([]);
   const [comisiones, setComisiones] = useState([]);
 
-  // Estados de Carga
   const [isLoadingClients, setIsLoadingClients] = useState(true);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [isLoadingAdvisors, setIsLoadingAdvisors] = useState(true);
@@ -119,13 +112,11 @@ function App() {
   const [isLoadingReclamaciones, setIsLoadingReclamaciones] = useState(true);
   const [isLoadingComisiones, setIsLoadingComisiones] = useState(true);
 
-  // Estados para el Dashboard
   const [statisticsSummaryData, setStatisticsSummaryData] = useState(null);
   const [isLoadingStatisticsSummary, setIsLoadingStatisticsSummary] = useState(true);
   const [polizasProximasAVencer, setPolizasProximasAVencer] = useState([]);
   const [isLoadingPolizasProximasAVencer, setIsLoadingPolizasProximasAVencer] = useState(true);
 
-  // Estados Totales
   const [totalClients, setTotalClients] = useState(0);
   const [totalPolizas, setTotalPolizas] = useState(0);
   const [totalReclamaciones, setTotalReclamaciones] = useState(0);
@@ -136,12 +127,10 @@ function App() {
   const { toast } = useToast();
   const [showRegisterForm, setShowRegisterForm] = useState(false);
 
-  // Estados Filtros Clientes
   const [clienteSearchTerm, setClienteSearchTerm] = useState('');
   const [clienteEmailFilter, setClienteEmailFilter] = useState('');
   const [clienteCurrentPage, setClienteCurrentPage] = useState(1);
 
-  // Estados Filtros Pólizas
   const [polizaSearchTerm, setPolizaSearchTerm] = useState('');
   const [polizaTipoFilter, setPolizaTipoFilter] = useState('');
   const [polizaEstadoFilter, setPolizaEstadoFilter] = useState('');
@@ -150,7 +139,6 @@ function App() {
   const [polizaFechaFinFilter, setPolizaFechaFinFilter] = useState('');
   const [polizaCurrentPage, setPolizaCurrentPage] = useState(1);
 
-  // Estados Filtros Reclamaciones
   const [reclamacionSearchTerm, setReclamacionSearchTerm] = useState('');
   const [reclamacionEstadoFilter, setReclamacionEstadoFilter] = useState('');
   const [reclamacionClienteIdFilter, setReclamacionClienteIdFilter] = useState('');
@@ -161,22 +149,18 @@ function App() {
   const [fechaReclamacionFinFilter, setFechaReclamacionFinFilter] = useState('');
   const [reclamacionCurrentPage, setReclamacionCurrentPage] = useState(1);
 
-  // Estados Filtros Empresas
   const [empresaAseguradoraSearchTerm, setEmpresaAseguradoraSearchTerm] = useState('');
   const [empresaAseguradoraCurrentPage, setEmpresaAseguradoraCurrentPage] = useState(1);
 
-  // Estados Filtros Asesores
   const [asesorSearchTerm, setAsesorSearchTerm] = useState('');
   const [asesorCurrentPage, setAsesorCurrentPage] = useState(1);
 
-  // Estados Filtros Comisiones
   const [comisionAsesorIdFilter, setComisionAsesorIdFilter] = useState('');
   const [comisionEstadoPagoFilter, setComisionEstadoPagoFilter] = useState('');
   const [comisionFechaInicioFilter, setComisionFechaInicioFilter] = useState('');
   const [comisionFechaFinFilter, setComisionFechaFinFilter] = useState('');
   const [comisionCurrentPage, setComisionCurrentPage] = useState(1);
 
-  // Estados Configuración Global
   const [selectedLanguage, setSelectedLanguage] = useState(localStorage.getItem('selectedLanguage') || 'es');
   const [currencySymbol, setCurrencySymbol] = useState(localStorage.getItem('currencySymbol') || '$');
   const [dateFormat, setDateFormat] = useState(localStorage.getItem('dateFormat') || 'DD/MM/YYYY');
@@ -184,9 +168,6 @@ function App() {
   const [licenseKey, setLicenseKey] = useState(localStorage.getItem('licenseKey') || '');
   const [isLicenseValid, setIsLicenseValid] = useState(false);
 
-  // =========================================================================
-  // 🚀 LÓGICA DE CÁLCULO DE SINIESTRALIDAD (LOSS RATIO)
-  // =========================================================================
   const lossRatioData = useMemo(() => {
     const totalPrimas = statisticsSummaryData?.total_primas || 0;
     const totalSiniestros = reclamaciones
@@ -198,21 +179,16 @@ function App() {
     };
   }, [statisticsSummaryData, reclamaciones]);
 
-  // =========================================================================
-  // 💰 NUEVA LÓGICA: RADAR DE "DINERO EN LA CALLE"
-  // =========================================================================
   const dineroEnLaCalle = useMemo(() => {
     const pendientes = comisiones.filter(c => c.estatus_pago?.toLowerCase() === 'pendiente');
     const total = pendientes.reduce((sum, c) => sum + (parseFloat(c.monto_final) || 0), 0);
     return { cantidad: pendientes.length, total };
   }, [comisiones]);
 
-  // Cálculo del total de alertas para la campanita
   const totalAlerts = (polizasProximasAVencer?.length || 0) + 
                       (statisticsSummaryData?.total_reclamaciones_pendientes || 0) + 
                       (dineroEnLaCalle.cantidad > 0 ? 1 : 0);
 
-  // --- EFECTOS INICIALES ---
   useEffect(() => {
     const savedLicenseKey = localStorage.getItem('licenseKey');
     setIsLicenseValid(savedLicenseKey === MASTER_LICENSE_KEY);
@@ -224,7 +200,6 @@ function App() {
     }
   }, [selectedLanguage, i18n]);
 
-  // --- MÉTODOS DE CONFIGURACIÓN Y AUTENTICACIÓN ---
   const saveSettings = useCallback((newLanguage, newCurrencySymbol, newDateFormat, newSelectedCountry, newLicenseKey) => {
     localStorage.setItem('selectedLanguage', newLanguage);
     localStorage.setItem('currencySymbol', newCurrencySymbol);
@@ -241,18 +216,10 @@ function App() {
     const isValid = newLicenseKey === MASTER_LICENSE_KEY;
     setIsLicenseValid(isValid);
 
-    toast({
-      title: "Configuración Guardada",
-      description: "Los ajustes han sido guardados exitosamente.",
-      variant: "success",
-    });
+    toast({ title: "Configuración Guardada", description: "Los ajustes han sido guardados exitosamente.", variant: "success" });
 
     if (!isValid) {
-      toast({
-        title: "Licencia Inválida",
-        description: "La clave de licencia ingresada no es válida.",
-        variant: "destructive",
-      });
+      toast({ title: "Licencia Inválida", description: "La clave de licencia ingresada no es válida.", variant: "destructive" });
     }
   }, [toast]);
 
@@ -270,8 +237,6 @@ function App() {
     toast({ title: "Inicio de Sesión Exitoso", description: "¡Bienvenido de nuevo!", variant: "success" });
   }, [toast]);
 
-
-  // --- FUNCIONES DE CARGA (FETCH) ---
   const fetchClientsData = useCallback(async (offset, limit, searchTerm, emailFilter) => {
     const token = localStorage.getItem('access_token');
     if (!token) { setIsLoadingClients(false); return; }
@@ -437,7 +402,6 @@ function App() {
       const data = await response.json();
       const comisionesList = Array.isArray(data) ? data : (data.items || []);
       
-      // Mapeo seguro
       const comisionesEnriquecidas = comisionesList.map(com => {
         const poliza = polizas.find(p => p.id === com.id_poliza);
         const asesor = asesores.find(a => a.id === com.id_asesor);
@@ -457,6 +421,7 @@ function App() {
     }
   }, [handleLogout, polizas, asesores]);
 
+  // 🚨 GUILLOTINA EN APP.JSX: Modificación para borrar la data si el servidor da error (403)
   const fetchStatisticsSummaryData = useCallback(async () => {
     setIsLoadingStatisticsSummary(true);
     const token = localStorage.getItem('access_token');
@@ -473,6 +438,8 @@ function App() {
       setStatisticsSummaryData(data);
     } catch (error) {
       console.error("ERROR: fetchStatisticsSummaryData", error);
+      // 🚨 Limpiamos la data vieja para que el Dashboard no se confunda
+      setStatisticsSummaryData(null); 
     } finally {
       setIsLoadingStatisticsSummary(false);
     }
@@ -497,18 +464,11 @@ function App() {
     }
   }, [handleLogout]);
 
-  // =========================================================================
-  // 🚨 ZONA DE EFECTOS RECONSTRUIDA Y BLINDADA ANTI-BUCLES 🚨
-  // =========================================================================
-
-  // Efecto Maestro Centralizado: Solo se ejecuta cuando cambias de pestaña o página
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // 1. Siempre actualizar estadísticas globales
     fetchStatisticsSummaryData();
 
-    // 2. Ejecutar la función correcta según la pestaña donde esté el usuario
     if (activeTab === 'dashboard') {
       fetchUpcomingPoliciesData();
     } 
@@ -538,8 +498,6 @@ function App() {
       fetchPoliciesData(0, 9999, '', '', '', '', '', '');
       fetchCommissionsData((comisionCurrentPage - 1) * COMISIONES_PER_PAGE, COMISIONES_PER_PAGE, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter);
     }
-
-  // Ignoramos las dependencias estrictas de las funciones fetch para que React no cause bucles
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isAuthenticated, activeTab, 
@@ -551,12 +509,6 @@ function App() {
     comisionCurrentPage, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter
   ]);
 
-  // =========================================================================
-  // 🚨 FIN DE LA ZONA DE EFECTOS 🚨
-  // =========================================================================
-
-  
-  // --- MANEJADORES DE CLIENTES ---
   const handleClientePageChange = (page) => setClienteCurrentPage(page);
   const handleClienteSearch = (searchTerm, emailFilter) => {
     setClienteSearchTerm(searchTerm);
@@ -587,7 +539,6 @@ function App() {
     }
   }, [clienteCurrentPage, clienteSearchTerm, clienteEmailFilter, fetchClientsData, fetchStatisticsSummaryData, toast, handleLogout]);
 
-  // --- MANEJADORES DE PÓLIZAS ---
   const handlePolizaPageChange = (page) => setPolizaCurrentPage(page);
   const handlePolizaSearch = (searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter) => {
     setPolizaSearchTerm(searchTerm); setPolizaTipoFilter(tipoFilter); setPolizaEstadoFilter(estadoFilter);
@@ -618,7 +569,6 @@ function App() {
     }
   }, [polizaCurrentPage, polizaSearchTerm, polizaTipoFilter, polizaEstadoFilter, polizaClienteIdFilter, polizaFechaInicioFilter, polizaFechaFinFilter, fetchPoliciesData, fetchStatisticsSummaryData, fetchUpcomingPoliciesData, toast, handleLogout]);
 
-  // --- MANEJADORES DE RECLAMACIONES ---
   const handleReclamacionPageChange = (page) => setReclamacionCurrentPage(page);
   const handleReclamacionSearch = (searchTerm, estadoFilter, clienteIdFilter, polizaIdFilter, fechaReclamacionInicioFilter, fechaReclamacionFinFilter) => {
     setReclamacionSearchTerm(searchTerm); setReclamacionEstadoFilter(estadoFilter); setReclamacionClienteIdFilter(clienteIdFilter);
@@ -649,7 +599,6 @@ function App() {
     }
   }, [reclamacionCurrentPage, reclamacionSearchTerm, reclamacionEstadoFilter, reclamacionPolizaIdFilter, reclamacionFechaReclamacionInicioFilter, reclamacionFechaReclamacionFinFilter, fetchClaimsData, fetchStatisticsSummaryData, toast, handleLogout]);
 
-  // --- MANEJADORES EMPRESAS ASEGURADORAS ---
   const handleEmpresaAseguradoraPageChange = (page) => setEmpresaAseguradoraCurrentPage(page);
   const handleEmpresaAseguradoraSearch = (searchTerm) => {
     setEmpresaAseguradoraSearchTerm(searchTerm); setEmpresaAseguradoraCurrentPage(1);
@@ -679,7 +628,6 @@ function App() {
     }
   }, [empresaAseguradoraCurrentPage, empresaAseguradoraSearchTerm, fetchInsuranceCompaniesData, fetchStatisticsSummaryData, toast, handleLogout]);
 
-  // --- MANEJADORES DE ASESORES ---
   const handleAsesorPageChange = (page) => setAsesorCurrentPage(page);
   const handleAsesorSearch = (searchTerm) => {
     setAsesorSearchTerm(searchTerm); setAsesorCurrentPage(1);
@@ -709,7 +657,6 @@ function App() {
     }
   }, [asesorCurrentPage, asesorSearchTerm, fetchAdvisorsData, fetchStatisticsSummaryData, toast, handleLogout]);
 
-  // --- MANEJADORES DE COMISIONES ---
   const handleEditComision = useCallback((comision) => {
     setEditingComision(comision);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -736,12 +683,10 @@ function App() {
     }
   }, [fetchCommissionsData, comisionCurrentPage, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter, toast]);
 
-  // --- 📱 NUEVO: ENVIAR WHATSAPP AUTOMÁTICO ---
   const handleWhatsAppNotificacion = (poliza) => {
     const cliente = clientes.find(c => String(c.id) === String(poliza.cliente_id));
     const nombreCliente = cliente ? `${cliente.nombre} ${cliente.apellido || ''}`.trim() : 'Estimado Cliente';
     
-    // Limpiamos el teléfono (solo números)
     const telefono = cliente?.telefono ? cliente.telefono.replace(/\D/g, '') : '';
 
     if (!telefono) {
@@ -757,7 +702,6 @@ function App() {
     window.open(url, '_blank');
   };
 
-  // --- EXPORTADORES ---
   const getDateFormatOptions = useCallback((format) => {
     switch (format) {
       case 'DD/MM/YYYY': return { day: '2-digit', month: '2-digit', year: 'numeric' };
@@ -805,7 +749,6 @@ function App() {
     doc.save(`${filename}.pdf`);
   }, [dateFormat, selectedLanguage, getDateFormatOptions]);
 
-  // --- RENDERIZADO DE PANTALLA DE LOGIN ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -832,7 +775,6 @@ function App() {
     );
   }
 
-  // --- RENDERIZADO DE APLICACIÓN PRINCIPAL ---
   return (
     <ConfirmationProvider>
       <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -902,7 +844,7 @@ function App() {
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
                 empresasAseguradoras={empresasAseguradoras}
-                isLoadingStats={isLoadingStatisticsSummary}
+                isLoadingStats={isLoadingStatisticsSummary} 
                 isLoadingUpcoming={isLoadingPolizasProximasAVencer}
                 currencySymbol={currencySymbol}
                 dateFormat={dateFormat}
@@ -1038,7 +980,6 @@ function App() {
         
         <Toaster />
         
-        {/* --- INICIO DEL PANEL DE ALERTAS --- */}
         {isAlertsOpen && (
           <div className="fixed inset-0 z-[100] flex justify-end">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setIsAlertsOpen(false)}></div>
@@ -1060,7 +1001,6 @@ function App() {
                   </div>
                 ) : (
                   <>
-                    {/* Alerta de Siniestros */}
                     {statisticsSummaryData?.total_reclamaciones_pendientes > 0 && (
                       <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
                          <h4 className="font-bold text-red-800 flex items-center gap-2 mb-2">
@@ -1075,7 +1015,6 @@ function App() {
                       </div>
                     )}
 
-                    {/* 💰 NUEVA ALERTA: DINERO EN LA CALLE */}
                     {dineroEnLaCalle.total > 0 && (
                       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm">
                         <h4 className="font-bold text-emerald-800 flex items-center gap-2 mb-2">
@@ -1090,7 +1029,6 @@ function App() {
                       </div>
                     )}
 
-                    {/* Alerta de Renovaciones con BOTÓN DE WHATSAPP */}
                     {polizasProximasAVencer?.length > 0 && (
                       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 shadow-sm">
                         <h4 className="font-bold text-orange-800 flex items-center gap-2 mb-3">
@@ -1124,10 +1062,6 @@ function App() {
             </div>
           </div>
         )}
-        
-        {/* ================================================================= */}
-        {/* ⚡ INICIO: BOTÓN DE ACCIÓN RÁPIDA (FLOATING ACTION BUTTON) ⚡ */}
-        {/* ================================================================= */}
         
         <div className="fixed bottom-8 right-8 z-[90] flex flex-col items-end gap-3">
           
@@ -1185,10 +1119,7 @@ function App() {
                     setEditingClient={() => {}} 
                     onClientSaved={() => {
                       handleClientSaved();
-                      
-                      // 🚀 EL PARCHE MÁGICO: Obligamos al sistema a traer TODOS los clientes (no solo 10)
                       fetchClientsData(0, 9999, '', ''); 
-                      
                       handleCloseQuickAdd();
                       toast({ title: "¡Magia!", description: "Cliente guardado y listo en tu menú desplegable.", variant: "success" });
                     }} 
@@ -1216,7 +1147,7 @@ function App() {
             </div>
           </div>
         )}
-        </div> {/* <--- 🚀 AQUÍ ESTÁ EL DIV QUE FALTABA 🚀 */}
+        </div>
     </ConfirmationProvider>
   );
 }
