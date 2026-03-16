@@ -69,6 +69,27 @@ function SettingsPage({
     }
   };
 
+  // NUEVO: GATILLO SILENCIOSO AUTOMÁTICO
+  const autoSincronizarBCV = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return; // Si no hay sesión, no hace nada
+      const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalRate(data.tasa_bcv);
+        setTempRate(data.tasa_bcv);
+        // Te avisa sutilmente que el sistema actualizó solo
+        toast({ title: "Motor BCV Activo", description: `El sistema actualizó la tasa a ${data.tasa_bcv} Bs/$ automáticamente.`, variant: "success" });
+      }
+    } catch (error) {
+      console.log("El motor automático falló, usando tasa manual almacenada.", error);
+    }
+  };
+
   const checkRealProStatus = async () => {
     try {
       const token = localStorage.getItem('access_token');
@@ -88,7 +109,8 @@ function SettingsPage({
 
   useEffect(() => { 
     checkRealProStatus(); 
-    fetchGlobalParams(); // Buscamos la tasa al cargar la página
+    fetchGlobalParams(); 
+    autoSincronizarBCV(); // <-- El sistema lanza la orden automáticamente al entrar
   }, []);
 
   useEffect(() => {
@@ -156,14 +178,11 @@ function SettingsPage({
     setAdminPasswordInput('');
   };
 
-  // NUEVO: Enviar los datos con protección anti-comas
   const handleSaveAdminSettings = async () => {
     try {
-      // 1. Convertimos las comas en puntos para que la base de datos lo acepte
       const cleanRate = parseFloat(String(tempRate).replace(',', '.'));
       const cleanPrice = parseFloat(String(tempPrice).replace(',', '.'));
 
-      // 2. Verificamos que sean números reales
       if (isNaN(cleanRate) || isNaN(cleanPrice)) {
         toast({ title: "Error de Formato", description: "Por favor verifica que solo estés ingresando números.", variant: "destructive" });
         return;

@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime
+import requests  # <-- NUEVO: Herramienta para conectarnos al BCV
+
 from app.db.database import get_session
 from app.models.configuracion import Configuracion
 from app.models.user import User
@@ -12,7 +14,7 @@ from app.models.parametro_global import ParametroGlobal, HistorialTasa
 router = APIRouter(tags=["Configuración"])
 
 # ==========================================
-# EL MOLDE (Solo escrito UNA vez)
+# EL MOLDE
 # ==========================================
 class ParametrosUpdate(BaseModel):
     tasa_bcv: float
@@ -63,14 +65,12 @@ def obtener_parametros_globales(session: Session = Depends(get_session)):
 
 @router.put("/parametros-globales")
 def actualizar_parametros_globales(
-    datos: ParametrosUpdate,  # <-- Usamos el molde correcto
+    datos: ParametrosUpdate,  
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     if current_user.id is None:
         raise HTTPException(status_code=401)
-
-    print(f"🔥 DEBUG BODY RECIBIDO EN LA BÓVEDA: {datos} 🔥", flush=True)
 
     tasa = datos.tasa_bcv
     precio = datos.precio_licencia
@@ -80,12 +80,7 @@ def actualizar_parametros_globales(
     fuente_actualizacion = "MANUAL_CEO"
 
     if not parametros_db:
-        parametros_db = ParametroGlobal(
-            tasa_bcv=tasa,
-            precio_licencia=precio,
-            fuente_tasa=fuente_actualizacion,
-            ultima_actualizacion=datetime.utcnow()
-        )
+        parametros_db = ParametroGlobal(tasa_bcv=tasa, precio_licencia=precio, fuente_tasa=fuente_actualizacion, ultima_actualizacion=datetime.utcnow())
         session.add(parametros_db)
     else:
         parametros_db.tasa_bcv = tasa
@@ -94,17 +89,54 @@ def actualizar_parametros_globales(
         parametros_db.ultima_actualizacion = datetime.utcnow()
         session.add(parametros_db)
 
-    nuevo_historial = HistorialTasa(
-        moneda_base="USD",
-        moneda_destino="VES",
-        tasa=tasa,
-        fuente=fuente_actualizacion
-    )
+    nuevo_historial = HistorialTasa(moneda_base="USD", moneda_destino="VES", tasa=tasa, fuente=fuente_actualizacion)
     session.add(nuevo_historial)
 
     session.commit()
     session.refresh(parametros_db)
     return parametros_db
+
+# --- NUEVO: MOTOR AUTOMÁTICO DE LECTURA BCV ---
+@router.post("/parametros-globales/sincronizar-bcv")
+def sincronizar_tasa_bcv_automatica(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.id is None:
+        raise HTTPException(status_code=401)
+
+    try:
+        # El motor va a la API externa a leer el BCV
+        url = "https://pydolarvenezuela.dev/api/v1/dollar?page=bcv"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
+        tasa_oficial_bcv = data['monitors']['bcv']['price']
+        
+        statement = select(ParametroGlobal)
+        parametros_db = session.exec(statement).first()
+        fuente_actualizacion = "AUTOMATICO_API_BCV"
+
+        # Lo guarda solito en tu base de datos
+        if not parametros_db:
+            parametros_db = ParametroGlobal(tasa_bcv=tasa_oficial_bcv, precio_licencia=99.00, fuente_tasa=fuente_actualizacion, ultima_actualizacion=datetime.utcnow())
+            session.add(parametros_db)
+        else:
+            parametros_db.tasa_bcv = tasa_oficial_bcv
+            parametros_db.fuente_tasa = fuente_actualizacion
+            parametros_db.ultima_actualizacion = datetime.utcnow()
+            session.add(parametros_db)
+
+        nuevo_historial = HistorialTasa(moneda_base="USD", moneda_destino="VES", tasa=tasa_oficial_bcv, fuente=fuente_actualizacion)
+        session.add(nuevo_historial)
+
+        session.commit()
+        session.refresh(parametros_db)
+        
+        return {"mensaje": "Sincronizado", "tasa_bcv": parametros_db.tasa_bcv, "fuente": parametros_db.fuente_tasa}
+
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="El BCV no responde, se usará la tasa manual existente.")
 
 # --- MICROSERVICIO FINTECH DE CONVERSIÓN ---
 @router.get("/convert")
