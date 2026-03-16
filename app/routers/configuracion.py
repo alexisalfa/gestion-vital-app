@@ -96,7 +96,7 @@ def actualizar_parametros_globales(
     session.refresh(parametros_db)
     return parametros_db
 
-# --- NUEVO: MOTOR AUTOMÁTICO DE LECTURA BCV ---
+# --- MOTOR AUTOMÁTICO DE LECTURA BCV (VERSIÓN DOLAR-API) ---
 @router.post("/parametros-globales/sincronizar-bcv")
 def sincronizar_tasa_bcv_automatica(
     session: Session = Depends(get_session),
@@ -106,20 +106,26 @@ def sincronizar_tasa_bcv_automatica(
         raise HTTPException(status_code=401)
 
     try:
-        # El motor va a la API externa a leer el BCV
-        url = "https://pydolarvenezuela.dev/api/v1/dollar?page=bcv"
+        # Usamos la API pública y ultra estable de DolarAPI
+        url = "https://ve.dolarapi.com/v1/dolares/oficial"
         response = requests.get(url, timeout=10)
         data = response.json()
         
-        tasa_oficial_bcv = data['monitors']['bcv']['price']
+        # Extraemos el valor "promedio" que es la tasa oficial del BCV
+        tasa_oficial_bcv = data['promedio']
         
         statement = select(ParametroGlobal)
         parametros_db = session.exec(statement).first()
         fuente_actualizacion = "AUTOMATICO_API_BCV"
 
-        # Lo guarda solito en tu base de datos
+        # Lo guardamos en la base de datos de forma silenciosa
         if not parametros_db:
-            parametros_db = ParametroGlobal(tasa_bcv=tasa_oficial_bcv, precio_licencia=99.00, fuente_tasa=fuente_actualizacion, ultima_actualizacion=datetime.utcnow())
+            parametros_db = ParametroGlobal(
+                tasa_bcv=tasa_oficial_bcv, 
+                precio_licencia=99.00, 
+                fuente_tasa=fuente_actualizacion, 
+                ultima_actualizacion=datetime.utcnow()
+            )
             session.add(parametros_db)
         else:
             parametros_db.tasa_bcv = tasa_oficial_bcv
@@ -127,7 +133,12 @@ def sincronizar_tasa_bcv_automatica(
             parametros_db.ultima_actualizacion = datetime.utcnow()
             session.add(parametros_db)
 
-        nuevo_historial = HistorialTasa(moneda_base="USD", moneda_destino="VES", tasa=tasa_oficial_bcv, fuente=fuente_actualizacion)
+        nuevo_historial = HistorialTasa(
+            moneda_base="USD", 
+            moneda_destino="VES", 
+            tasa=tasa_oficial_bcv, 
+            fuente=fuente_actualizacion
+        )
         session.add(nuevo_historial)
 
         session.commit()
@@ -136,6 +147,7 @@ def sincronizar_tasa_bcv_automatica(
         return {"mensaje": "Sincronizado", "tasa_bcv": parametros_db.tasa_bcv, "fuente": parametros_db.fuente_tasa}
 
     except Exception as e:
+        print(f"ERROR LEYENDO BCV: {str(e)}", flush=True)
         raise HTTPException(status_code=503, detail="El BCV no responde, se usará la tasa manual existente.")
 
 # --- MICROSERVICIO FINTECH DE CONVERSIÓN ---
