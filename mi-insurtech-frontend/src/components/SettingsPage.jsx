@@ -148,19 +148,66 @@ function SettingsPage({
     }
   };
 
-  const handleLocalPaymentSubmit = () => {
+  // 🚀 INJERTO QUIRÚRGICO: NUEVA FUNCIÓN QUE ENVÍA DATOS REALES AL BACKEND 🚀
+  const handleLocalPaymentSubmit = async () => {
+    // 1. Validaciones de seguridad (Que no envíen el formulario vacío)
     if (!paymentReference || !paymentDate || (showLocalPaymentForm && emittingBank === '' && !emittingBank.includes('zelle'))) {
         if(emittingBank === '' && (paymentReference.length < 10)) { 
              toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor (si aplica).", variant: "destructive" });
              return;
         }
     }
+
     setIsSubmittingLocal(true);
-    setTimeout(() => {
-      setIsSubmittingLocal(false); setShowLocalPaymentForm(false);
-      setPaymentReference(''); setPaymentDate(''); setEmittingBank('');
-      toast({ title: "¡Reporte Recibido! ⏳", description: "Nuestro equipo está validando tu transacción. Te notificaremos en breve.", variant: "success", duration: 8000 });
-    }, 2500);
+
+    try {
+      const token = localStorage.getItem('access_token');
+      // Calculamos el monto exacto en Bolívares que le estamos cobrando al cliente
+      const montoCalculado = globalPrice * globalRate;
+
+      // 2. Disparamos los datos reales hacia tu nuevo Buzón de Cobranza en Python
+      const response = await fetch(`${apiBaseUrl}/pagos-locales/reportar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          referencia: paymentReference,
+          fecha_pago: paymentDate,
+          banco_emisor: emittingBank || 'Zelle', // Si dejan el banco vacío, asumimos Zelle
+          monto_bs: montoCalculado
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 3. Éxito: Limpiamos el formulario y le avisamos al cliente
+        setShowLocalPaymentForm(false);
+        setPaymentReference(''); 
+        setPaymentDate(''); 
+        setEmittingBank('');
+        
+        toast({ 
+          title: "¡Reporte Recibido! ⏳", 
+          description: `Referencia interna #${data.id_pago} guardada. Nuestro equipo está validando tu transacción.`, 
+          variant: "success", 
+          duration: 8000 
+        });
+      } else {
+        // 4. Si el servidor rechaza el pago (Ej. referencia duplicada)
+        toast({ 
+          title: "Atención", 
+          description: data.detail || "No pudimos procesar el reporte.", 
+          variant: "destructive" 
+        });
+      }
+    } catch (error) {
+      toast({ title: "Error de Conexión", description: "Revisa tu internet y vuelve a intentar.", variant: "destructive" });
+    } finally {
+      setIsSubmittingLocal(false);
+    }
   };
 
   const handleSave = () => onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);

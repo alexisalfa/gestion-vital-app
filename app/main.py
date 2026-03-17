@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import create_db_and_tables
 from app.models.parametro_global import ParametroGlobal, HistorialTasa
+from app.models.pago_local import PagoLocal
 import os
 from dotenv import load_dotenv
 
@@ -20,7 +21,8 @@ from app.routers import (
     configuracion,
     license_management,
     payments,
-    pagos
+    pagos,
+    pagos_locales
 )
 
 app = FastAPI(
@@ -61,6 +63,7 @@ app.include_router(configuracion.router, prefix="/api/v1")
 app.include_router(license_management.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(pagos.router, prefix="/api/v1/pagos", tags=["Pagos"])
+app.include_router(pagos_locales.router, prefix="/api/v1")
 
 # Ruta de verificación de salud
 @app.get("/", tags=["Salud"])
