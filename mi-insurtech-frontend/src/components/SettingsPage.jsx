@@ -42,14 +42,9 @@ function SettingsPage({
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [tempPrice, setTempPrice] = useState(99.00);
   const [tempRate, setTempRate] = useState(36.25);
-
-  const venezuelanBanks = [
-    { id: '0105', nombre: 'Mercantil' }, { id: '0102', nombre: 'Venezuela' },
-    { id: '0108', nombre: 'Provincial' }, { id: '0134', nombre: 'Banesco' },
-    { id: '0172', nombre: 'Bancaribe' }, { id: '0114', nombre: 'Bancaribe' },
-    { id: '0163', nombre: 'Tesoro' }, { id: '0168', nombre: 'Bancrecer' },
-    { id: '0191', nombre: 'BNC' }, { id: 'zelle', nombre: 'Zelle (No aplica)' }
-  ];
+  
+  // NUEVO: Estado para el Buzón de Cobranza del CEO
+  const [localPaymentsList, setLocalPaymentsList] = useState([]);
 
   // ==========================================
   // CONEXIÓN CON EL BACKEND (LEYENDO LA BÓVEDA)
@@ -69,11 +64,10 @@ function SettingsPage({
     }
   };
 
-  // NUEVO: GATILLO SILENCIOSO AUTOMÁTICO
   const autoSincronizarBCV = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) return; // Si no hay sesión, no hace nada
+      if (!token) return;
       const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -82,7 +76,6 @@ function SettingsPage({
         const data = await response.json();
         setGlobalRate(data.tasa_bcv);
         setTempRate(data.tasa_bcv);
-        // Te avisa sutilmente que el sistema actualizó solo
         toast({ title: "Motor BCV Activo", description: `El sistema actualizó la tasa a ${data.tasa_bcv} Bs/$ automáticamente.`, variant: "success" });
       }
     } catch (error) {
@@ -110,7 +103,7 @@ function SettingsPage({
   useEffect(() => { 
     checkRealProStatus(); 
     fetchGlobalParams(); 
-    autoSincronizarBCV(); // <-- El sistema lanza la orden automáticamente al entrar
+    autoSincronizarBCV(); 
   }, []);
 
   useEffect(() => {
@@ -148,9 +141,7 @@ function SettingsPage({
     }
   };
 
-  // 🚀 INJERTO QUIRÚRGICO: NUEVA FUNCIÓN QUE ENVÍA DATOS REALES AL BACKEND 🚀
   const handleLocalPaymentSubmit = async () => {
-    // 1. Validaciones de seguridad (Que no envíen el formulario vacío)
     if (!paymentReference || !paymentDate || (showLocalPaymentForm && emittingBank === '' && !emittingBank.includes('zelle'))) {
         if(emittingBank === '' && (paymentReference.length < 10)) { 
              toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor (si aplica).", variant: "destructive" });
@@ -162,20 +153,15 @@ function SettingsPage({
 
     try {
       const token = localStorage.getItem('access_token');
-      // Calculamos el monto exacto en Bolívares que le estamos cobrando al cliente
       const montoCalculado = globalPrice * globalRate;
 
-      // 2. Disparamos los datos reales hacia tu nuevo Buzón de Cobranza en Python
       const response = await fetch(`${apiBaseUrl}/pagos-locales/reportar`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referencia: paymentReference,
           fecha_pago: paymentDate,
-          banco_emisor: emittingBank || 'Zelle', // Si dejan el banco vacío, asumimos Zelle
+          banco_emisor: emittingBank || 'Zelle',
           monto_bs: montoCalculado
         })
       });
@@ -183,25 +169,13 @@ function SettingsPage({
       const data = await response.json();
 
       if (response.ok) {
-        // 3. Éxito: Limpiamos el formulario y le avisamos al cliente
         setShowLocalPaymentForm(false);
         setPaymentReference(''); 
         setPaymentDate(''); 
         setEmittingBank('');
-        
-        toast({ 
-          title: "¡Reporte Recibido! ⏳", 
-          description: `Referencia interna #${data.id_pago} guardada. Nuestro equipo está validando tu transacción.`, 
-          variant: "success", 
-          duration: 8000 
-        });
+        toast({ title: "¡Reporte Recibido! ⏳", description: `Referencia interna #${data.id_pago} guardada. Nuestro equipo está validando tu transacción.`, variant: "success", duration: 8000 });
       } else {
-        // 4. Si el servidor rechaza el pago (Ej. referencia duplicada)
-        toast({ 
-          title: "Atención", 
-          description: data.detail || "No pudimos procesar el reporte.", 
-          variant: "destructive" 
-        });
+        toast({ title: "Atención", description: data.detail || "No pudimos procesar el reporte.", variant: "destructive" });
       }
     } catch (error) {
       toast({ title: "Error de Conexión", description: "Revisa tu internet y vuelve a intentar.", variant: "destructive" });
@@ -213,8 +187,32 @@ function SettingsPage({
   const handleSave = () => onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
 
   // ==========================================
-  // FUNCIONES DEL PANEL DE ADMINISTRACIÓN
+  // FUNCIONES DEL PANEL DE ADMINISTRACIÓN CEO
   // ==========================================
+  
+  // 🚀 INJERTO: Buscador del Buzón de Cobranza 🚀
+  const fetchLocalPaymentsInbox = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${apiBaseUrl}/pagos-locales`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLocalPaymentsList(data);
+      }
+    } catch (error) {
+      console.error("Error cargando el buzón de pagos:", error);
+    }
+  };
+
+  // Se activa solo si entras como CEO
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      fetchLocalPaymentsInbox();
+    }
+  }, [isAdminAuthenticated]);
+
   const handleAdminAuth = () => {
     if (adminPasswordInput === 'ocolrotcod') {
       setIsAdminAuthenticated(true);
@@ -238,27 +236,56 @@ function SettingsPage({
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${apiBaseUrl}/parametros-globales`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tasa_bcv: cleanRate,
-          precio_licencia: cleanPrice
-        })
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasa_bcv: cleanRate, precio_licencia: cleanPrice })
       });
 
       if (response.ok) {
         const data = await response.json();
         setGlobalRate(data.tasa_bcv);
         setGlobalPrice(data.precio_licencia);
-        setShowAdminPanel(false);
         toast({ title: "Valores Guardados", description: "La tasa BCV y el precio han sido actualizados en la base de datos.", variant: "success" });
       } else {
         toast({ title: "Error", description: "No se pudieron guardar los cambios en el servidor.", variant: "destructive" });
       }
     } catch (error) {
       toast({ title: "Error de conexión", description: "Revisa tu conexión a internet.", variant: "destructive" });
+    }
+  };
+
+  // 🚀 INJERTO: Botones de Aprobar y Rechazar 🚀
+  const handleApprovePayment = async (pagoId) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/aprobar`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast({ title: "¡Pago Aprobado! 🎉", description: "El cliente ahora tiene Licencia PRO.", variant: "success" });
+        fetchLocalPaymentsInbox(); // Recargamos la lista
+      } else {
+        const errorData = await response.json();
+        toast({ title: "Error", description: errorData.detail || "No se pudo aprobar.", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error de conexión", description: "Intente de nuevo.", variant: "destructive" });
+    }
+  };
+
+  const handleRejectPayment = async (pagoId) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/rechazar`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast({ title: "Pago Rechazado", description: "El ticket fue marcado como inválido.", variant: "info" });
+        fetchLocalPaymentsInbox(); // Recargamos la lista
+      }
+    } catch (error) {
+      toast({ title: "Error de conexión", description: "Intente de nuevo.", variant: "destructive" });
     }
   };
 
@@ -474,9 +501,56 @@ function SettingsPage({
                     <Input type="text" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                 </div>
-                <div className="flex justify-end pt-2 border-t border-slate-800">
+                <div className="flex justify-end pt-2">
                   <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">Guardar y Aplicar Globalmente</Button>
                 </div>
+
+                {/* 🚀 INJERTO: EL BUZÓN DE COBRANZA (SOLO VISIBLE PARA EL CEO) 🚀 */}
+                <div className="mt-8 pt-6 border-t border-slate-700">
+                  <h4 className="text-white font-bold tracking-widest text-sm uppercase flex items-center gap-2 mb-4">
+                    <Landmark className="text-blue-400 h-5 w-5" /> Buzón de Cobranza (Pagos Locales)
+                  </h4>
+                  
+                  {localPaymentsList.length === 0 ? (
+                    <p className="text-slate-500 text-sm italic">No hay reportes de pago registrados en el sistema.</p>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {localPaymentsList.map((pago) => (
+                        <div key={pago.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:bg-slate-800/80">
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-white font-bold text-sm tracking-wide">#{pago.id} - Ref: {pago.referencia}</span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                pago.estatus === 'PENDIENTE' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                pago.estatus === 'APROBADO' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                                'bg-red-500/20 text-red-400 border border-red-500/30'
+                              }`}>
+                                {pago.estatus}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400 mb-1">Cliente: <span className="text-indigo-300 font-medium">{pago.email_usuario}</span></p>
+                            <p className="text-xs text-slate-400">
+                              <span className="text-slate-300 font-semibold">{pago.banco_emisor}</span> | Bs. {pago.monto_bs.toLocaleString('es-VE')} | Fecha: {pago.fecha_pago}
+                            </p>
+                          </div>
+                          
+                          {pago.estatus === 'PENDIENTE' && (
+                            <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+                              <Button onClick={() => handleRejectPayment(pago.id)} size="sm" variant="outline" className="flex-1 md:flex-none border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 h-8">
+                                <XCircle className="h-4 w-4 mr-1.5" /> Rechazar
+                              </Button>
+                              <Button onClick={() => handleApprovePayment(pago.id)} size="sm" className="flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-500 text-white h-8">
+                                <CheckCircle className="h-4 w-4 mr-1.5" /> Aprobar
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
           </div>
