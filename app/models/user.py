@@ -11,3 +11,5 @@ class User(SQLModel, table=True):
     hashed_password: str
     full_name: Optional[str] = "Usuario Nuevo"
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    plan_tipo: Optional[str] = Field(default="TRIAL_24H")
+    es_prueba: Optional[bool] = Field(default=True)
