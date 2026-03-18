@@ -5,7 +5,7 @@ import { useToast } from '@/lib/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useConfirmation } from './ConfirmationContext'; 
-import { Loader2, Search, FileDown, FileText, Edit2, Trash2, Users, Mail, Phone } from 'lucide-react'; 
+import { Loader2, Search, FileDown, FileText, Edit2, Trash2, Users, Mail, Phone, Eye, AlertTriangle, CheckCircle2 } from 'lucide-react'; 
 
 function ClientList({
   clients = [],
@@ -40,6 +40,14 @@ function ClientList({
     const colors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];
     const index = nombre ? nombre.charCodeAt(0) % colors.length : 0;
     return colors[index];
+  };
+
+  // --- SEMÁFORO CRM INTELIGENTE ---
+  const getCrmStatus = (dias) => {
+    if (dias === null || dias === undefined) return { label: 'Sin Pólizas', style: 'bg-slate-100 text-slate-600 border-slate-200', icon: null };
+    if (dias < 0) return { label: 'Vencida', style: 'bg-rose-100 text-rose-700 border-rose-200', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
+    if (dias <= 30) return { label: '¡Renovar Pronto!', style: 'bg-amber-100 text-amber-700 border-amber-300 animate-pulse shadow-sm', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
+    return { label: 'Al día', style: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: <CheckCircle2 className="w-3 h-3 mr-1"/> };
   };
 
   useEffect(() => {
@@ -81,11 +89,12 @@ function ClientList({
   const handleDeleteClick = (client) => {
     confirm({
       title: "¿Eliminar Cliente?",
-      message: `Estás a punto de borrar el registro de ${client.nombre} ${client.apellido}. Esta acción no se puede deshacer.`,
+      message: `Estás a punto de borrar el registro de ${client.nombre} ${client.apellido}. Esto afectará sus estadísticas CRM. Esta acción no se puede deshacer.`,
       onConfirm: () => onDeleteClient(client.id),
     });
   };
 
+  // TUS CABECERAS ORIGINALES INTACTAS
   const clientCsvHeaders = useMemo(() => [
     { key: 'id', label: 'ID Cliente' },
     { key: 'nombre', label: 'Nombre' },
@@ -126,9 +135,9 @@ function ClientList({
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-4">
         <div className="w-full lg:w-2/3">
           <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" />
-            Directorio de Clientes
-            <span className="bg-blue-100 text-blue-700 text-xs py-1 px-3 rounded-full ml-2">{totalItems} Registros</span>
+            <Users className="h-6 w-6 text-indigo-600" />
+            Directorio CRM 360°
+            <span className="bg-indigo-100 text-indigo-700 text-xs py-1 px-3 rounded-full ml-2">{totalItems} Registros</span>
           </h3>
           
           <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 relative"> 
@@ -147,7 +156,7 @@ function ClientList({
               {showSuggestions && suggestions.length > 0 && (
                 <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-48 overflow-y-auto">
                   {suggestions.map((s) => (
-                    <li key={s.id} className="px-4 py-3 cursor-pointer hover:bg-blue-50 text-sm border-b border-gray-50 last:border-0" onMouseDown={() => { setSearchTerm(s.name); onSearch(s.name, emailFilter); setShowSuggestions(false); }}>
+                    <li key={s.id} className="px-4 py-3 cursor-pointer hover:bg-indigo-50 text-sm border-b border-gray-50 last:border-0" onMouseDown={() => { setSearchTerm(s.name); onSearch(s.name, emailFilter); setShowSuggestions(false); }}>
                       {s.name}
                     </li>
                   ))}
@@ -181,7 +190,7 @@ function ClientList({
           <div className="bg-white p-4 rounded-full shadow-sm border border-gray-100 mb-4">
             <Users className="h-10 w-10 text-gray-400" />
           </div>
-          <h3 className="text-lg font-bold text-gray-800">Ningún cliente encontrado</h3>
+          <h3 className="text-lg font-bold text-gray-800">Directorio vacío</h3>
           <p className="text-sm text-gray-500 max-w-sm text-center mt-1">
             Parece que aún no tienes clientes registrados o la búsqueda no arrojó resultados. Comienza creando un nuevo perfil arriba.
           </p>
@@ -191,51 +200,62 @@ function ClientList({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50/80">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cédula / Doc.</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Teléfono</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Perfil del Cliente</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Contacto</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-indigo-600 uppercase tracking-wider">Cartera (USD)</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estatus CRM</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-blue-50/50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(client.nombre)}`}>
-                        {getInitials(client.nombre, client.apellido)}
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-bold text-gray-900">{client.nombre} {client.apellido}</div>
-                        <div className="text-xs text-gray-500 flex items-center mt-0.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>
-                          Activo
+              {clients.map((client) => {
+                const crmStatus = getCrmStatus(client.dias_proxima_renovacion);
+                return (
+                  <tr key={client.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${getAvatarColor(client.nombre)}`}>
+                          {getInitials(client.nombre, client.apellido)}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{client.nombre} {client.apellido}</div>
+                          <div className="text-xs text-slate-500 flex items-center mt-0.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>
+                            Activo
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-gray-100 text-gray-800 border border-gray-200">
-                      {client.identificacion || client.cedula || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-gray-400"/> {client.telefono || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-gray-400"/> {client.email || 'N/A'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
-                    <Button variant="ghost" size="icon" onClick={() => onEditClient(client)} className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full" title="Editar">
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(client)} className="text-rose-500 hover:text-rose-700 hover:bg-rose-100 rounded-full" title="Eliminar">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap space-y-1">
+                      <div className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded inline-block border border-slate-200">{client.identificacion || client.cedula || 'N/A'}</div>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-600"><Phone className="h-3.5 w-3.5 text-slate-400"/> {client.telefono || 'N/A'}</div>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-600"><Mail className="h-3.5 w-3.5 text-slate-400"/> {client.email || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-slate-800">${(client.valor_cartera || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                        <span className="text-xs font-medium text-slate-500">{client.polizas_activas || 0} Póliza(s)</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full border flex items-center w-max ${crmStatus.style}`}>
+                        {crmStatus.icon} {crmStatus.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => toast({title: "Perfil 360°", description: "Próximamente verás todo el expediente financiero aquí.", variant: "info"})} className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-full" title="Ver Perfil 360">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => onEditClient(client)} className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full" title="Editar">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(client)} className="text-rose-500 hover:text-rose-700 hover:bg-rose-100 rounded-full" title="Eliminar">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -252,7 +272,7 @@ function ClientList({
             </li>
             {pages.map(page => (
               <li key={page}>
-                <Button variant={currentPage === page ? "default" : "ghost"} className={`h-8 w-8 p-0 ${currentPage === page ? "bg-blue-600 text-white shadow" : "text-gray-600 hover:bg-white"}`} onClick={() => onPageChange(page)}>
+                <Button variant={currentPage === page ? "default" : "ghost"} className={`h-8 w-8 p-0 ${currentPage === page ? "bg-indigo-600 text-white shadow" : "text-gray-600 hover:bg-white"}`} onClick={() => onPageChange(page)}>
                   {page}
                 </Button>
               </li>
