@@ -13,21 +13,76 @@ from app.models.cliente import Cliente
 from app.models.user import User
 from app.auth.auth_bearer import get_current_user
 from app.auth.license_handler import verificar_licencia_activa
+from app.models.poliza import Poliza
+from datetime import datetime
 
 router = APIRouter(tags=["Clientes"])
 
-@router.get("/clientes", response_model=List[Cliente])
+# 🚨 NUEVO CEREBRO FINANCIERO CRM 360 🚨
+@router.get("/clientes")
 def obtener_clientes(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     _licencia = Depends(verificar_licencia_activa)
 ):
     try:
-        statement = select(Cliente).where(Cliente.user_id == current_user.id)
-        results = session.exec(statement).all()
-        return list(results)
+        # 1. Buscamos a los clientes de este asesor
+        statement_clientes = select(Cliente).where(Cliente.user_id == current_user.id)
+        clientes = session.exec(statement_clientes).all()
+
+        # 2. Buscamos TODAS las pólizas del asesor para hacer los cálculos
+        statement_polizas = select(Poliza).where(Poliza.user_id == current_user.id)
+        polizas = session.exec(statement_polizas).all()
+
+        # 3. Agrupamos las pólizas por cliente para procesarlas rápido
+        polizas_por_cliente = {}
+        for p in polizas:
+            if p.cliente_id not in polizas_por_cliente:
+                polizas_por_cliente[p.cliente_id] = []
+            polizas_por_cliente[p.cliente_id].append(p)
+
+        # 4. Procesamos cliente por cliente
+        hoy = datetime.now()
+        resultado_crm = []
+
+        for cliente in clientes:
+            # Convertimos el cliente a diccionario para poder inyectarle los datos financieros
+            datos_cliente = cliente.model_dump()
+            
+            mis_polizas = polizas_por_cliente.get(cliente.id, [])
+            
+            cartera_total = 0.0
+            activas = 0
+            dias_renovacion = None
+
+            for poliza in mis_polizas:
+                # Consideramos solo las pólizas "Activas"
+                if poliza.estado and poliza.estado.lower() == "activa":
+                    activas += 1
+                    cartera_total += poliza.prima
+                    
+                    # Calculamos los días restantes para el vencimiento
+                    if poliza.fecha_fin:
+                        # Limpiamos la zona horaria por seguridad matemática
+                        fecha_fin_limpia = poliza.fecha_fin.replace(tzinfo=None)
+                        dias_restantes = (fecha_fin_limpia - hoy).days
+                        
+                        # Guardamos la fecha que esté más próxima a vencerse
+                        if dias_renovacion is None or dias_restantes < dias_renovacion:
+                            dias_renovacion = dias_restantes
+
+            # Inyectamos los cálculos al perfil del cliente
+            datos_cliente["valor_cartera"] = cartera_total
+            datos_cliente["polizas_activas"] = activas
+            datos_cliente["dias_proxima_renovacion"] = dias_renovacion
+
+            resultado_crm.append(datos_cliente)
+
+        return resultado_crm
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/clientes", status_code=status.HTTP_201_CREATED, response_model=Cliente)
 def crear_cliente(
