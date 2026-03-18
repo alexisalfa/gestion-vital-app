@@ -22,7 +22,8 @@ from app.routers import (
     license_management,
     payments,
     pagos,
-    pagos_locales
+    pagos_locales,
+    documentos
 )
 
 app = FastAPI(
@@ -64,6 +65,7 @@ app.include_router(license_management.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(pagos.router, prefix="/api/v1/pagos", tags=["Pagos"])
 app.include_router(pagos_locales.router, prefix="/api/v1")
+app.include_router(documentos.router, prefix="/api/v1")
 
 # Ruta de verificación de salud
 @app.get("/", tags=["Salud"])
