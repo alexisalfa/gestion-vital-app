@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect'; 
-import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays, Lock, KeyRound, Settings2 } from 'lucide-react';
+import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays, Lock, KeyRound, Settings2, Download } from 'lucide-react'; // <-- Añadido Download
 import { useToast } from '@/lib/use-toast';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
+import jsPDF from 'jspdf'; // <-- Importamos el motor de PDFs
 
 function SettingsPage({
   selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey,
@@ -43,11 +44,18 @@ function SettingsPage({
   const [tempPrice, setTempPrice] = useState(99.00);
   const [tempRate, setTempRate] = useState(36.25);
   
-  // NUEVO: Estado para el Buzón de Cobranza del CEO
   const [localPaymentsList, setLocalPaymentsList] = useState([]);
 
+  const venezuelanBanks = [
+    { id: '0105', nombre: 'Mercantil' }, { id: '0102', nombre: 'Venezuela' },
+    { id: '0108', nombre: 'Provincial' }, { id: '0134', nombre: 'Banesco' },
+    { id: '0172', nombre: 'Bancaribe' }, { id: '0114', nombre: 'Bancaribe' },
+    { id: '0163', nombre: 'Tesoro' }, { id: '0168', nombre: 'Bancrecer' },
+    { id: '0191', nombre: 'BNC' }, { id: 'zelle', nombre: 'Zelle (No aplica)' }
+  ];
+
   // ==========================================
-  // CONEXIÓN CON EL BACKEND (LEYENDO LA BÓVEDA)
+  // CONEXIÓN CON EL BACKEND 
   // ==========================================
   const fetchGlobalParams = async () => {
     try {
@@ -67,7 +75,7 @@ function SettingsPage({
   const autoSincronizarBCV = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) return;
+      if (!token) return; 
       const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -76,7 +84,6 @@ function SettingsPage({
         const data = await response.json();
         setGlobalRate(data.tasa_bcv);
         setTempRate(data.tasa_bcv);
-        toast({ title: "Motor BCV Activo", description: `El sistema actualizó la tasa a ${data.tasa_bcv} Bs/$ automáticamente.`, variant: "success" });
       }
     } catch (error) {
       console.log("El motor automático falló, usando tasa manual almacenada.", error);
@@ -124,6 +131,95 @@ function SettingsPage({
     setLocalDateFormat(dateFormat); setLocalSelectedCountry(selectedCountry); setLocalLicenseKey(licenseKey);
   }, [selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey]);
 
+  // ==========================================
+  // GENERADOR DE RECIBO PDF (NUEVO)
+  // ==========================================
+  const handleDownloadReceipt = () => {
+    const doc = new jsPDF();
+    const token = localStorage.getItem('access_token'); // Usualmente guardaste el email aquí
+    const usuarioRecibo = token && token.includes('@') ? token : "Cliente Registrado";
+    const fechaActual = new Date().toLocaleDateString('es-VE');
+
+    // Estilos y Colores
+    doc.setFont("helvetica");
+
+    // Header (Logo/Título simulado)
+    doc.setFillColor(63, 81, 181); // Color Índigo (del header)
+    doc.rect(0, 0, 210, 40, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("GESTIÓN VITAL", 20, 25);
+
+    // Título del documento
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(16);
+    doc.text("RECIBO DE PAGO DIGITAL", 20, 60);
+
+    // Datos de tu empresa
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Emitido por: GTELCA / Gestión Vital", 20, 70);
+    doc.text("Soporte: gtelca.ventas@gmail.com", 20, 75);
+    doc.text("Plataforma SaaS de Seguros", 20, 80);
+
+    // Datos del cliente
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Facturado a:", 120, 60);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Usuario: ${usuarioRecibo}`, 120, 70);
+    doc.text(`Fecha de Emisión: ${fechaActual}`, 120, 75);
+    doc.text(`Referencia: GV-${Math.floor(Math.random() * 90000) + 10000}`, 120, 80);
+
+    // Línea separadora
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 90, 190, 90);
+
+    // Detalles del Cargo (Tabla simple)
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("Descripción del Servicio", 20, 105);
+    doc.text("Monto Total", 160, 105);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80, 80, 80);
+    doc.text("Licencia Gestión Vital PRO (Suscripción 1 Año)", 20, 115);
+    doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 115);
+
+    // Total final
+    doc.line(20, 125, 190, 125);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(50, 50, 50);
+    doc.text("TOTAL PAGADO:", 110, 140);
+    doc.setTextColor(46, 125, 50); // Color Verde
+    doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 140);
+
+    // Footer / Disclaimer Legal
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Este documento es un comprobante electrónico de prestación de servicio digital.", 20, 265);
+    doc.text("Sirve únicamente para fines de control administrativo interno del usuario y no sustituye una factura", 20, 270);
+    doc.text("fiscal bajo las regulaciones y providencias locales. Los impuestos aplicables son responsabilidad", 20, 275);
+    doc.text("de las partes según su jurisdicción tributaria.", 20, 280);
+    doc.text("Gracias por confiar en Gestión Vital.", 20, 285);
+
+    // Descargar
+    doc.save(`Recibo_GestionVital_${fechaActual}.pdf`);
+  };
+
+  // ==========================================
+  // MÉTODOS DE PAGOS 
+  // ==========================================
   const handleUpgradeToPro = async () => {
     setIsLoadingPayment(true);
     const token = localStorage.getItem('access_token');
@@ -189,8 +285,6 @@ function SettingsPage({
   // ==========================================
   // FUNCIONES DEL PANEL DE ADMINISTRACIÓN CEO
   // ==========================================
-  
-  // 🚀 INJERTO: Buscador del Buzón de Cobranza 🚀
   const fetchLocalPaymentsInbox = async () => {
     try {
       const token = localStorage.getItem('access_token');
@@ -206,7 +300,6 @@ function SettingsPage({
     }
   };
 
-  // Se activa solo si entras como CEO
   useEffect(() => {
     if (isAdminAuthenticated) {
       fetchLocalPaymentsInbox();
@@ -253,7 +346,6 @@ function SettingsPage({
     }
   };
 
-  // 🚀 INJERTO: Botones de Aprobar y Rechazar 🚀
   const handleApprovePayment = async (pagoId) => {
     try {
       const token = localStorage.getItem('access_token');
@@ -263,7 +355,7 @@ function SettingsPage({
       });
       if (response.ok) {
         toast({ title: "¡Pago Aprobado! 🎉", description: "El cliente ahora tiene Licencia PRO.", variant: "success" });
-        fetchLocalPaymentsInbox(); // Recargamos la lista
+        fetchLocalPaymentsInbox(); 
       } else {
         const errorData = await response.json();
         toast({ title: "Error", description: errorData.detail || "No se pudo aprobar.", variant: "destructive" });
@@ -282,7 +374,7 @@ function SettingsPage({
       });
       if (response.ok) {
         toast({ title: "Pago Rechazado", description: "El ticket fue marcado como inválido.", variant: "info" });
-        fetchLocalPaymentsInbox(); // Recargamos la lista
+        fetchLocalPaymentsInbox(); 
       }
     } catch (error) {
       toast({ title: "Error de conexión", description: "Intente de nuevo.", variant: "destructive" });
@@ -319,6 +411,16 @@ function SettingsPage({
                   ? "Cuentas con acceso ilimitado a todas las herramientas operativas y financieras del sistema." 
                   : "Tu cuenta se encuentra en un periodo de evaluación. Para evitar interrupciones, actualiza a la versión PRO."}
               </p>
+
+              {/* 🚀 NUEVO BOTÓN PARA DESCARGAR EL RECIBO 🚀 */}
+              {effectivelyValid && (
+                <div className="mt-4 pt-4 border-t border-indigo-50">
+                  <Button onClick={handleDownloadReceipt} variant="outline" className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50 shadow-sm transition-all hover:shadow">
+                    <Download className="mr-2 h-4 w-4" /> Descargar Comprobante de Pago
+                  </Button>
+                </div>
+              )}
+
             </div>
 
             {!effectivelyValid && (
@@ -501,11 +603,11 @@ function SettingsPage({
                     <Input type="text" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
                   </div>
                 </div>
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-2 border-t border-slate-800">
                   <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">Guardar y Aplicar Globalmente</Button>
                 </div>
 
-                {/* 🚀 INJERTO: EL BUZÓN DE COBRANZA (SOLO VISIBLE PARA EL CEO) 🚀 */}
+                {/* BUZÓN DE COBRANZA */}
                 <div className="mt-8 pt-6 border-t border-slate-700">
                   <h4 className="text-white font-bold tracking-widest text-sm uppercase flex items-center gap-2 mb-4">
                     <Landmark className="text-blue-400 h-5 w-5" /> Buzón de Cobranza (Pagos Locales)
