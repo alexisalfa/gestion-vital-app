@@ -3,22 +3,19 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// INJERTO: Añadidos los iconos de acciones y el Ojito
 import { Building2, Search, FileDown, FileText, Mail, Phone, Fingerprint, Eye, Edit2, Trash2 } from 'lucide-react';
 import Pagination from './Pagination'; 
-// INJERTO: Modal 360
 import AseguradoraProfile360 from './AseguradoraProfile360';
 import { useConfirmation } from './ConfirmationContext'; 
 
 function EmpresaAseguradoraList({ 
   empresas = [], onSearch, searchTerm, setSearchTerm, 
   currentPage, itemsPerPage, totalItems, onPageChange,
-  onExport, onExportPdf, onEditEmpresa, onDeleteEmpresa // <-- Recibimos las funciones de acciones
+  onExport, onExportPdf, onEdit, onDelete // <-- Nombres estándar corregidos
 }) {
   const [isExporting, setIsExporting] = useState(false);
   const { confirm } = useConfirmation(); 
   
-  // INJERTO: Estado para el Ojito
   const [selectedAseguradora360, setSelectedAseguradora360] = useState(null);
 
   const aseguradoraHeaders = [
@@ -87,7 +84,7 @@ function EmpresaAseguradoraList({
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">RIF</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Teléfono Master</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Email Contacto</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th> {/* NUEVA COLUMNA */}
+                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
@@ -112,7 +109,6 @@ function EmpresaAseguradoraList({
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-slate-400" /> {empresa.email_contacto || 'N/A'}</div>
                       </td>
-                      {/* NUEVA CELDA DE ACCIONES */}
                       <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
                         
                         <Button 
@@ -125,17 +121,15 @@ function EmpresaAseguradoraList({
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {onEditEmpresa && (
-                          <Button variant="ghost" size="icon" onClick={() => onEditEmpresa(empresa)} className="text-blue-600 hover:bg-blue-100 rounded-full" title="Editar">
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        {/* Botones de Editar y Eliminar SIEMPRE visibles */}
+                        <Button variant="ghost" size="icon" onClick={() => onEdit && onEdit(empresa)} className="text-blue-600 hover:bg-blue-100 rounded-full" title="Editar">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
                         
-                        {onDeleteEmpresa && (
-                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar Aseguradora", message: "¿Estás seguro de eliminar esta empresa?", onConfirm: () => onDeleteEmpresa(empresa.id) })} className="text-rose-500 hover:bg-rose-100 rounded-full" title="Eliminar">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar Aseguradora", message: "¿Estás seguro de eliminar esta empresa?", onConfirm: () => onDelete && onDelete(empresa.id) })} className="text-rose-500 hover:bg-rose-100 rounded-full" title="Eliminar">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+
                       </td>
                     </tr>
                   ))}
