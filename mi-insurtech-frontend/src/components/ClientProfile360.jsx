@@ -1,6 +1,7 @@
 // src/components/ClientProfile360.jsx
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Mail, MapPin, Calendar, Shield, AlertTriangle, CheckCircle2, DollarSign, Activity, FileText, CreditCard } from 'lucide-react';
+import GestorDocumental from './GestorDocumental';
 
 export default function ClientProfile360({ clientId, onClose }) {
   const [data, setData] = useState(null);
@@ -133,6 +134,12 @@ export default function ClientProfile360({ clientId, onClose }) {
                       <div className="flex gap-2 items-start"><Calendar className="w-4 h-4 text-slate-400 mt-0.5"/><div className="flex-1"><span className="block font-semibold text-slate-700">Fecha de Nacimiento</span><span className="text-slate-600">{data?.cliente?.fecha_nacimiento ? new Date(data.cliente.fecha_nacimiento).toLocaleDateString() : 'No registrada'}</span></div></div>
                     </div>
                   </div>
+
+                  {/* SECCIÓN DEL GESTOR DOCUMENTAL INYECTADA */}
+                  <div className="mt-6">
+                    <GestorDocumental clienteId={clientId} />
+                  </div>
+
                 </div>
               )}
 
