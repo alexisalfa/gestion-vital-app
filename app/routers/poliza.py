@@ -1,7 +1,9 @@
 # app/routers/poliza.py
+import csv
+import io
 from typing import List
-from datetime import date, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import date, timedelta, datetime
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlmodel import Session, select, and_
 
 from app.db.database import get_session
@@ -29,16 +31,13 @@ def obtener_polizas_proximas_a_vencer(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     _licencia = Depends(verificar_licencia_activa) # Bloqueo
-    
 ):
-    # Validación de seguridad para Pylance
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Usuario no válido")
 
     hoy = date.today()
     limite = hoy + timedelta(days=days_out)
 
-    # Filtramos por rango de fecha Y por dueño de la póliza
     statement = select(Poliza).where(
         and_(
             Poliza.fecha_fin >= hoy,
@@ -50,8 +49,8 @@ def obtener_polizas_proximas_a_vencer(
     results = session.exec(statement).all()
     return list(results)
 
-### **2. Rutas Estándar de Pólizas**
 
+### **2. Rutas Estándar de Pólizas**
 @router.post("/polizas", response_model=PolizaRead, status_code=status.HTTP_201_CREATED)
 def crear_nueva_poliza(
     poliza_data: PolizaCreate,
@@ -62,8 +61,6 @@ def crear_nueva_poliza(
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="No autorizado")
 
-    # Verificamos que el cliente exista Y le pertenezca a este usuario logueado
-    # Esto evita que un usuario cree pólizas para clientes ajenos
     cliente_statement = select(Cliente).where(
         Cliente.id == poliza_data.cliente_id, 
         Cliente.user_id == current_user.id
@@ -77,7 +74,6 @@ def crear_nueva_poliza(
         )
     
     try:
-        # Pasamos el user_id para que la póliza se guarde con dueño
         return crear_poliza(session, poliza_data, user_id=current_user.id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
@@ -90,8 +86,6 @@ def obtener_todas_las_polizas(
 ):
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Usuario no válido")
-    
-    # Delegamos el filtrado al CRUD
     return listar_polizas(session, user_id=current_user.id)
 
 @router.get("/polizas/{poliza_id}", response_model=PolizaRead)
@@ -139,3 +133,80 @@ def eliminar_poliza_existente(
     if not eliminado:
         raise HTTPException(status_code=404, detail="Póliza no encontrada")
     return None
+
+
+### **3. IMPORTACIÓN MASIVA DE PÓLIZAS (NUEVO)**
+@router.post("/polizas/importar")
+async def importar_polizas_csv(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    _licencia = Depends(verificar_licencia_activa)
+):
+    # SOLUCIÓN AL ERROR DE PYLANCE: Validación explícita del ID del usuario
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="Usuario no válido")
+
+    if not file.filename or not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="El archivo debe ser formato .csv")
+    
+    try:
+        content = await file.read()
+        decoded_content = content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded_content))
+        
+        headers = [h.strip().lower() for h in reader.fieldnames or []]
+        reader.fieldnames = headers
+
+        importados = 0
+        errores = 0
+
+        for row in reader:
+            try:
+                numero_poliza = str(row.get('numero_poliza', '')).strip()
+                if not numero_poliza:
+                    errores += 1
+                    continue
+
+                # Evitar duplicados de pólizas para el mismo usuario
+                existe = session.exec(
+                    select(Poliza).where(
+                        Poliza.numero_poliza == numero_poliza,
+                        Poliza.user_id == current_user.id
+                    )
+                ).first()
+
+                if existe:
+                    errores += 1 
+                    continue 
+
+                # SOLUCIÓN DE PYLANCE: Extracción y limpieza segura de las celdas
+                cliente_str = str(row.get('cliente_id') or '0').strip()
+                empresa_str = str(row.get('empresa_aseguradora_id') or '0').strip()
+                asesor_str = str(row.get('asesor_id') or '').strip()
+                prima_str = str(row.get('prima') or '0').strip()
+
+                nueva_poliza = Poliza(
+                    numero_poliza=numero_poliza,
+                    tipo_poliza=str(row.get('tipo_poliza', 'Otros')).strip(),
+                    fecha_inicio=datetime.strptime(str(row.get('fecha_inicio', '')).strip(), '%Y-%m-%d'),
+                    fecha_fin=datetime.strptime(str(row.get('fecha_fin', '')).strip(), '%Y-%m-%d'),
+                    prima=float(prima_str),
+                    estado=str(row.get('estado', 'Activa')).strip(),
+                    cliente_id=int(cliente_str),
+                    empresa_id=int(empresa_str),
+                    asesor_id=int(asesor_str) if asesor_str else None,
+                    user_id=current_user.id
+                )
+                session.add(nueva_poliza)
+                importados += 1
+            except Exception:
+                # Si falla una fila (ej. ID no existe, letras en lugar de números), la ignoramos
+                errores += 1
+                continue
+
+        session.commit()
+        return {"message": f"Proceso completado: {importados} pólizas importadas, {errores} omitidas (duplicadas o con errores de formato)."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error general al procesar el archivo: {str(e)}")
