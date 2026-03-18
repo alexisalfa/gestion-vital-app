@@ -5,20 +5,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect';
-import { PencilIcon, Trash2Icon, Loader2, Shield, Search, FileDown, FileText, Banknote, MessageCircle } from 'lucide-react';
+// INJERTO 1: Añadimos 'Eye' a los íconos de lucide-react
+import { PencilIcon, Trash2Icon, Loader2, Shield, Search, FileDown, FileText, Banknote, MessageCircle, Eye } from 'lucide-react';
 import { useConfirmation } from './ConfirmationContext'; 
 import Pagination from './Pagination'; 
-import { useToast } from '@/lib/use-toast'; // Importamos el toast para mensajes de error
+import { useToast } from '@/lib/use-toast'; 
 
 // IMPORTAMOS NUESTRA VENTANA FLOTANTE DE PAGOS
 import PagoManualModal from './PagoManualModal';
+// INJERTO 1.5: Importamos el Perfil 360
+import ClientProfile360 from './ClientProfile360';
 
 function PolizaList({
   polizas = [], onEditPoliza, onDeletePoliza, searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter,
   setSearchTerm, setTipoFilter, setEstadoFilter, setClienteIdFilter, setFechaInicioFilter, setFechaFinFilter,
   onSearch, currentPage, itemsPerPage, totalItems, onPageChange, onExport, onExportPdf,
   clients = [], empresasAseguradoras = [], currencySymbol = '$', dateFormat, getDateFormatOptions,
-  apiBaseUrl // IMPORTANTE: Agregamos apiBaseUrl para poder hacer la petición al backend
+  apiBaseUrl 
 }) {
   const { confirm } = useConfirmation();
   const { toast } = useToast();
@@ -27,6 +30,9 @@ function PolizaList({
   // --- ESTADOS PARA EL MODAL DE PAGOS ---
   const [isPagoModalOpen, setIsPagoModalOpen] = useState(false);
   const [polizaToPay, setPolizaToPay] = useState(null);
+
+  // --- INJERTO 2: ESTADO PARA EL PERFIL 360 ---
+  const [selectedClient360, setSelectedClient360] = useState(null);
 
   const formatDisplayDate = (isoString) => {
     if (!isoString) return 'N/A';
@@ -41,7 +47,6 @@ function PolizaList({
   };
 
   const getClienteObj = (poliza) => {
-      // Función auxiliar para obtener el objeto cliente completo
       if (poliza.cliente) return poliza.cliente;
       if (poliza.cliente_id && clients.length > 0) {
         return clients.find(x => x.id === poliza.cliente_id);
@@ -66,12 +71,10 @@ function PolizaList({
     return 'N/A';
   };
 
-  // --- 📱 NUEVO: ENVIAR WHATSAPP DESDE LA TABLA ---
   const handleWhatsAppClick = (poliza) => {
     const cliente = getClienteObj(poliza);
     const nombreCliente = cliente ? `${cliente.nombre} ${cliente.apellido || ''}`.trim() : 'Estimado Cliente';
     
-    // Limpiamos el teléfono (solo números)
     const telefono = cliente?.telefono ? cliente.telefono.replace(/\D/g, '') : '';
 
     if (!telefono) {
@@ -86,7 +89,6 @@ function PolizaList({
     const fechaVencimiento = new Date(poliza.fecha_fin).toLocaleDateString('es-ES', getDateFormatOptions(dateFormat));
     const isVencida = poliza.estado === 'Vencida';
     
-    // El mensaje cambia ligeramente si ya está vencida o si es solo un contacto general
     let mensaje = "";
     if(isVencida){
         mensaje = `Hola ${nombreCliente}, soy tu asesor de Gestión Vital 🛡️. Me comunico porque tu póliza Nro: *${poliza.numero_poliza}* se encuentra vencida desde el *${fechaVencimiento}*. ¿Deseas que te apoye gestionando la renovación para recuperar tu cobertura?`;
@@ -129,17 +131,14 @@ function PolizaList({
     setIsExporting(false);
   };
 
-  // --- LÓGICA DE APERTURA ---
   const handleOpenPagoModal = (poliza) => {
     setPolizaToPay(poliza);
     setIsPagoModalOpen(true);
   };
 
-  // --- 🚀 CONEXIÓN REAL AL BACKEND PARA PAGOS ---
   const handleConfirmPago = async (datosPago) => {
     const token = localStorage.getItem('access_token');
     
-    // Armamos el paquete exactamente como lo esperaría una API
     const payload = {
       poliza_id: polizaToPay.id,
       monto: datosPago.monto,
@@ -150,7 +149,6 @@ function PolizaList({
     };
 
     try {
-      // Hacemos la petición POST al servidor (Asegúrate de tener esta ruta en FastAPI)
       const response = await fetch(`${apiBaseUrl}/pagos/`, {
         method: 'POST',
         headers: {
@@ -165,7 +163,6 @@ function PolizaList({
         throw new Error(errorData.detail || "Error en el servidor al registrar el pago.");
       }
 
-      // Si todo sale bien:
       setIsPagoModalOpen(false);
       setPolizaToPay(null);
       toast({ 
@@ -174,10 +171,7 @@ function PolizaList({
         variant: "success" 
       });
       
-      // FORZAMOS LA RECARGA DE DATOS DESDE EL PADRE
-      // Usamos setTimeout para asegurar que el modal se cierre primero antes de recargar
       setTimeout(() => {
-        // Al pasar las variables vacías, le decimos al sistema que traiga todo fresco
         onSearch('', '', '', '', '', '');
       }, 300);
     } catch (error) {
@@ -204,7 +198,6 @@ function PolizaList({
             </div>
           </div>
 
-          {/* Panel de Filtros */}
           <form onSubmit={handleSearchSubmit} className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-1"><Label className="text-xs font-bold text-gray-500 uppercase">N° Póliza</Label><Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." className="bg-white" /></div>
@@ -261,7 +254,17 @@ function PolizaList({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
                         
-                        {/* 📱 NUEVO BOTÓN DE WHATSAPP (Aparece para todas las pólizas) */}
+                        {/* INJERTO 3: EL BOTÓN DEL OJITO 360 */}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setSelectedClient360(poliza.cliente_id)} 
+                          className="text-purple-600 hover:bg-purple-100 rounded-full"
+                          title="Ver Expediente CRM 360"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -272,7 +275,6 @@ function PolizaList({
                           <MessageCircle className="h-4 w-4" />
                         </Button>
 
-                        {/* NUEVO BOTÓN DE PAGAR (Solo se muestra si la póliza NO está activa) */}
                         {poliza.estado !== 'Activa' && (
                           <Button 
                             variant="ghost" 
@@ -309,7 +311,6 @@ function PolizaList({
         </CardContent>
       </Card>
 
-      {/* RENDERIZAMOS LA VENTANA EMERGENTE AL FINAL */}
       <PagoManualModal 
         isOpen={isPagoModalOpen}
         onClose={() => setIsPagoModalOpen(false)}
@@ -318,6 +319,15 @@ function PolizaList({
         montoSugerido={polizaToPay?.prima || 0}
         currencySymbol={currencySymbol}
       />
+
+      {/* INJERTO 4: RENDERIZAMOS LA VENTANA EMERGENTE 360 AL FINAL */}
+      {selectedClient360 && (
+        <ClientProfile360 
+          clientId={selectedClient360} 
+          onClose={() => setSelectedClient360(null)} 
+        />
+      )}
+
     </>
   );
 }
