@@ -1,6 +1,9 @@
 # app/routers/reclamacion.py
+import csv
+import io
+from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlmodel import Session, select
 from pydantic import BaseModel # Para el esquema de actualización rápida
 
@@ -63,7 +66,6 @@ def crear_nueva_reclamacion(
         )
 
 # --- 🚀 2. NUEVO: CIERRE RÁPIDO (PATCH) ---
-# Esta ruta permitirá aprobar o rechazar siniestros desde la tabla
 @router.patch("/{id}/estado")
 def actualizar_estado_reclamacion(
     id: int, 
@@ -163,3 +165,56 @@ def eliminar_reclamacion_existente(
     if not eliminado:
         raise HTTPException(status_code=404, detail="Reclamación no encontrada")
     return None
+
+# --- 7. NUEVO: IMPORTACIÓN MASIVA (POST) ---
+@router.post("/importar")
+async def importar_reclamaciones_csv(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    _licencia = Depends(verificar_licencia_activa)
+):
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="Usuario no válido")
+
+    if not file.filename or not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="El archivo debe ser formato .csv")
+    
+    try:
+        content = await file.read()
+        decoded_content = content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded_content))
+        
+        headers = [h.strip().lower() for h in reader.fieldnames or []]
+        reader.fieldnames = headers
+
+        importados = 0
+        errores = 0
+
+        for row in reader:
+            try:
+                poliza_str = str(row.get('poliza_id') or '0').strip()
+                cliente_str = str(row.get('cliente_id') or '0').strip()
+                
+                nueva_reclamacion = Reclamacion(
+                    descripcion=str(row.get('descripcion', 'Siniestro importado')).strip(),
+                    fecha_siniestro=datetime.strptime(str(row.get('fecha_siniestro', '')).strip(), '%Y-%m-%d'),
+                    fecha_reclamacion=datetime.strptime(str(row.get('fecha_reclamacion', '')).strip(), '%Y-%m-%d'),
+                    monto_reclamado=float(str(row.get('monto_reclamado', '0')).strip()),
+                    monto_aprobado=float(str(row.get('monto_aprobado', '0')).strip()),
+                    estado_reclamacion=str(row.get('estado_reclamacion', 'Pendiente')).strip().capitalize(),
+                    poliza_id=int(poliza_str),
+                    cliente_id=int(cliente_str),
+                    user_id=current_user.id
+                )
+                session.add(nueva_reclamacion)
+                importados += 1
+            except Exception:
+                errores += 1
+                continue
+
+        session.commit()
+        return {"message": f"Proceso completado: {importados} siniestros importados, {errores} omitidos (errores de formato)."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {str(e)}")
