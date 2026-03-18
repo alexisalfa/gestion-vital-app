@@ -15,6 +15,7 @@ from app.auth.auth_bearer import get_current_user
 from app.auth.license_handler import verificar_licencia_activa
 from app.models.poliza import Poliza
 from datetime import datetime
+from app.models.reclamacion import Reclamacion
 
 router = APIRouter(tags=["Clientes"])
 
@@ -236,3 +237,34 @@ def actualizar_cliente_endpoint(
             status_code=400, 
             detail="Error al actualizar: los datos ingresados (como cédula o correo) ya pertenecen a otro cliente."
         )
+    # ==========================================
+# 🚀 EL DETECTIVE: PERFIL 360° DEL CLIENTE
+# ==========================================
+@router.get("/clientes/{cliente_id}/360")
+def obtener_perfil_360(
+    cliente_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    _licencia = Depends(verificar_licencia_activa)
+):
+    # 1. Validamos que el cliente exista y le pertenezca a este CEO/Asesor
+    statement_cliente = select(Cliente).where(Cliente.id == cliente_id, Cliente.user_id == current_user.id)
+    cliente = session.exec(statement_cliente).first()
+    
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado o sin permisos")
+
+    # 2. Buscamos todo su historial de Pólizas
+    statement_polizas = select(Poliza).where(Poliza.cliente_id == cliente_id)
+    polizas = session.exec(statement_polizas).all()
+    
+    # 3. Buscamos todo su historial de Siniestros/Reclamaciones
+    statement_reclamaciones = select(Reclamacion).where(Reclamacion.cliente_id == cliente_id)
+    reclamaciones = session.exec(statement_reclamaciones).all()
+
+    # 4. Empaquetamos el expediente completo y se lo mandamos a React
+    return {
+        "cliente": cliente,
+        "polizas": polizas,
+        "reclamaciones": reclamaciones
+    }
