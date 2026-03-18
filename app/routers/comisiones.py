@@ -58,7 +58,7 @@ def create_comision(
     session.refresh(db_comision)
     return db_comision
 
-# --- 2. IMPORTACIÓN MASIVA (CSV) ---
+# --- 2. IMPORTACIÓN MASIVA BLINDADA (CSV) ---
 @router.post("/importar")
 async def importar_comisiones(
     file: UploadFile = File(...),
@@ -75,30 +75,39 @@ async def importar_comisiones(
         reader = csv.DictReader(io.StringIO(decoded_content))
         
         importados = 0
+        errores = 0
+        
         for row in reader:
-            # Corrección Pylance: Conversión de fecha str a datetime
-            fecha_str = row.get('fecha_generacion', '')
-            fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%d') if fecha_str else datetime.now()
+            try:
+                # Corrección Pylance: Conversión de fecha str a datetime
+                fecha_str = str(row.get('fecha_generacion', '')).strip()
+                fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%d') if fecha_str else datetime.now()
 
-            nueva_comision = Comision(
-                id_asesor=int(row['id_asesor']),
-                id_poliza=int(row['id_poliza']),
-                tipo_comision=row['tipo_comision'],
-                valor_comision=float(row['valor_comision']),
-                monto_base=float(row.get('monto_base', 0)),
-                monto_final=float(row['monto_final']),
-                fecha_generacion=fecha_dt,
-                estatus_pago=row.get('estatus_pago', 'pendiente'),
-                user_id=current_user.id
-            )
-            session.add(nueva_comision)
-            importados += 1
+                asesor_str = str(row.get('id_asesor', '0')).strip()
+                poliza_str = str(row.get('id_poliza', '0')).strip()
+
+                nueva_comision = Comision(
+                    id_asesor=int(asesor_str),
+                    id_poliza=int(poliza_str),
+                    tipo_comision=str(row.get('tipo_comision', 'porcentaje')).strip(),
+                    valor_comision=float(str(row.get('valor_comision', '0')).strip()),
+                    monto_base=float(str(row.get('monto_base', '0')).strip()),
+                    monto_final=float(str(row.get('monto_final', '0')).strip()),
+                    fecha_generacion=fecha_dt,
+                    estatus_pago=str(row.get('estatus_pago', 'pendiente')).strip().lower(),
+                    user_id=current_user.id
+                )
+                session.add(nueva_comision)
+                importados += 1
+            except Exception:
+                errores += 1
+                continue
         
         session.commit()
-        return {"message": f"Éxito: {importados} comisiones importadas."}
+        return {"message": f"Proceso completado: {importados} comisiones importadas, {errores} omitidas (errores de formato)."}
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Error en CSV: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo: {str(e)}")
 
 # --- 3. ACTUALIZAR COMISIÓN (PUT) ---
 @router.put("/{comision_id}", response_model=ComisionRead)
@@ -175,7 +184,6 @@ def liquidar_comision_rapida(
     current_user: User = Depends(get_current_user),
     _licencia = Depends(verificar_licencia_activa)
 ):
-    # Buscamos la comisión asegurándonos de que pertenezca al usuario actual
     comision = session.exec(
         select(Comision).where(Comision.id == id, Comision.user_id == current_user.id)
     ).first()
@@ -186,7 +194,6 @@ def liquidar_comision_rapida(
     if comision.estatus_pago and comision.estatus_pago.lower() == "pagada":
         raise HTTPException(status_code=400, detail="Esta comisión ya fue pagada anteriormente")
 
-    # Actualizamos estado y guardamos la fecha de hoy
     comision.estatus_pago = "pagada"
     comision.fecha_pago = datetime.now()
     

@@ -5,10 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect';
-import { Trash2Icon, PencilIcon, FileDown, FileText, Search, Banknote } from 'lucide-react';
+// INJERTO 1: Importamos el Eye
+import { Trash2Icon, PencilIcon, FileDown, FileText, Search, Banknote, Eye } from 'lucide-react';
 import { useConfirmation } from './ConfirmationContext'; 
 import { useToast } from '@/lib/use-toast'; 
 import Pagination from './Pagination'; 
+// INJERTO 2: Importamos el Modal 360
+import ClientProfile360 from './ClientProfile360';
 
 function ComisionList({
   comisiones = [], 
@@ -40,6 +43,15 @@ function ComisionList({
   const { confirm } = useConfirmation();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
+
+  // --- INJERTO 3: ESTADO PARA EL PERFIL 360 ---
+  const [selectedClient360, setSelectedClient360] = useState(null);
+
+  // --- FUNCIÓN PARA CRUZAR COMISIÓN -> PÓLIZA -> CLIENTE ---
+  const getClienteIdFromComision = (idPoliza) => {
+    const poliza = polizas.find(p => String(p.id) === String(idPoliza));
+    return poliza ? poliza.cliente_id : null;
+  };
 
   // --- NUEVA FUNCIÓN: PAGO RÁPIDO ---
   const handlePagoRapidoComision = async (id) => {
@@ -103,7 +115,6 @@ function ComisionList({
     onSearch('', '', '', '');
   };
 
-  // --- 🛠️ REPARACIÓN DE EXPORTACIÓN ---
   const comisionHeaders = [
     { key: 'asesor_nombre', label: 'Asesor' }, 
     { key: 'poliza_numero', label: 'Póliza' },
@@ -128,7 +139,6 @@ function ComisionList({
 
   const handleExportPdf = () => {
     setIsExporting(true);
-    // Ahora le pasamos correctamente los encabezados y el título
     onExportPdf(getExportData(), 'reporte_comisiones', comisionHeaders, 'Reporte de Comisiones');
     setIsExporting(false);
   };
@@ -136,158 +146,185 @@ function ComisionList({
   const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
 
   return (
-    <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden">
-      <CardContent className="p-6">
-        {/* Cabecera con botones de exportación */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b pb-4">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Banknote className="h-6 w-6 text-blue-600" /> Registro de Liquidaciones
-          </h3>
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleExportCsv} 
-              variant="outline" 
-              className="border-green-200 text-green-700 hover:bg-green-50"
-              disabled={isExporting || comisiones.length === 0}
-            >
-              <FileDown className="h-4 w-4 mr-2" /> CSV
-            </Button>
-            <Button 
-              onClick={handleExportPdf} 
-              variant="outline" 
-              className="border-red-200 text-red-700 hover:bg-red-50"
-              disabled={isExporting || comisiones.length === 0}
-            >
-              <FileText className="h-4 w-4 mr-2" /> PDF
-            </Button>
-          </div>
-        </div>
-
-        {/* Panel de Filtros */}
-        <form onSubmit={handleSearchClick} className="mb-6 bg-slate-50 p-4 rounded-xl border space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-gray-500 uppercase">Asesor</Label>
-              <HeadlessSafeSelect 
-                value={asesorIdFilter} 
-                onChange={setAsesorIdFilter} 
-                options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} 
-                className="bg-white" 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-gray-500 uppercase">Estado</Label>
-              <HeadlessSafeSelect 
-                value={estadoPagoFilter} 
-                onChange={setEstadoPagoFilter} 
-                options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} 
-                className="bg-white" 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-gray-500 uppercase">Desde</Label>
-              <Input 
-                type="date" 
-                value={fechaInicioFilter} 
-                onChange={e => setFechaInicioFilter(e.target.value)} 
-                className="bg-white" 
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <Button type="submit" className="flex-1 bg-slate-800 text-white font-bold">
-                <Search className="h-4 w-4 mr-2"/> Filtrar
+    <>
+      <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden">
+        <CardContent className="p-6">
+          {/* Cabecera con botones de exportación */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b pb-4">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <Banknote className="h-6 w-6 text-blue-600" /> Registro de Liquidaciones
+            </h3>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleExportCsv} 
+                variant="outline" 
+                className="border-green-200 text-green-700 hover:bg-green-50"
+                disabled={isExporting || comisiones.length === 0}
+              >
+                <FileDown className="h-4 w-4 mr-2" /> CSV
               </Button>
-              <Button type="button" variant="outline" onClick={handleClearFilters}>Limpiar</Button>
+              <Button 
+                onClick={handleExportPdf} 
+                variant="outline" 
+                className="border-red-200 text-red-700 hover:bg-red-50"
+                disabled={isExporting || comisiones.length === 0}
+              >
+                <FileText className="h-4 w-4 mr-2" /> PDF
+              </Button>
             </div>
           </div>
-        </form>
 
-        {/* Tabla de Resultados */}
-        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Asesor</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Póliza</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Monto Final</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Fecha</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado Pago</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {comisiones.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
-                    {asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-bold">
-                    {polizas.find(p => String(p.id) === String(c.id_poliza))?.numero_poliza || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900">
-                    {currencySymbol} {formatCurrency(c.monto_final)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                    {formatDisplayDate(c.fecha_generacion)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      c.estatus_pago === 'pendiente' ? 'bg-amber-100 text-amber-700' : 
-                      c.estatus_pago === 'pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {c.estatus_pago ? c.estatus_pago.toUpperCase() : 'PENDIENTE'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
-                    
-                    {/* BOTÓN DE PAGO RÁPIDO */}
-                    {c.estatus_pago?.toLowerCase() === 'pendiente' && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => confirm({ 
-                          title: "Confirmar Pago", 
-                          message: "¿Confirmas que ya transferiste esta comisión al asesor?",
-                          onConfirm: () => handlePagoRapidoComision(c.id) 
-                        })} 
-                        className="text-emerald-600 hover:bg-emerald-100 rounded-full"
-                        title="Registrar pago rápido"
-                      >
-                        <Banknote className="h-5 w-5" />
-                      </Button>
-                    )}
+          {/* Panel de Filtros */}
+          <form onSubmit={handleSearchClick} className="mb-6 bg-slate-50 p-4 rounded-xl border space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-gray-500 uppercase">Asesor</Label>
+                <HeadlessSafeSelect 
+                  value={asesorIdFilter} 
+                  onChange={setAsesorIdFilter} 
+                  options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} 
+                  className="bg-white" 
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-gray-500 uppercase">Estado</Label>
+                <HeadlessSafeSelect 
+                  value={estadoPagoFilter} 
+                  onChange={setEstadoPagoFilter} 
+                  options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} 
+                  className="bg-white" 
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-gray-500 uppercase">Desde</Label>
+                <Input 
+                  type="date" 
+                  value={fechaInicioFilter} 
+                  onChange={e => setFechaInicioFilter(e.target.value)} 
+                  className="bg-white" 
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button type="submit" className="flex-1 bg-slate-800 text-white font-bold">
+                  <Search className="h-4 w-4 mr-2"/> Filtrar
+                </Button>
+                <Button type="button" variant="outline" onClick={handleClearFilters}>Limpiar</Button>
+              </div>
+            </div>
+          </form>
 
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => onEditComision(c)} 
-                      className="text-blue-600 hover:bg-blue-100 rounded-full"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => confirm({ title: "Eliminar Comisión", onConfirm: () => onDeleteComision(c.id) })} 
-                      className="text-rose-500 hover:bg-rose-100 rounded-full"
-                    >
-                      <Trash2Icon className="h-4 w-4" />
-                    </Button>
-                  </td>
+          {/* Tabla de Resultados */}
+          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Asesor</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Póliza</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Monto Final</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Fecha</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado Pago</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {comisiones.map((c) => {
+                  const clienteIdAsociado = getClienteIdFromComision(c.id_poliza);
+                  
+                  return (
+                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
+                        {asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-bold">
+                        {polizas.find(p => String(p.id) === String(c.id_poliza))?.numero_poliza || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900">
+                        {currencySymbol} {formatCurrency(c.monto_final)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                        {formatDisplayDate(c.fecha_generacion)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                          c.estatus_pago === 'pendiente' ? 'bg-amber-100 text-amber-700' : 
+                          c.estatus_pago === 'pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {c.estatus_pago ? c.estatus_pago.toUpperCase() : 'PENDIENTE'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
+                        
+                        {/* INJERTO 4: EL BOTÓN DEL OJITO 360 */}
+                        {clienteIdAsociado && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => setSelectedClient360(clienteIdAsociado)} 
+                            className="text-purple-600 hover:bg-purple-100 rounded-full"
+                            title="Ver Expediente CRM 360 del Cliente"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
 
-        {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex justify-center">
-             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+                        {/* BOTÓN DE PAGO RÁPIDO */}
+                        {c.estatus_pago?.toLowerCase() === 'pendiente' && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => confirm({ 
+                              title: "Confirmar Pago", 
+                              message: "¿Confirmas que ya transferiste esta comisión al asesor?",
+                              onConfirm: () => handlePagoRapidoComision(c.id) 
+                            })} 
+                            className="text-emerald-600 hover:bg-emerald-100 rounded-full"
+                            title="Registrar pago rápido"
+                          >
+                            <Banknote className="h-5 w-5" />
+                          </Button>
+                        )}
+
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => onEditComision(c)} 
+                          className="text-blue-600 hover:bg-blue-100 rounded-full"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => confirm({ title: "Eliminar Comisión", onConfirm: () => onDeleteComision(c.id) })} 
+                          className="text-rose-500 hover:bg-rose-100 rounded-full"
+                        >
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* INJERTO 5: RENDERIZAMOS LA VENTANA EMERGENTE 360 AL FINAL */}
+      {selectedClient360 && (
+        <ClientProfile360 
+          clientId={selectedClient360} 
+          onClose={() => setSelectedClient360(null)} 
+        />
+      )}
+    </>
   );
 }
 
