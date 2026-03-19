@@ -126,6 +126,26 @@ function App() {
 
   const { toast } = useToast();
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  // --- 🚀 INJERTO: EL GUARDIA GLOBAL (EXPULSOR AUTOMÁTICO) ---
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      const requestUrl = args[0] || ""; 
+      
+      // Si el servidor dice "No Autorizado" y NO es un intento de Login...
+      if (response.status === 401 && typeof requestUrl === 'string' && !requestUrl.includes('/login') && !requestUrl.includes('/token')) {
+        console.warn("Pase VIP vencido. Limpiando memoria y expulsando...");
+        localStorage.removeItem('access_token');
+        window.location.href = "/"; // Recarga la página y limpia toda la memoria congelada
+      }
+      return response;
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+  // -----------------------------------------------------------
 
   const [clienteSearchTerm, setClienteSearchTerm] = useState('');
   const [clienteEmailFilter, setClienteEmailFilter] = useState('');
