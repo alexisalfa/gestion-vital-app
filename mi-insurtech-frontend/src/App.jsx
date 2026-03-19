@@ -970,7 +970,17 @@ function App() {
           {activeTab === 'comisiones' && (
             <div className="space-y-6 animate-in fade-in duration-500">
               <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Liquidación de Comisiones</h2>
-              <ComisionForm onComisionSaved={handleComisionSaved} editingComision={editingComision} setEditingComision={setEditingComision} apiBaseUrl={API_BASE_URL} asesores={asesores} polizas={polizas} isLoadingAdvisors={isLoadingAdvisors} isLoadingPolicies={isLoadingPolicies} />
+              <ComisionForm 
+                onComisionSaved={handleComisionSaved} 
+                editingComision={editingComision} 
+                setEditingComision={setEditingComision} 
+                apiBaseUrl={API_BASE_URL} 
+                asesores={asesores} 
+                polizas={polizas} 
+                comisiones={comisiones}  // <--- ¡AGREGA ESTE CABLE NUEVO AQUÍ!
+                isLoadingAdvisors={isLoadingAdvisors} 
+                isLoadingPolicies={isLoadingPolicies} 
+              />
               <ComisionImport apiBaseUrl={API_BASE_URL} onImportComplete={handleComisionSaved} />
               <ComisionList
                 key={`list-sync-${asesores.length}-${polizas.length}-${comisiones.length}`}

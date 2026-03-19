@@ -14,7 +14,8 @@ const formatDateToInput = (isoString) => {
   return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
 };
 
-function ComisionForm({ onComisionSaved, editingComision, setEditingComision, apiBaseUrl, asesores = [], isLoadingAdvisors, polizas = [], isLoadingPolicies }) {
+// 🚀 AÑADIDO: Recibe 'comisiones = []' en los props
+function ComisionForm({ onComisionSaved, editingComision, setEditingComision, apiBaseUrl, asesores = [], isLoadingAdvisors, polizas = [], isLoadingPolicies, comisiones = [] }) {
   const { toast } = useToast();
   const initialComisionState = { id_asesor: '', id_poliza: '', tipo_comision: 'porcentaje', valor_comision: '', monto_base: '', monto_final: '', fecha_generacion: formatDateToInput(new Date().toISOString()), fecha_pago: '', estatus_pago: 'pendiente', observaciones: '' };
 
@@ -86,7 +87,19 @@ function ComisionForm({ onComisionSaved, editingComision, setEditingComision, ap
   };
 
   const asesorOptions = useMemo(() => asesores.map(a => ({ id: a.id, nombre: `${a.nombre} ${a.apellido || ''}` })), [asesores]);
-  const polizaOptions = useMemo(() => polizas.map(p => ({ id: p.id, nombre: `Póliza: ${p.numero_poliza}` })), [polizas]);
+  
+  // --- 🚀 FILTRO DE PREVENCIÓN DE DOBLE PAGO ---
+  const polizaOptions = useMemo(() => {
+    const idPolizaEditando = editingComision ? String(editingComision.id_poliza) : null;
+
+    return polizas
+      .filter(p => {
+        const yaTieneComision = comisiones.some(c => String(c.id_poliza) === String(p.id));
+        return !yaTieneComision || String(p.id) === idPolizaEditando;
+      })
+      .map(p => ({ id: p.id, nombre: `Póliza: ${p.numero_poliza}` }));
+  }, [polizas, comisiones, editingComision]);
+  // --------------------------------------------------------
 
   return (
     <Card className="mb-8 border-none shadow-xl rounded-xl overflow-hidden">
