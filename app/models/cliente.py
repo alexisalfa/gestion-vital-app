@@ -6,6 +6,7 @@ from datetime import datetime
 if TYPE_CHECKING:
     from .poliza import Poliza
     from .user import User
+    from .reclamacion import Reclamacion
 
 class Cliente(SQLModel, table=True):
     # Solución al error de Pylance:
@@ -33,3 +34,4 @@ class Cliente(SQLModel, table=True):
     # --- RELACIONES ---
     polizas: List["Poliza"] = Relationship(back_populates="cliente")
     user: Optional["User"] = Relationship()
+    reclamaciones: List["Reclamacion"] = Relationship(back_populates="cliente")
