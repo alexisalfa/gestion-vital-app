@@ -115,6 +115,21 @@ function App() {
   const [statisticsSummaryData, setStatisticsSummaryData] = useState(null);
   const [isLoadingStatisticsSummary, setIsLoadingStatisticsSummary] = useState(true);
   const [polizasProximasAVencer, setPolizasProximasAVencer] = useState([]);
+  const fetchPolizasPendientesDashboard = useCallback(async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/polizas?estado_filter=Pendiente&limit=999`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const items = Array.isArray(data) ? data : (data.items || []);
+        setPolizasPendientesDashboard(data.total_count !== undefined ? data.total_count : items.length);
+      }
+    } catch (error) { console.error("Error al buscar pólizas pendientes:", error); }
+  }, []);
+  // --------------------------------------------------
   const [isLoadingPolizasProximasAVencer, setIsLoadingPolizasProximasAVencer] = useState(true);
 
   const [totalClients, setTotalClients] = useState(0);
@@ -207,7 +222,8 @@ function App() {
 
   const totalAlerts = (polizasProximasAVencer?.length || 0) + 
                       (statisticsSummaryData?.total_reclamaciones_pendientes || 0) + 
-                      (dineroEnLaCalle.cantidad > 0 ? 1 : 0);
+                      (dineroEnLaCalle.cantidad > 0 ? 1 : 0) +
+                      (polizasPendientesDashboard > 0 ? 1 : 0);
 
   useEffect(() => {
     const savedLicenseKey = localStorage.getItem('licenseKey');
@@ -486,8 +502,8 @@ function App() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-
     fetchStatisticsSummaryData();
+    fetchPolizasPendientesDashboard();
 
     if (activeTab === 'dashboard') {
       fetchUpcomingPoliciesData();
@@ -568,7 +584,7 @@ function App() {
   const handlePolizaSaved = useCallback(() => {
     setEditingPoliza(null);
     fetchPoliciesData((polizaCurrentPage - 1) * POLIZAS_PER_PAGE, POLIZAS_PER_PAGE, polizaSearchTerm, polizaTipoFilter, polizaEstadoFilter, polizaClienteIdFilter, polizaFechaInicioFilter, polizaFechaFinFilter);
-    fetchStatisticsSummaryData(); fetchUpcomingPoliciesData();
+    fetchStatisticsSummaryData(); fetchUpcomingPoliciesData(); fetchPolizasPendientesDashboard();
   }, [polizaCurrentPage, polizaSearchTerm, polizaTipoFilter, polizaEstadoFilter, polizaClienteIdFilter, polizaFechaInicioFilter, polizaFechaFinFilter, fetchPoliciesData, fetchStatisticsSummaryData, fetchUpcomingPoliciesData]);
 
   const handlePolizaDelete = useCallback(async (id) => {
@@ -1044,6 +1060,21 @@ function App() {
                          </Button>
                       </div>
                     )}
+                    {/* --- INJERTO 4: TARJETA DE COBRANZA (AHORA EN SU PROPIO ESPACIO) --- */}
+                    {polizasPendientesDashboard > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+                         <h4 className="font-bold text-blue-800 flex items-center gap-2 mb-2">
+                           <DollarSign className="h-4 w-4"/> Primas Pendientes (Cobranza)
+                         </h4>
+                         <p className="text-sm text-blue-700 mb-3">
+                           Tienes <b>{polizasPendientesDashboard}</b> póliza(s) emitida(s) esperando el pago del cliente. ¡Asegura ese ingreso!
+                         </p>
+                         <Button variant="outline" size="sm" className="w-full bg-white text-blue-700 border-blue-200 hover:bg-blue-100 font-bold" onClick={() => { setActiveTab('polizas'); setIsAlertsOpen(false); }}>
+                           Ir a Gestión de Pólizas
+                         </Button>
+                      </div>
+                    )}
+                    {/* ------------------------------------------------------------------- */}
 
                     {dineroEnLaCalle.total > 0 && (
                       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm">
