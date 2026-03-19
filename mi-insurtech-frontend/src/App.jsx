@@ -115,6 +115,9 @@ function App() {
   const [statisticsSummaryData, setStatisticsSummaryData] = useState(null);
   const [isLoadingStatisticsSummary, setIsLoadingStatisticsSummary] = useState(true);
   const [polizasProximasAVencer, setPolizasProximasAVencer] = useState([]);
+  
+  const [polizasPendientesDashboard, setPolizasPendientesDashboard] = useState(0);
+  
   const fetchPolizasPendientesDashboard = useCallback(async () => {
     const token = localStorage.getItem('access_token');
     if (!token) return;
