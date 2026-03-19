@@ -9,7 +9,7 @@ from typing import List, Optional, Any, cast
 
 from app.db.database import get_session
 from app.models.comision import Comision
-from app.schemas.comision import ComisionCreate, ComisionRead
+from app.schemas.comision import ComisionCreate, ComisionRead, ComisionUpdate
 from app.models.poliza import Poliza 
 from app.models.Asesores import Asesores 
 from app.models.user import User
@@ -113,7 +113,7 @@ async def importar_comisiones(
 @router.put("/{comision_id}", response_model=ComisionRead)
 def update_comision(
     comision_id: int,
-    comision_in: ComisionCreate,
+    comision_in: ComisionUpdate,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     _licencia = Depends(verificar_licencia_activa)
