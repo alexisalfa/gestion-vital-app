@@ -189,7 +189,7 @@ function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl
           
           <div className="space-y-2">
             <Label className="text-gray-600 font-semibold flex items-center gap-2"><Activity className="h-4 w-4 text-gray-400"/> Estado</Label>
-            <HeadlessSafeSelect id="estado" label="Estado" value={poliza.estado} onChange={(v) => handleSelectChange('estado', v)} options={[{id: 'Activa', nombre: 'Activa'}, {id: 'Inactiva', nombre: 'Inactiva'}, {id: 'Vencida', nombre: 'Vencida'}]} className="bg-gray-50" />
+            <HeadlessSafeSelect id="estado" label="Estado" value={poliza.estado} onChange={(v) => handleSelectChange('estado', v)} options={[{id: 'Activa', nombre: 'Activa'}, {id: 'Inactiva', nombre: 'Inactiva'}, {id: 'Vencida', nombre: 'Vencida'}, {id: 'Pendiente', nombre: 'Pendiente de Pago'}]} className="bg-gray-50" />
           </div>
 
           <div className="space-y-2">

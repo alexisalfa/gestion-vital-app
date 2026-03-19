@@ -105,7 +105,7 @@ function PolizaList({
     ...clients.map(c => ({ id: c.id, nombre: `${c.nombre} ${c.apellido || ''}`.trim() }))
   ], [clients]);
 
-  const estadoOptions = [{ id: '', nombre: 'Todos' }, { id: 'Activa', nombre: 'Activa' }, { id: 'Inactiva', nombre: 'Inactiva' }, { id: 'Vencida', nombre: 'Vencida' }, { id: 'Pendiente', nombre: 'Pendiente' }];
+  const estadoOptions = [{ id: '', nombre: 'Todos' }, { id: 'Activa', nombre: 'Activa' }, { id: 'Inactiva', nombre: 'Inactiva' }, { id: 'Vencida', nombre: 'Vencida' }, { id: 'Pendiente', nombre: 'Pendiente de Pago' }];
 
   const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter); };
   
