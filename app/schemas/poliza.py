@@ -11,26 +11,36 @@ class PolizaBase(BaseModel):
     fecha_fin: datetime
     prima: float = Field(ge=0)
     
-    # --- 🚀 NUEVOS CAMPOS DE COBERTURA FINANCIERA ---
+    # --- CAMPOS DE COBERTURA FINANCIERA ---
     suma_asegurada: float | None = 0.0
     deducible: float | None = 0.0
-    # ------------------------------------------------
     
     estado: Optional[str] = Field(default="Activa", max_length=20)
     cliente_id: int
-    empresa_id: int # Importante para vincular con la aseguradora
+    empresa_id: int 
     asesor_id: Optional[int] = None
 
 class PolizaCreate(PolizaBase):
     pass
 
 class PolizaUpdate(BaseModel):
-    # (Todos opcionales como los tienes)
-    pass
+    numero_poliza: Optional[str] = None
+    tipo_poliza: Optional[str] = None
+    fecha_inicio: Optional[datetime] = None
+    fecha_fin: Optional[datetime] = None
+    prima: Optional[float] = None
+    estado: Optional[str] = None
+    cliente_id: Optional[int] = None
+    empresa_id: Optional[int] = None
+    asesor_id: Optional[int] = None
+    
+    # --- 🚀 AQUÍ ESTABA EL BLOQUEO: AHORA EL PORTERO LOS DEJA PASAR ---
+    suma_asegurada: Optional[float] = None
+    deducible: Optional[float] = None
 
 class PolizaRead(PolizaBase):
     id: int
     fecha_creacion: datetime
-    cliente: Optional[ClienteRead] = None # Información del cliente anidada
+    cliente: Optional[ClienteRead] = None 
     
     model_config = ConfigDict(from_attributes=True)
