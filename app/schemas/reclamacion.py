@@ -1,12 +1,13 @@
 # app/schemas/reclamacion.py
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
-from datetime import datetime # <--- Esto es clave
+from datetime import datetime 
+from app.schemas.cliente import ClienteRead # <-- Importamos esto para leer el nombre
 
 class ReclamacionBase(BaseModel):
     descripcion: str
-    fecha_siniestro: datetime    # <--- CAMBIA str POR datetime
-    fecha_reclamacion: datetime  # <--- CAMBIA str POR datetime
+    fecha_siniestro: datetime    
+    fecha_reclamacion: datetime  
     monto_reclamado: float
     monto_aprobado: float
     estado_reclamacion: str
@@ -18,8 +19,8 @@ class ReclamacionCreate(ReclamacionBase):
 
 class ReclamacionUpdate(BaseModel):
     descripcion: Optional[str] = None
-    fecha_siniestro: Optional[datetime] = None # <--- También aquí
-    fecha_reclamacion: Optional[datetime] = None # <--- También aquí
+    fecha_siniestro: Optional[datetime] = None 
+    fecha_reclamacion: Optional[datetime] = None 
     monto_reclamado: Optional[float] = None
     monto_aprobado: Optional[float] = None
     estado_reclamacion: Optional[str] = None
@@ -28,4 +29,6 @@ class ReclamacionUpdate(BaseModel):
 
 class ReclamacionRead(ReclamacionBase):
     id: int
+    cliente: Optional[ClienteRead] = None # <-- Permite que React lea reclamacion.cliente.nombre
+    
     model_config = ConfigDict(from_attributes=True)

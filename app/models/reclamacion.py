@@ -1,10 +1,10 @@
 from typing import Optional, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime # Importa datetime
+from datetime import datetime
 
 if TYPE_CHECKING:
     from .poliza import Poliza
-    from .reclamacion import Reclamacion
+    from .cliente import Cliente # <-- INJERTO: Importamos Cliente
 
 class Reclamacion(SQLModel, table=True):
     __tablename__: str = "reclamacion" 
@@ -20,7 +20,9 @@ class Reclamacion(SQLModel, table=True):
     poliza_id: int = Field(foreign_key="poliza.id")
     cliente_id: int = Field(foreign_key="cliente.id")
     
-    # NUEVO: Campo de auditoría y privacidad
-    user_id: int = Field(foreign_key="user.id") #
+    # Campo de auditoría y privacidad
+    user_id: int = Field(foreign_key="user.id") 
     
+    # --- 🚀 RELACIONES (CONEXIONES ENTRE TABLAS) ---
     poliza: Optional["Poliza"] = Relationship(back_populates="reclamaciones")
+    cliente: Optional["Cliente"] = Relationship(back_populates="reclamaciones") # <-- FALTABA ESTO
