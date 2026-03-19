@@ -42,7 +42,7 @@ function PolizaList({
   };
 
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) return 'N/A';
+    if (value === null || value === undefined || value === 0) return '0.00';
     return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   };
 
@@ -116,7 +116,8 @@ function PolizaList({
 
   const polizaCsvHeaders = useMemo(() => [
     { key: 'numero_poliza', label: 'N° Póliza' }, { key: 'tipo_poliza', label: 'Tipo' }, { key: 'cliente_nombre', label: 'Cliente' },
-    { key: 'empresa_nombre', label: 'Aseguradora' }, { key: 'fecha_fin', label: 'Vencimiento', type: 'date' }, { key: 'prima', label: 'Prima' }, { key: 'estado', label: 'Estado' }
+    { key: 'empresa_nombre', label: 'Aseguradora' }, { key: 'fecha_fin', label: 'Vencimiento', type: 'date' }, 
+    { key: 'suma_asegurada', label: 'Suma Aseg.' }, { key: 'deducible', label: 'Deducible' }, { key: 'prima', label: 'Prima' }, { key: 'estado', label: 'Estado' }
   ], []);
 
   const handleExportCsv = () => {
@@ -229,8 +230,9 @@ function PolizaList({
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">N° Póliza</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aseguradora</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Suma Aseg.</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Deducible</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Prima</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -242,9 +244,17 @@ function PolizaList({
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-900">{poliza.numero_poliza}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{poliza.tipo_poliza}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">{getClienteNombre(poliza)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{getEmpresaNombre(poliza)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatDisplayDate(poliza.fecha_fin)}</td>
+                      
+                      {/* INJERTO DE COLUMNAS DE COBERTURA */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-600">
+                        {poliza.suma_asegurada != null ? `${currencySymbol} ${formatCurrency(poliza.suma_asegurada)}` : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-rose-500">
+                        {poliza.deducible != null ? `${currencySymbol} ${formatCurrency(poliza.deducible)}` : 'N/A'}
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800">
                         {poliza.prima != null ? `${currencySymbol} ${formatCurrency(poliza.prima)}` : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">

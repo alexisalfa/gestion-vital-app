@@ -42,3 +42,8 @@ class Poliza(SQLModel, table=True):
     # Relación con Reclamaciones
     reclamaciones: List["Reclamacion"] = Relationship(back_populates="poliza")
     user_id: int = Field(foreign_key="user.id")
+    
+    # --- 🚀 NUEVOS CAMPOS DE COBERTURA FINANCIERA ---
+    suma_asegurada: float | None = Field(default=0.0)
+    deducible: float | None = Field(default=0.0)
+    # ------------------------------------------------

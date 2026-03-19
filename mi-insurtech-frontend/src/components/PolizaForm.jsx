@@ -18,7 +18,7 @@ const formatDateToInput = (isoString) => {
 function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl, clientes = [], empresasAseguradoras = [], asesores = [], isLoadingClients, isLoadingCompanies, isLoadingAdvisors }) {
   const { toast } = useToast();
 
-  const initialPolizaState = { numero_poliza: '', tipo_poliza: '', fecha_inicio: '', fecha_fin: '', prima: '', estado: 'Activa', cliente_id: '', empresa_aseguradora_id: '', asesor_id: '' };
+  const initialPolizaState = { numero_poliza: '', tipo_poliza: '', fecha_inicio: '', fecha_fin: '', prima: '', suma_asegurada: '', deducible: '', estado: 'Activa', cliente_id: '', empresa_aseguradora_id: '', asesor_id: '' };
   const [poliza, setPoliza] = useState(initialPolizaState);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,6 +47,8 @@ function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl
       tipo_poliza: poliza.tipo_poliza,
       estado: poliza.estado,
       prima: poliza.prima ? parseFloat(poliza.prima) : null,
+      suma_asegurada: poliza.suma_asegurada ? parseFloat(poliza.suma_asegurada) : 0,
+      deducible: poliza.deducible ? parseFloat(poliza.deducible) : 0,
       fecha_inicio: poliza.fecha_inicio || null,
       fecha_fin: poliza.fecha_fin || null,
       cliente_id: poliza.cliente_id ? parseInt(poliza.cliente_id, 10) : null,
@@ -69,7 +71,6 @@ function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl
         const errorData = await response.json();
         let errorMessage = "Ocurrió un error al procesar la póliza.";
 
-        // --- TRADUCTOR DE ERRORES SUTIL PARA EL USUARIO ---
         const detailStr = JSON.stringify(errorData.detail || "");
         if (detailStr.includes("UniqueViolation") || detailStr.includes("already exists") || detailStr.includes("duplicada")) {
           errorMessage = `El número de póliza "${poliza.numero_poliza}" ya está registrado. Por favor, asigne un número diferente.`;
@@ -151,6 +152,24 @@ function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl
               <Input name="prima" type="number" step="0.01" value={poliza.prima} onChange={handleChange} required placeholder="0.00" className="pl-10 bg-gray-50" />
             </div>
           </div>
+
+          {/* INJERTO DE COBERTURA FINANCIERA */}
+          <div className="space-y-2 relative">
+            <Label className="text-emerald-700 font-bold">Suma Asegurada</Label>
+            <div className="relative">
+              <Shield className="absolute left-3 top-2.5 h-4 w-4 text-emerald-500" />
+              <Input name="suma_asegurada" type="number" step="0.01" value={poliza.suma_asegurada} onChange={handleChange} placeholder="0.00" className="pl-10 bg-emerald-50/50 font-bold text-emerald-700 border-emerald-200 focus:ring-emerald-500" />
+            </div>
+          </div>
+          
+          <div className="space-y-2 relative">
+            <Label className="text-rose-700 font-bold">Deducible</Label>
+            <div className="relative">
+              <AlertCircle className="absolute left-3 top-2.5 h-4 w-4 text-rose-500" />
+              <Input name="deducible" type="number" step="0.01" value={poliza.deducible} onChange={handleChange} placeholder="0.00" className="pl-10 bg-rose-50/50 font-bold text-rose-700 border-rose-200 focus:ring-rose-500" />
+            </div>
+          </div>
+          {/* FIN INJERTO */}
           
           <div className="space-y-2 relative">
             <Label className="text-gray-600 font-semibold">Fecha Inicio</Label>

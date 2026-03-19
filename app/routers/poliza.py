@@ -135,7 +135,7 @@ def eliminar_poliza_existente(
     return None
 
 
-### **3. IMPORTACIÓN MASIVA DE PÓLIZAS (NUEVO)**
+### **3. IMPORTACIÓN MASIVA DE PÓLIZAS**
 @router.post("/polizas/importar")
 async def importar_polizas_csv(
     file: UploadFile = File(...),
@@ -143,7 +143,6 @@ async def importar_polizas_csv(
     current_user: User = Depends(get_current_user),
     _licencia = Depends(verificar_licencia_activa)
 ):
-    # SOLUCIÓN AL ERROR DE PYLANCE: Validación explícita del ID del usuario
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Usuario no válido")
 
@@ -168,7 +167,6 @@ async def importar_polizas_csv(
                     errores += 1
                     continue
 
-                # Evitar duplicados de pólizas para el mismo usuario
                 existe = session.exec(
                     select(Poliza).where(
                         Poliza.numero_poliza == numero_poliza,
@@ -180,11 +178,14 @@ async def importar_polizas_csv(
                     errores += 1 
                     continue 
 
-                # SOLUCIÓN DE PYLANCE: Extracción y limpieza segura de las celdas
                 cliente_str = str(row.get('cliente_id') or '0').strip()
                 empresa_str = str(row.get('empresa_aseguradora_id') or '0').strip()
                 asesor_str = str(row.get('asesor_id') or '').strip()
                 prima_str = str(row.get('prima') or '0').strip()
+                
+                # INJERTO DE RIESGO
+                suma_str = str(row.get('suma_asegurada') or '0').strip()
+                deducible_str = str(row.get('deducible') or '0').strip()
 
                 nueva_poliza = Poliza(
                     numero_poliza=numero_poliza,
@@ -192,6 +193,8 @@ async def importar_polizas_csv(
                     fecha_inicio=datetime.strptime(str(row.get('fecha_inicio', '')).strip(), '%Y-%m-%d'),
                     fecha_fin=datetime.strptime(str(row.get('fecha_fin', '')).strip(), '%Y-%m-%d'),
                     prima=float(prima_str),
+                    suma_asegurada=float(suma_str),
+                    deducible=float(deducible_str),
                     estado=str(row.get('estado', 'Activa')).strip(),
                     cliente_id=int(cliente_str),
                     empresa_id=int(empresa_str),
@@ -201,12 +204,11 @@ async def importar_polizas_csv(
                 session.add(nueva_poliza)
                 importados += 1
             except Exception:
-                # Si falla una fila (ej. ID no existe, letras en lugar de números), la ignoramos
                 errores += 1
                 continue
 
         session.commit()
-        return {"message": f"Proceso completado: {importados} pólizas importadas, {errores} omitidas (duplicadas o con errores de formato)."}
+        return {"message": f"Proceso completado: {importados} pólizas importadas, {errores} omitidas."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error general al procesar el archivo: {str(e)}")
