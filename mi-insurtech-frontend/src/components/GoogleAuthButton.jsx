@@ -47,7 +47,7 @@ const CustomGoogleButton = ({ onSuccessAction }) => {
 // 2. El Envoltorio de Seguridad (El que tiene la llave)
 const GoogleAuthButton = ({ onLoginSuccess }) => {
   // Pega tu Client ID real aquí adentro
-  const CLIENT_ID = "AQUI_PEGA_TU_CLIENT_ID_LARGO.apps.googleusercontent.com";
+  const CLIENT_ID = "706735976396-jbcg9f71ll86no40m2jd23jgdil2ouke.apps.googleusercontent.com";
 
   return (
     <GoogleOAuthProvider clientId={CLIENT_ID}>
