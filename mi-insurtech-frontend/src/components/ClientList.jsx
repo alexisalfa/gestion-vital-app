@@ -203,7 +203,7 @@ function ClientList({
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm relative">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm relative">
           <table className="min-w-full divide-y divide-gray-200 relative">
             <thead className="bg-gray-50/80 relative">
               <tr className="relative">
