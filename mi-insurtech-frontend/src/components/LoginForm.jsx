@@ -4,15 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/lib/use-toast';
+import { Loader2, Mail, Lock } from 'lucide-react';
 
-
-/**
- * Componente de formulario de inicio de sesión.
- *
- * @param {object} props - Las propiedades del componente.
- * @param {function} props.onLoginSuccess - Callback que se ejecuta al iniciar sesión exitosamente.
- * @param {string} props.apiBaseUrl - La URL base de la API.
- */
 function LoginForm({ onLoginSuccess, apiBaseUrl }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,15 +23,13 @@ function LoginForm({ onLoginSuccess, apiBaseUrl }) {
     try {
       const response = await fetch(`${apiBaseUrl}/token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Error al iniciar sesión.');
+        throw new Error(errorData.detail || 'Credenciales incorrectas.');
       }
 
       const data = await response.json();
@@ -46,47 +37,57 @@ function LoginForm({ onLoginSuccess, apiBaseUrl }) {
       localStorage.setItem('token_type', data.token_type);
       onLoginSuccess();
     } catch (error) {
-      console.error('Error de inicio de sesión:', error);
-      toast({
-        title: "Error de Inicio de Sesión",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error de Acceso", description: error.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="login-username" className="text-white">Usuario</Label> {/* Texto blanco */}
-        <Input
-          id="login-username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          disabled={isSubmitting}
-          placeholder="Ingresa tu usuario"
-          className="placeholder:text-gray-300 text-gray-900" // Ajuste de placeholder y texto del input
-        />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="login-username" className="text-slate-700 font-bold text-sm">Correo Electrónico</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+          <Input
+            id="login-username"
+            type="email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="ejemplo@agencia.com"
+            className="pl-10 py-6 bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          />
+        </div>
       </div>
-      <div>
-        <Label htmlFor="login-password" className="text-white">Contraseña</Label> {/* Texto blanco */}
-        <Input
-          id="login-password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          disabled={isSubmitting}
-          placeholder="Ingresa tu contraseña"
-          className="placeholder:text-gray-300 text-gray-900" // Ajuste de placeholder y texto del input
-        />
+      
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="login-password" className="text-slate-700 font-bold text-sm">Contraseña</Label>
+          <a href="#" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">¿Olvidaste tu contraseña?</a>
+        </div>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="••••••••"
+            className="pl-10 py-6 bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          />
+        </div>
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+      
+      <Button 
+        type="submit" 
+        className="w-full py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5" 
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Accediendo...</> : 'Ingresar a la Bóveda'}
       </Button>
     </form>
   );
