@@ -46,7 +46,20 @@ def get_summary(
         # 1. Conteos Generales
         total_clientes = session.exec(select(func.count()).select_from(Cliente).where(Cliente.user_id == user_id)).one() # type: ignore
         total_polizas = session.exec(select(func.count()).select_from(Poliza).where(Poliza.user_id == user_id)).one() # type: ignore
-        total_reclamaciones = session.exec(select(func.count()).select_from(Reclamacion).where(Reclamacion.user_id == user_id)).one() # type: ignore
+        
+        # --- 🚀 INJERTO: FILTRO DE SINIESTROS PENDIENTES ---
+        # Solo cuenta las que NO están Pagada ni Rechazada
+        total_reclamaciones = session.exec(
+            select(func.count())
+            .select_from(Reclamacion)
+            .where(
+                Reclamacion.user_id == user_id,
+                Reclamacion.estado_reclamacion != 'Pagada',
+                Reclamacion.estado_reclamacion != 'Rechazada'
+            )
+        ).one() # type: ignore
+        # ---------------------------------------------------
+
         empresas_activas = session.exec(select(func.count()).select_from(EmpresaAseguradora).where(EmpresaAseguradora.user_id == user_id)).one() # type: ignore
         total_asesores = session.exec(select(func.count()).select_from(Asesores).where(Asesores.user_id == user_id)).one() # type: ignore
 

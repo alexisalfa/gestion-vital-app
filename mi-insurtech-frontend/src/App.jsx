@@ -128,7 +128,9 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         const items = Array.isArray(data) ? data : (data.items || []);
-        setPolizasPendientesDashboard(data.total_count !== undefined ? data.total_count : items.length);
+        const verdaderasPendientes = items.filter(p => p.estado === 'Pendiente');
+        setPolizasPendientesDashboard(verdaderasPendientes.length);
+        // -----------------------------------------------
       }
     } catch (error) { console.error("Error al buscar pólizas pendientes:", error); }
   }, []);
