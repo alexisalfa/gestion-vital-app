@@ -4,21 +4,37 @@ import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
-
-// Importamos el nuevo "súper botón" de Google
 import GoogleAuthButton from './GoogleAuthButton';
-
-// Importa tu ilustración
 import loginIllustration from '../assets/login-illustration.png'; 
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
-  // Manejamos el cambio entre Login y Registro de forma local aquí
   const [showRegisterForm, setShowRegisterForm] = useState(false);
 
-  // Esta función recibirá el token temporal de Google (Fase 2)
-  const handleGoogleSuccess = (tokenResponse) => {
-    console.log("¡Éxito! Token recibido listo para enviar al backend:", tokenResponse);
-    // En la Fase 3, aquí enviaremos este token a Python para que te deje entrar
+  // Esta función recibe el token temporal de Google y lo envía a tu Backend en Python
+  const handleGoogleSuccess = async (tokenResponse) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: tokenResponse.access_token }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al validar con el servidor.');
+      }
+
+      const data = await response.json();
+      
+      // Guardamos la llave de la bóveda (igual que en el login normal)
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('token_type', data.token_type);
+      
+      // Le avisamos a App.jsx que abra las puertas
+      onLoginSuccess();
+      
+    } catch (error) {
+      console.error("Error en Google Login:", error);
+    }
   };
 
   return (
@@ -64,7 +80,6 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
           </div>
 
           {/* --- BOTÓN OFICIAL DE LOGIN CON GOOGLE --- */}
-          {/* Aquí inyectamos el componente que creaste en el paso anterior */}
           <GoogleAuthButton onLoginSuccess={handleGoogleSuccess} />
           {/* ----------------------------------------- */}
 
