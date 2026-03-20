@@ -25,7 +25,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/lib/use-toast';
 import { ConfirmationProvider } from './components/ConfirmationContext';
 import { saveAs } from 'file-saver';
-import { ChevronRight, ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign } from 'lucide-react';
+import { ChevronRight, ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign, Mail } from 'lucide-react';
 import DashboardCharts from './components/DashboardCharts';
 import ClienteImport from './components/ClienteImport';
 import { Button } from '@/components/ui/button';
@@ -740,6 +740,29 @@ function App() {
     const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
   };
+  // --- INJERTO: FUNCIÓN PARA DISPARAR EL CORREO ---
+  const handleEmailNotificacion = async (polizaId) => {
+    const token = localStorage.getItem('access_token');
+    try {
+      toast({ title: "Enviando...", description: "Preparando y enviando el correo al cliente.", variant: "info" });
+      
+      const response = await fetch(`${API_BASE_URL}/polizas/${polizaId}/recordatorio`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        toast({ title: "¡Correo Enviado! ✉️", description: data.message, variant: "success" });
+      } else {
+        const errorData = await response.json();
+        toast({ title: "Error al enviar", description: errorData.detail || "No se pudo enviar el correo.", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error de conexión", description: "Fallo al conectar con el servidor.", variant: "destructive" });
+    }
+  };
+  // ------------------------------------------------
 
   const getDateFormatOptions = useCallback((format) => {
     switch (format) {
@@ -1107,12 +1130,17 @@ function App() {
                               </div>
                               <p className="text-xs text-slate-500 mb-2">Vence: {String(p.fecha_fin).split('T')[0]}</p>
                               
-                              <div className="flex items-center gap-2 mt-1 pt-2 border-t border-slate-50">
-                                <Button variant="ghost" size="sm" className="h-7 flex-1 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 justify-center px-0" onClick={() => { setActiveTab('polizas'); setIsAlertsOpen(false); }}>
-                                  Ver detalles
+                              <div className="flex items-center gap-1 mt-1 pt-2 border-t border-slate-50">
+                                <Button variant="ghost" size="sm" className="h-7 flex-1 text-[10px] text-orange-600 hover:text-orange-800 hover:bg-orange-50 justify-center px-0" onClick={() => { setActiveTab('polizas'); setIsAlertsOpen(false); }}>
+                                  Detalles
                                 </Button>
-                                <Button variant="outline" size="sm" className="h-7 flex-1 text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 shadow-sm" onClick={() => handleWhatsAppNotificacion(p)}>
-                                  <MessageCircle className="h-3 w-3 mr-1" /> Avisar
+                                {/* NUEVO BOTÓN DE CORREO */}
+                                <Button variant="outline" size="sm" className="h-7 flex-1 text-[10px] bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm px-0" onClick={() => handleEmailNotificacion(p.id)}>
+                                  <Mail className="h-3 w-3 mr-1" /> Correo
+                                </Button>
+                                {/* BOTÓN DE WHATSAPP */}
+                                <Button variant="outline" size="sm" className="h-7 flex-1 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 shadow-sm px-0" onClick={() => handleWhatsAppNotificacion(p)}>
+                                  <MessageCircle className="h-3 w-3 mr-1" /> Chat
                                 </Button>
                               </div>
                             </li>
