@@ -1,6 +1,9 @@
 # app/routers/poliza.py
 import csv
 import io
+import smtplib
+import os
+from email.message import EmailMessage
 from typing import List
 from datetime import date, timedelta, datetime
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
@@ -49,7 +52,6 @@ def obtener_polizas_proximas_a_vencer(
     results = session.exec(statement).all()
     return list(results)
 
-
 ### **2. Rutas Estándar de Pólizas**
 @router.post("/polizas", response_model=PolizaRead, status_code=status.HTTP_201_CREATED)
 def crear_nueva_poliza(
@@ -68,10 +70,7 @@ def crear_nueva_poliza(
     cliente = session.exec(cliente_statement).first()
 
     if not cliente:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cliente no encontrado o no le pertenece."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado o no le pertenece.")
     
     try:
         return crear_poliza(session, poliza_data, user_id=current_user.id)
@@ -134,6 +133,69 @@ def eliminar_poliza_existente(
         raise HTTPException(status_code=404, detail="Póliza no encontrada")
     return None
 
+# --- 🚀 INJERTO: MOTOR DE CORREOS PARA RENOVACIÓN ---
+@router.post("/polizas/{poliza_id}/recordatorio")
+def enviar_recordatorio_vencimiento(
+    poliza_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    _licencia = Depends(verificar_licencia_activa)
+):
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="Usuario no válido")
+
+    # 1. Buscar la póliza y al cliente
+    poliza = obtener_poliza_por_id(session, poliza_id, user_id=current_user.id)
+    if not poliza:
+        raise HTTPException(status_code=404, detail="Póliza no encontrada")
+
+    cliente = session.exec(select(Cliente).where(Cliente.id == poliza.cliente_id)).first()
+    if not cliente or not cliente.email:
+        raise HTTPException(status_code=400, detail="El cliente no tiene un correo electrónico registrado")
+
+    # 2. Configurar las credenciales (Lee de Render o .env)
+    remitente = os.getenv("EMAIL_SENDER")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    if not remitente or not password:
+        raise HTTPException(status_code=500, detail="Falta configurar EMAIL_SENDER y EMAIL_PASSWORD en el servidor")
+
+    # 3. Armar el sobre del correo
+    msg = EmailMessage()
+    msg['Subject'] = f"Aviso Importante: Renovación de Póliza {poliza.numero_poliza} 🛡️"
+    msg['From'] = remitente
+    msg['To'] = cliente.email
+
+    # 4. Crear el diseño HTML
+    fecha_fin_str = poliza.fecha_fin.strftime("%d/%m/%Y")
+    cuerpo_html = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #2563eb;">Gestión Vital - Aviso de Renovación</h2>
+            <p>Hola <b>{cliente.nombre} {cliente.apellido or ''}</b>,</p>
+            <p>Esperamos que te encuentres muy bien.</p>
+            <p>Te escribimos de parte de tu asesor para recordarte que tu póliza de seguro <b>{poliza.tipo_poliza}</b> (Nro: {poliza.numero_poliza}) está próxima a vencer el día <b>{fecha_fin_str}</b>.</p>
+            <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                <p style="margin: 0;"><b>Suma Asegurada:</b> ${poliza.suma_asegurada}</p>
+                <p style="margin: 0;"><b>Prima a Pagar:</b> ${poliza.prima}</p>
+            </div>
+            <p>Por favor, contáctanos lo antes posible para gestionar tu renovación y asegurar que sigas protegido sin interrupciones.</p>
+            <p>Atentamente,<br><b>Tu Equipo de Gestión Vital</b></p>
+        </body>
+    </html>
+    """
+    msg.set_content("Tu póliza está por vencer. Por favor renueva.", subtype='text')
+    msg.add_alternative(cuerpo_html, subtype='html')
+
+    # 5. Enviar el correo usando SMTP de Gmail
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(remitente, password)
+            smtp.send_message(msg)
+        return {"message": f"Recordatorio enviado exitosamente a {cliente.email}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al enviar correo: {str(e)}")
+# ----------------------------------------------------
 
 ### **3. IMPORTACIÓN MASIVA DE PÓLIZAS**
 @router.post("/polizas/importar")
@@ -183,7 +245,6 @@ async def importar_polizas_csv(
                 asesor_str = str(row.get('asesor_id') or '').strip()
                 prima_str = str(row.get('prima') or '0').strip()
                 
-                # INJERTO DE RIESGO
                 suma_str = str(row.get('suma_asegurada') or '0').strip()
                 deducible_str = str(row.get('deducible') or '0').strip()
 
