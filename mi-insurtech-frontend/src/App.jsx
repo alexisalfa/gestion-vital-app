@@ -25,7 +25,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/lib/use-toast';
 import { ConfirmationProvider } from './components/ConfirmationContext';
 import { saveAs } from 'file-saver';
-import { ChevronRight, ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign, Mail } from 'lucide-react';
+import { ChevronRight, ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign, Mail, Menu } from 'lucide-react';
 import DashboardCharts from './components/DashboardCharts';
 import ClienteImport from './components/ClienteImport';
 import { Button } from '@/components/ui/button';
@@ -91,6 +91,7 @@ function App() {
   const [apiBaseUrl] = useState('https://gestion-vital-app.onrender.com/api/v1');
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [quickAddModal, setQuickAddModal] = useState(null); 
 
   const handleCloseQuickAdd = () => {
@@ -845,13 +846,25 @@ function App() {
         
         <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-              <div className="bg-white text-indigo-600 p-1.5 rounded-lg">
-                <ShieldAlert className="h-5 w-5" />
+            
+            {/* LOGO Y BOTÓN HAMBURGUESA (MÓVIL) */}
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-1 text-indigo-100 hover:text-white"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+              
+              <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+                <div className="bg-white text-indigo-600 p-1.5 rounded-lg hidden sm:block">
+                  <ShieldAlert className="h-5 w-5" />
+                </div>
+                <span className="text-xl font-bold tracking-tight">Gestión Vital</span>
               </div>
-              <span className="text-xl font-bold tracking-tight hidden sm:block">Gestión Vital</span>
             </div>
             
+            {/* MENÚ DE ESCRITORIO (Oculto en móviles) */}
             <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
             {[
               { id: 'dashboard', label: t('menu.dashboard', 'Dashboard') },
@@ -877,12 +890,11 @@ function App() {
               ))}
             </div>
 
-            <div className="flex items-center gap-4">
-              
+            {/* CAMPANA Y LOGOUT */}
+            <div className="flex items-center gap-3 sm:gap-4">
               <button 
                 onClick={() => setIsAlertsOpen(true)} 
                 className="relative p-2 text-indigo-100 hover:text-white transition-colors"
-                title="Centro de Alertas"
               >
                 <Bell className="h-5 w-5" />
                 {totalAlerts > 0 && (
@@ -897,6 +909,43 @@ function App() {
               </Button>
             </div>
           </div>
+
+          {/* --- INJERTO: MENÚ DESPLEGABLE MÓVIL --- */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden bg-blue-700 border-t border-blue-500 animate-in slide-in-from-top-2 duration-200">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
+                {[
+                  { id: 'dashboard', label: 'Dashboard' },
+                  { id: 'clientes', label: 'Clientes' },
+                  { id: 'empresas-aseguradoras', label: 'Aseguradoras' },
+                  { id: 'asesores', label: 'Asesores' },
+                  { id: 'polizas', label: 'Pólizas' },
+                  { id: 'reclamaciones', label: 'Siniestros' },
+                  { id: 'comisiones', label: 'Comisiones' },
+                  { id: 'configuracion', label: 'Configuración' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
+                    className={`block px-3 py-3 rounded-md text-base font-bold text-left w-full
+                      ${activeTab === tab.id 
+                        ? 'bg-blue-800 text-white' 
+                        : 'text-blue-100 hover:bg-blue-600 hover:text-white'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+                <button 
+                  onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                  className="block mt-4 px-3 py-3 rounded-md text-base font-bold text-left w-full text-red-200 hover:bg-red-600 hover:text-white border border-red-400/30"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          )}
+          {/* -------------------------------------- */}
         </nav>
 
         <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
