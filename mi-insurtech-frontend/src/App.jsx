@@ -4,7 +4,12 @@ import AuthPage from './components/AuthPage';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ClientesPage from './pages/ClientesPage';
+import AsesoresPage from './pages/AsesoresPage';
 import PolizasPage from './pages/PolizasPage';
+import ReclamacionesPage from './pages/ReclamacionesPage';
+import EmpresasAseguradorasPage from './pages/EmpresasAseguradorasPage';
+import ComisionesPage from './pages/ComisionesPage';
+import ConfiguracionPage from './pages/ConfiguracionPage';
 import ClientForm from './components/ClientForm';
 import ClientList from './components/ClientList';
 import PolizaForm from './components/PolizaForm';
@@ -977,94 +982,6 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'reclamaciones' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Control de Siniestros</h2>
-              <ReclamacionForm onReclamacionSaved={handleReclamacionSaved} editingReclamacion={editingReclamacion} setEditingReclamacion={setEditingReclamacion} apiBaseUrl={API_BASE_URL} polizas={polizas} clientes={clientes} isLoadingPolicies={isLoadingPolicies} isLoadingClients={isLoadingClients} />
-              <ReclamacionImport apiBaseUrl={API_BASE_URL} onImportComplete={fetchClaimsData} />
-              <ReclamacionList
-                reclamaciones={reclamaciones} onEditReclamacion={setEditingReclamacion} onDeleteReclamacion={handleReclamacionDelete}
-                searchTerm={reclamacionSearchTerm} estadoFilter={reclamacionEstadoFilter} clienteIdFilter={reclamacionClienteIdFilter} polizaIdFilter={reclamacionPolizaIdFilter}
-                fechaReclamacionInicioFilter={reclamacionFechaReclamacionInicioFilter} fechaReclamacionFinFilter={reclamacionFechaReclamacionFinFilter}
-                setSearchTerm={setReclamacionSearchTerm} setEstadoFilter={setReclamacionEstadoFilter} setClienteIdFilter={setReclamacionClienteIdFilter} setPolizaIdFilter={setReclamacionPolizaIdFilter}
-                setFechaReclamacionInicioFilter={setReclamacionFechaReclamacionInicioFilter} setFechaReclamacionFinFilter={setReclamacionFechaReclamacionFinFilter}
-                onSearch={handleReclamacionSearch} currentPage={reclamacionCurrentPage} itemsPerPage={RECLAMACIONES_PER_PAGE} totalItems={totalReclamaciones}
-                onPageChange={handleReclamacionPageChange} apiBaseUrl={API_BASE_URL} onExport={exportToCsv} onExportPdf={exportToPdf}
-                clients={clientes} polizas={polizas} isLoadingPolicies={isLoadingPolicies} isLoadingClients={isLoadingClients} isLoadingReclamaciones={isLoadingReclamaciones}
-                currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions}
-                onReclamacionUpdated={handleReclamacionSaved}
-              />
-            </div>
-          )}
-
-          {activeTab === 'empresas-aseguradoras' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Red de Aseguradoras</h2>
-              <EmpresaAseguradoraForm onEmpresaAseguradoraSaved={handleEmpresaAseguradoraSaved} editingEmpresaAseguradora={editingEmpresaAseguradora} setEditingEmpresaAseguradora={setEditingEmpresaAseguradora} apiBaseUrl={API_BASE_URL} />
-              <EmpresaAseguradoraImport apiBaseUrl={API_BASE_URL} onImportComplete={handleEmpresaAseguradoraSaved} />
-              <EmpresaAseguradoraList
-                empresas={empresasAseguradoras} onEditEmpresaAseguradora={setEditingEmpresaAseguradora} onDeleteEmpresaAseguradora={handleEmpresaAseguradoraDelete}
-                currentPage={empresaAseguradoraCurrentPage} itemsPerPage={EMPRESAS_ASEGURADORAS_PER_PAGE} totalItems={totalEmpresasAseguradoras}
-                onPageChange={handleEmpresaAseguradoraPageChange} searchTerm={empresaAseguradoraSearchTerm} setSearchTerm={setEmpresaAseguradoraSearchTerm}
-                onSearch={handleEmpresaAseguradoraSearch} onExport={exportToCsv} onExportPdf={exportToPdf} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions}
-              />
-            </div>
-          )}
-
-          {activeTab === 'asesores' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Fuerza de Ventas</h2>
-              <AsesorForm onAsesorSaved={handleAsesorSaved} editingAsesor={editingAsesor} setEditingAsesor={setEditingAsesor} apiBaseUrl={API_BASE_URL} empresasAseguradoras={empresasAseguradoras} isLoadingCompanies={isLoadingCompanies} />
-              <AsesorImport apiBaseUrl={API_BASE_URL} onImportComplete={handleAsesorSaved} />
-              <AsesorList
-                asesores={asesores} onEditAsesor={setEditingAsesor} onDeleteAsesor={handleAsesorDelete}
-                currentPage={asesorCurrentPage} itemsPerPage={ASESORES_PER_PAGE} totalItems={totalAsesores}
-                onPageChange={handleAsesorPageChange} searchTerm={asesorSearchTerm} setSearchTerm={setAsesorSearchTerm}
-                onSearch={handleAsesorSearch} onExport={exportToCsv} onExportPdf={exportToPdf} empresasAseguradoras={empresasAseguradoras} 
-                dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions}
-              />
-            </div>
-          )}
-
-          {activeTab === 'comisiones' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Liquidación de Comisiones</h2>
-              <ComisionForm 
-                onComisionSaved={handleComisionSaved} 
-                editingComision={editingComision} 
-                setEditingComision={setEditingComision} 
-                apiBaseUrl={API_BASE_URL} 
-                asesores={asesores} 
-                polizas={polizas} 
-                comisiones={comisiones}  // <--- ¡AGREGA ESTE CABLE NUEVO AQUÍ!
-                isLoadingAdvisors={isLoadingAdvisors} 
-                isLoadingPolicies={isLoadingPolicies} 
-              />
-              <ComisionImport apiBaseUrl={API_BASE_URL} onImportComplete={handleComisionSaved} />
-              <ComisionList
-                key={`list-sync-${asesores.length}-${polizas.length}-${comisiones.length}`}
-                comisiones={comisiones} asesores={asesores} polizas={polizas} getDateFormatOptions={getDateFormatOptions}
-                dateFormat={dateFormat} totalComisiones={totalComisiones} onEditComision={handleEditComision} onDeleteComision={handleDeleteComision}
-                currentPage={comisionCurrentPage} setCurrentPage={setComisionCurrentPage} itemsPerPage={COMISIONES_PER_PAGE}
-                setAsesorIdFilter={setComisionAsesorIdFilter} setEstadoPagoFilter={setComisionEstadoPagoFilter} setFechaInicioFilter={setComisionFechaInicioFilter} setFechaFinFilter={setComisionFechaFinFilter}
-                onPagoExitoso={handleComisionSaved}
-              />
-            </div>
-          )}
-
-          {activeTab === 'configuracion' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Preferencias del Sistema</h2>
-              <SettingsPage
-                selectedLanguage={selectedLanguage} currencySymbol={currencySymbol} dateFormat={dateFormat}
-                selectedCountry={selectedCountry} licenseKey={licenseKey} isLicenseValid={isLicenseValid}
-                setSelectedLanguage={setSelectedLanguage} setCurrencySymbol={setCurrencySymbol} setDateFormat={setDateFormat}
-                setSelectedCountry={setSelectedCountry} setLicenseKey={setLicenseKey} onSaveSettings={saveSettings}
-                languageOptions={LANGUAGE_OPTIONS} currencyOptions={CURRENCY_SYMBOL_OPTIONS} dateFormatOptions={DATE_FORMAT_OPTIONS}
-                countryOptions={COUNTRY_OPTIONS} masterLicenseKey={MASTER_LICENSE_KEY}
-              />
-            </div>
-          )}
         </main>
         
         <Toaster />
