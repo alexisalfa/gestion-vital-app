@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import requests  # <-- NUEVO: Para comunicarnos con Google
 import secrets   # <-- NUEVO: Para crear contraseñas seguras automáticas
 
+
 router = APIRouter(tags=["Autenticación"])
 
 class UserRegister(BaseModel):

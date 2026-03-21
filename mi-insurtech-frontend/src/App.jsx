@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import AuthPage from './components/AuthPage';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import ClientesPage from './pages/ClientesPage';
+import PolizasPage from './pages/PolizasPage';
 import ClientForm from './components/ClientForm';
 import ClientList from './components/ClientList';
 import PolizaForm from './components/PolizaForm';
@@ -971,25 +973,6 @@ function App() {
                 onSearch={handleClienteSearch} currentPage={clienteCurrentPage} itemsPerPage={CLIENTES_PER_PAGE}
                 totalItems={totalClients} onPageChange={handleClientePageChange}
                 onExport={exportToCsv} onExportPdf={exportToPdf} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions}
-              />
-            </div>
-          )}
-
-          {activeTab === 'polizas' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Pólizas</h2>
-              <PolizaForm onPolizaSaved={handlePolizaSaved} editingPoliza={editingPoliza} setEditingPoliza={setEditingPoliza} apiBaseUrl={API_BASE_URL} clientes={clientes} empresasAseguradoras={empresasAseguradoras} asesores={asesores} isLoadingClients={isLoadingClients} isLoadingCompanies={isLoadingCompanies} isLoadingAdvisors={isLoadingAdvisors} />
-              <PolizaImport apiBaseUrl={API_BASE_URL} onImportComplete={handlePolizaSaved} />
-              <PolizaList
-                polizas={polizas} onEditPoliza={setEditingPoliza} onDeletePoliza={handlePolizaDelete}
-                searchTerm={polizaSearchTerm} tipoFilter={polizaTipoFilter} estadoFilter={polizaEstadoFilter}
-                clienteIdFilter={polizaClienteIdFilter} fechaInicioFilter={polizaFechaInicioFilter} fechaFinFilter={polizaFechaFinFilter}
-                setSearchTerm={setPolizaSearchTerm} setTipoFilter={setPolizaTipoFilter} setEstadoFilter={setPolizaEstadoFilter}
-                setClienteIdFilter={setPolizaClienteIdFilter} setFechaInicioFilter={setPolizaFechaInicioFilter} setFechaFinFilter={setPolizaFechaFinFilter}
-                onSearch={handlePolizaSearch} currentPage={polizaCurrentPage} itemsPerPage={POLIZAS_PER_PAGE}
-                totalItems={totalPolizas} onPageChange={handlePolizaPageChange} apiBaseUrl={API_BASE_URL}
-                onExport={exportToCsv} onExportPdf={exportToPdf} clients={clientes} empresasAseguradoras={empresasAseguradoras}
-                currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions}
               />
             </div>
           )}
