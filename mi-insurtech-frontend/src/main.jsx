@@ -10,10 +10,15 @@ import './i18n';
 // IMPORTAMOS LA NUBE GLOBAL (FASE 3)
 import { GlobalProvider } from './context/GlobalContext';
 
+// INJERTO FASE 4: Importamos el enrutador
+import { BrowserRouter } from 'react-router-dom';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GlobalProvider>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </GlobalProvider>
   </StrictMode>,
 )
