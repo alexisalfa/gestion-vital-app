@@ -10,8 +10,8 @@ import {
   BarChart3,
   Building2,
   Activity,
-  CalendarDays, // Ícono agregado para la tabla
-  MessageCircle // Ícono agregado para WhatsApp
+  CalendarDays,
+  MessageCircle
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
@@ -20,7 +20,7 @@ import {
 
 import { formatMoney } from '../utils/formatters';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button'; // Botón agregado
+import { Button } from '@/components/ui/button';
 
 const Dashboard = ({ 
   statistics, 
@@ -76,13 +76,12 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
-  // --- INJERTO: DESENCRIPTAR EL TOKEN PARA SACAR EL NOMBRE ---
+  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO ---
   const getUserDisplayName = () => {
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) return 'Usuario VIP';
+      if (!token) return 'Usuario Vital';
       
-      // Decodificamos la parte central del JWT (el Payload)
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
@@ -91,12 +90,16 @@ const Dashboard = ({
       
       const payload = JSON.parse(jsonPayload);
       
-      // Intentamos sacar el nombre, si no está, sacamos el correo antes del @
+      // 1. Intentamos sacar el nombre completo de Google
       if (payload.name) return payload.name;
-      if (payload.sub) return payload.sub.split('@')[0].toUpperCase(); 
       
+      // 2. Si no hay nombre, sacamos el email y le quitamos el dominio
+      if (payload.email) return payload.email.split('@')[0].toUpperCase();
+      
+      // 3. Fallback si no hay nada
       return 'Usuario VIP';
     } catch (e) {
+      console.error("Error decodificando el token:", e);
       return 'Usuario VIP';
     }
   };
@@ -104,7 +107,6 @@ const Dashboard = ({
   const userName = getUserDisplayName();
   // -----------------------------------------------------------
 
-  // --- TUS VARIABLES ORIGINALES RESTAURADAS (NUNCA DEBIERON CAMBIARSE) ---
   const pieData = useMemo(() => [
     { name: 'Primas Activas', value: statistics?.total_primas || 0, color: '#10b981' }, 
     { name: 'Reclamaciones', value: statistics?.total_reclamaciones_pendientes || 0, color: '#ef4444' }     
@@ -126,7 +128,6 @@ const Dashboard = ({
     return 'text-rose-600 bg-rose-500';
   };
 
-  // --- LÓGICA DE WHATSAPP PARA LA TABLA ---
   const handleWhatsAppRenovacion = (poliza) => {
     const telefono = poliza.cliente?.telefono || poliza.telefono_cliente || ""; 
     const nombre = poliza.cliente?.nombre ? `${poliza.cliente.nombre} ${poliza.cliente.apellido || ''}` : "Estimado Cliente";
@@ -147,7 +148,7 @@ const Dashboard = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* BANNER DE LICENCIA DINÁMICO */}
+      {/* 🏆 BANNER DE LICENCIA CORREGIDO CON NOMBRE DEL USUARIO 🏆 */}
       <div className={`rounded-xl p-4 text-white shadow-lg flex items-center justify-between border-b-4 transition-colors duration-500 ${
         timeLeft === "LICENCIA ACTIVA" 
           ? "bg-gradient-to-r from-blue-700 to-indigo-900 border-indigo-950" 
@@ -160,6 +161,7 @@ const Dashboard = ({
           <div>
             <p className="text-sm font-bold uppercase tracking-tight flex items-center gap-2">
               {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? "Licencia de Prueba" : "Licencia Profesional"}
+              {/* AQUÍ ESTÁ LA INYECCIÓN DEL NOMBRE */}
               <span className="text-blue-200">|</span> <span className="text-emerald-400">{userName}</span>
             </p>
             <p className="text-xs opacity-90 italic">
@@ -173,7 +175,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* TARJETAS DE INDICADORES (KPIs) INTACTAS */}
+      {/* RESTO DEL DASHBOARD INTACTO */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         
         <Card className="border-l-4 border-l-blue-500 shadow-sm transition-all hover:scale-[1.02]">
@@ -254,10 +256,8 @@ const Dashboard = ({
 
       </div>
 
-      {/* TUS GRÁFICOS ORIGINALES INTACTOS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Gráfico Circular Original */}
         <Card className="shadow-md border-none p-4 h-[350px] relative">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros
@@ -292,7 +292,6 @@ const Dashboard = ({
           )}
         </Card>
 
-        {/* Gráfico de Barras Original */}
         <Card className="shadow-md border-none p-4 h-[350px] relative">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <BarChart3 size={16} className="text-blue-600"/> Distribución Operativa
@@ -325,7 +324,6 @@ const Dashboard = ({
         </Card>
       </div>
 
-      {/* EL ÚNICO AÑADIDO: LA TABLA DE AGENDA DE RENOVACIONES AL FINAL */}
       <Card className="border-t-4 border-t-amber-500 shadow-md">
         <CardHeader className="bg-amber-50 border-b border-amber-100 pb-4">
           <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
@@ -351,7 +349,6 @@ const Dashboard = ({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {upcomingPolicies.map((poliza) => {
-                    // Cálculo de días restantes
                     const hoy = new Date();
                     const fechaFin = new Date(poliza.fecha_fin);
                     const diffTime = fechaFin - hoy;
