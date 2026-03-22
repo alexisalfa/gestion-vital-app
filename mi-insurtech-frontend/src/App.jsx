@@ -209,13 +209,14 @@ function App() {
       fetchCommissionsData((comisionCurrentPage - 1) * COMISIONES_PER_PAGE, COMISIONES_PER_PAGE, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter);
     }
   }, [
-    isAuthenticated, currentPath, 
-    clienteCurrentPage, clienteSearchTerm, clienteEmailFilter,
-    polizaCurrentPage, polizaSearchTerm, polizaTipoFilter, polizaEstadoFilter, polizaClienteIdFilter, polizaFechaInicioFilter, polizaFechaFinFilter,
-    reclamacionCurrentPage, reclamacionSearchTerm, reclamacionEstadoFilter, reclamacionPolizaIdFilter, reclamacionFechaReclamacionInicioFilter, reclamacionFechaReclamacionFinFilter,
-    empresaAseguradoraCurrentPage, empresaAseguradoraSearchTerm, asesorCurrentPage, asesorSearchTerm,
-    comisionCurrentPage, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter,
-    fetchStatisticsSummaryData, fetchPolizasPendientesDashboard, fetchUpcomingPoliciesData, fetchClientsData, fetchInsuranceCompaniesData, fetchAdvisorsData, fetchPoliciesData, fetchClaimsData, fetchCommissionsData
+    isAuthenticated, 
+    currentPath, 
+    clienteCurrentPage, 
+    polizaCurrentPage, 
+    reclamacionCurrentPage, 
+    empresaAseguradoraCurrentPage, 
+    asesorCurrentPage, 
+    comisionCurrentPage
   ]);
 
   const handleClientSaved = useCallback(() => {
