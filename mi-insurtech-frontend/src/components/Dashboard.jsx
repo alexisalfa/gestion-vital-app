@@ -76,27 +76,32 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
-  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO ---
+  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (CORREGIDO) ---
   const getUserDisplayName = () => {
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) return 'Usuario Vital';
+      if (!token) return 'Usuario VIP';
       
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      
+      // ⚠️ EL ARREGLO: Agregar el "Padding" matemático que exige JavaScript
+      const pad = base64.length % 4;
+      if (pad) {
+        base64 += '='.repeat(4 - pad);
+      }
+      
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
       
       const payload = JSON.parse(jsonPayload);
       
-      // 1. Intentamos sacar el nombre completo de Google
+      // Buscamos el correo en 'sub', 'email', o el nombre
       if (payload.name) return payload.name;
-      
-      // 2. Si no hay nombre, sacamos el email y le quitamos el dominio
+      if (payload.sub) return payload.sub.split('@')[0].toUpperCase();
       if (payload.email) return payload.email.split('@')[0].toUpperCase();
       
-      // 3. Fallback si no hay nada
       return 'Usuario VIP';
     } catch (e) {
       console.error("Error decodificando el token:", e);
