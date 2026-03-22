@@ -21,12 +21,7 @@ export const GlobalProvider = ({ children }) => {
   const [dateFormat, setDateFormat] = useState(localStorage.getItem('dateFormat') || 'DD/MM/YYYY');
   const [selectedCountry, setSelectedCountry] = useState(localStorage.getItem('selectedCountry') || 'VE');
   const [licenseKey, setLicenseKey] = useState(localStorage.getItem('licenseKey') || '');
-  const [isLicenseValid, setIsLicenseValid] = useState(false);
-
-  // Funciones de validación
-  useEffect(() => {
-    setIsLicenseValid(localStorage.getItem('licenseKey') === MASTER_LICENSE_KEY);
-  }, []);
+  const [isLicenseValid, setIsLicenseValid] = useState(localStorage.getItem('licenseKey') === MASTER_LICENSE_KEY);
 
   useEffect(() => {
     if (selectedLanguage && i18n) i18n.changeLanguage(selectedLanguage);
