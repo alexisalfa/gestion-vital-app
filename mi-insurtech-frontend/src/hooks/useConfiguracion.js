@@ -1,86 +1,74 @@
-// src/hooks/useConfiguracion.js
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/lib/use-toast';
 
-/**
- * useConfiguracion - El "Cerebrito" del Sistema
- * Responsabilidad: Liderar la gestión de preferencias globales y 
- * verdad absoluta de la licencia local para evitar parpadeos en la UI.
- */
-export const useConfiguracion = (MASTER_LICENSE_KEY, i18n) => {
+export const useConfiguracion = (MASTER_LICENSE_KEY, i18n, API_BASE_URL) => {
   const { toast } = useToast();
 
-  // 1. CARGA DE ESTADOS INICIALES (Lectura directa de disco para evitar delay)
   const [selectedLanguage, setSelectedLanguage] = useState(localStorage.getItem('selectedLanguage') || 'es');
   const [currencySymbol, setCurrencySymbol] = useState(localStorage.getItem('currencySymbol') || '$');
   const [dateFormat, setDateFormat] = useState(localStorage.getItem('dateFormat') || 'DD/MM/YYYY');
   const [selectedCountry, setSelectedCountry] = useState(localStorage.getItem('selectedCountry') || 'VE');
   const [licenseKey, setLicenseKey] = useState(localStorage.getItem('licenseKey') || '');
+  
+  // 1. Verdad Inicial (Local): Evita el parpadeo
+  const [isLicenseValid, setIsLicenseValid] = useState(localStorage.getItem('licenseKey') === MASTER_LICENSE_KEY);
 
-  // 🦾 LIDERAZGO TÉCNICO: Validamos la licencia ANTES del primer renderizado
-  // Si la llave en disco coincide con la maestra, la licencia es válida desde el segundo cero.
-  const [isLicenseValid, setIsLicenseValid] = useState(
-    localStorage.getItem('licenseKey') === MASTER_LICENSE_KEY
-  );
+  // 🦾 2. Verdad Profunda (Backend): Autonomía del Cerebrito
+  useEffect(() => {
+    const verificarEstatusReal = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
 
-  // 2. SINCRONIZACIÓN DE IDIOMA
+      try {
+        const response = await fetch(`${API_BASE_URL}/statistics/summary`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const stats = await response.json();
+          // Si Python dice que el plan es PRO, el Cerebrito lo acepta como verdad absoluta
+          const esProEnBackend = stats.es_prueba === false || stats.plan_tipo === 'PRO_ANNUAL';
+          
+          if (esProEnBackend) {
+            setIsLicenseValid(true);
+          }
+        }
+      } catch (error) {
+        console.error("Cerebrito: No pude contactar con el cuartel general.", error);
+      }
+    };
+
+    verificarEstatusReal();
+  }, [API_BASE_URL]); // Solo se ejecuta una vez al cargar el sistema
+
+  // Cambiar idioma automáticamente
   useEffect(() => {
     if (selectedLanguage && i18n) { 
       i18n.changeLanguage(selectedLanguage);
     }
   }, [selectedLanguage, i18n]);
 
-  /**
-   * saveSettings - Única compuerta para persistir cambios
-   */
   const saveSettings = useCallback((newLanguage, newCurrencySymbol, newDateFormat, newSelectedCountry, newLicenseKey) => {
-    // Persistencia en Disco Duro (LocalStorage)
     localStorage.setItem('selectedLanguage', newLanguage);
     localStorage.setItem('currencySymbol', newCurrencySymbol);
     localStorage.setItem('dateFormat', newDateFormat);
     localStorage.setItem('selectedCountry', newSelectedCountry);
     localStorage.setItem('licenseKey', newLicenseKey);
 
-    // Actualización de Estado en Memoria
     setSelectedLanguage(newLanguage);
     setCurrencySymbol(newCurrencySymbol);
     setDateFormat(newDateFormat);
     setSelectedCountry(newSelectedCountry);
     setLicenseKey(newLicenseKey);
 
-    // Re-validación de Licencia tras el guardado
     const isValid = newLicenseKey === MASTER_LICENSE_KEY;
     setIsLicenseValid(isValid);
 
-    // Notificaciones de Sistema
-    toast({ 
-      title: "Configuración Guardada", 
-      description: "Los ajustes han sido sincronizados exitosamente.", 
-      variant: "success" 
-    });
-
-    if (!isValid && newLicenseKey !== "") {
-      toast({ 
-        title: "Licencia Inválida", 
-        description: "La clave ingresada no coincide con el protocolo de seguridad.", 
-        variant: "destructive" 
-      });
-    }
+    toast({ title: "Configuración Guardada", variant: "success" });
   }, [toast, MASTER_LICENSE_KEY]);
 
-  // 3. EXPOSICIÓN DE LA GESTIÓN AL LÍDER (App.jsx)
   return {
-    selectedLanguage, 
-    currencySymbol, 
-    dateFormat, 
-    selectedCountry, 
-    licenseKey, 
-    isLicenseValid,
-    setSelectedLanguage, 
-    setCurrencySymbol, 
-    setDateFormat, 
-    setSelectedCountry, 
-    setLicenseKey, 
-    saveSettings
+    selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey, isLicenseValid,
+    setSelectedLanguage, setCurrencySymbol, setDateFormat, setSelectedCountry, setLicenseKey, saveSettings
   };
 };
