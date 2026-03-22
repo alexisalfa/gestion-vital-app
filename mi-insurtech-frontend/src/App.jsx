@@ -16,7 +16,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/lib/use-toast';
 import { ConfirmationProvider } from './components/ConfirmationContext';
 import { saveAs } from 'file-saver';
-import { ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign, Mail, Menu } from 'lucide-react';
+import { ShieldAlert, Bell, X, AlertCircle, CheckCircle2, Plus, UserPlus, Zap, MessageCircle, DollarSign, Mail, Menu, Settings2, ShieldCheck } from 'lucide-react';
 import DashboardCharts from './components/DashboardCharts';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
@@ -47,7 +47,7 @@ const CURRENCY_SYMBOL_OPTIONS = [{ id: '$', nombre: '$ (Dólar)' }, { id: 'Bs', 
 const COUNTRY_OPTIONS = [{ id: 'VE', nombre: 'Venezuela' }, { id: 'CO', nombre: 'Colombia' }, { id: 'PE', nombre: 'Perú' }, { id: 'US', nombre: 'Estados Unidos' }, { id: 'ES', nombre: 'España' }, { id: 'MX', nombre: 'México' }, { id: 'AR', nombre: 'Argentina' }, { id: 'CL', nombre: 'Chile' }, { id: 'EC', nombre: 'Ecuador' }, { id: 'PA', nombre: 'Panamá' }];
 
 function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   
   // FASE 4: Herramientas de Navegación
@@ -175,6 +175,14 @@ function App() {
   }, [comisiones]);
 
   const totalAlerts = (polizasProximasAVencer?.length || 0) + (statisticsSummaryData?.total_reclamaciones_pendientes || 0) + (dineroEnLaCalle.cantidad > 0 ? 1 : 0) + (polizasPendientesDashboard > 0 ? 1 : 0);
+
+  const getDateFormatOptions = (format) => {
+    switch (format) {
+      case 'MM/DD/YYYY': return { month: '2-digit', day: '2-digit', year: 'numeric' };
+      case 'YYYY-MM-DD': return { year: 'numeric', month: '2-digit', day: '2-digit' };
+      default: return { day: '2-digit', month: '2-digit', year: 'numeric' };
+    }
+  };
 
   // Efecto Sincronizador adaptado a RUTAS
   useEffect(() => {
