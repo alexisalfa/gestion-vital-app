@@ -20,18 +20,21 @@ function SettingsPage({
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1';
 
+  // Estados locales para el formulario
   const [localSelectedLanguage, setLocalSelectedLanguage] = useState(selectedLanguage);
   const [localCurrencySymbol, setLocalCurrencySymbol] = useState(currencySymbol);
   const [localDateFormat, setLocalDateFormat] = useState(dateFormat);
   const [localSelectedCountry, setLocalSelectedCountry] = useState(selectedCountry);
   const [localLicenseKey, setLocalLicenseKey] = useState(licenseKey);
 
+  // Pago Local
   const [showLocalPaymentForm, setShowLocalPaymentForm] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
   const [emittingBank, setEmittingBank] = useState('');
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
+  // Panel Admin
   const [globalPrice, setGlobalPrice] = useState(99.00);
   const [globalRate, setGlobalRate] = useState(36.25);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -39,22 +42,18 @@ function SettingsPage({
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [tempPrice, setTempPrice] = useState(99.00);
   const [tempRate, setTempRate] = useState(36.25);
-  
   const [localPaymentsList, setLocalPaymentsList] = useState([]);
 
   const venezuelanBanks = [
     { id: '0105', nombre: 'Mercantil' }, { id: '0102', nombre: 'Venezuela' },
     { id: '0108', nombre: 'Provincial' }, { id: '0134', nombre: 'Banesco' },
-    { id: '0172', nombre: 'Bancaribe' }, { id: '0114', nombre: 'Bancaribe' },
-    { id: '0163', nombre: 'Tesoro' }, { id: '0168', nombre: 'Bancrecer' },
-    { id: '0191', nombre: 'BNC' }, { id: 'zelle', nombre: 'Zelle (No aplica)' }
+    { id: '0172', nombre: 'Bancaribe' }, { id: '0163', nombre: 'Tesoro' },
+    { id: '0191', nombre: 'BNC' }, { id: 'zelle', nombre: 'Zelle' }
   ];
 
-  // ==========================================
-  // CONEXIÓN CON EL BACKEND (Solo Tasa y Precio)
-  // ==========================================
+  // Sincronización de parámetros globales (Solo Tasa y Precio)
   useEffect(() => { 
-    const fetchGlobalParams = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetch(`${apiBaseUrl}/parametros-globales`);
         if (response.ok) {
@@ -64,119 +63,44 @@ function SettingsPage({
           setTempRate(data.tasa_bcv);
           setTempPrice(data.precio_licencia);
         }
-      } catch (error) { console.error("Error:", error); }
+      } catch (e) { console.error("Error cargando parámetros:", e); }
     };
-
-    const autoSincronizarBCV = async () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        if (!token) return; 
-        const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
-          method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setGlobalRate(data.tasa_bcv);
-          setTempRate(data.tasa_bcv);
-        }
-      } catch (error) { console.log("BCV Automático falló", error); }
-    };
-
-    fetchGlobalParams(); 
-    autoSincronizarBCV(); 
+    fetchData();
   }, []);
 
+  // Sincronización de estados locales cuando cambian las props
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    if (query.get("payment") === "success") {
-      toast({ title: "¡Pago Exitoso! 🎉", description: "Tu licencia PRO ha sido activada.", variant: "success", duration: 8000 });
-      window.history.replaceState(null, '', window.location.pathname);
-      setTimeout(() => window.location.reload(), 1500); // Recarga para actualizar estado global
-    }
-    if (query.get("payment") === "cancel") {
-      toast({ title: "Pago Cancelado", description: "El proceso fue interrumpido.", variant: "destructive" });
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    setLocalSelectedLanguage(selectedLanguage); setLocalCurrencySymbol(currencySymbol);
-    setLocalDateFormat(dateFormat); setLocalSelectedCountry(selectedCountry); setLocalLicenseKey(licenseKey);
+    setLocalSelectedLanguage(selectedLanguage);
+    setLocalCurrencySymbol(currencySymbol);
+    setLocalDateFormat(dateFormat);
+    setLocalSelectedCountry(selectedCountry);
+    setLocalLicenseKey(licenseKey);
   }, [selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey]);
 
   const handleDownloadReceipt = () => {
     const doc = new jsPDF();
     const userData = localStorage.getItem('user');
     let usuarioRecibo = "Cliente Registrado";
-    if (userData) {
-      try { usuarioRecibo = JSON.parse(userData).full_name || JSON.parse(userData).email; } catch(e){}
-    } else {
-      const token = localStorage.getItem('access_token');
-      if (token && token.includes('@')) usuarioRecibo = token;
-    }
+    try { if(userData) usuarioRecibo = JSON.parse(userData).email || "Cliente"; } catch(e){}
     const fechaActual = new Date().toLocaleDateString('es-VE');
 
-    doc.setFont("helvetica");
+    doc.setFont("helvetica", "bold");
     doc.setFillColor(63, 81, 181); 
     doc.rect(0, 0, 210, 40, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
-    doc.setFont("helvetica", "bold");
     doc.text("GESTIÓN VITAL", 20, 25);
-
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(16);
     doc.text("RECIBO DE PAGO DIGITAL", 20, 60);
-
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
-    doc.text("Emitido por: GTELCA / Gestión Vital", 20, 70);
-    doc.text("Soporte: gtelca.ventas@gmail.com", 20, 75);
-    doc.text("Plataforma SaaS de Seguros", 20, 80);
-
-    doc.setTextColor(50, 50, 50);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("Facturado a:", 120, 60);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
     doc.text(`Usuario: ${usuarioRecibo}`, 120, 70);
-    doc.text(`Fecha de Emisión: ${fechaActual}`, 120, 75);
-    doc.text(`Referencia: GV-${Math.floor(Math.random() * 90000) + 10000}`, 120, 80);
-
-    doc.setDrawColor(200, 200, 200);
+    doc.text(`Fecha: ${fechaActual}`, 120, 75);
     doc.line(20, 90, 190, 90);
-
-    doc.setTextColor(50, 50, 50);
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Descripción del Servicio", 20, 105);
-    doc.text("Monto Total", 160, 105);
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
     doc.text("Licencia Gestión Vital PRO (Suscripción 1 Año)", 20, 115);
     doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 115);
-
-    doc.line(20, 125, 190, 125);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(50, 50, 50);
-    doc.text("TOTAL PAGADO:", 110, 140);
-    doc.setTextColor(46, 125, 50);
-    doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 140);
-
-    doc.setTextColor(150, 150, 150);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text("Este documento es un comprobante electrónico.", 20, 265);
-    doc.text("Gracias por confiar en Gestión Vital.", 20, 270);
-
-    doc.save(`Recibo_GestionVital_${fechaActual}.pdf`);
+    doc.save(`Recibo_GV_${fechaActual}.pdf`);
   };
 
   const handleUpgradeToPro = async () => {
@@ -184,93 +108,41 @@ function SettingsPage({
     const token = localStorage.getItem('access_token');
     try {
       const response = await fetch(`${apiBaseUrl}/payments/create-checkout-session`, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error("No se pudo conectar con la pasarela.");
       const data = await response.json();
       if (data.url) window.location.href = data.url;
-    } catch (error) {
-      toast({ title: "Error de conexión", description: "Hubo un problema al iniciar el pago.", variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Error", description: "No se pudo iniciar el pago.", variant: "destructive" });
       setIsLoadingPayment(false);
     }
   };
 
   const handleLocalPaymentSubmit = async () => {
-    if (!paymentReference || !paymentDate || (showLocalPaymentForm && emittingBank === '' && !emittingBank.includes('zelle'))) {
-        if(emittingBank === '' && (paymentReference.length < 10)) { 
-             toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor.", variant: "destructive" });
-             return;
-        }
-    }
     setIsSubmittingLocal(true);
     try {
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${apiBaseUrl}/pagos-locales/reportar`, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referencia: paymentReference, fecha_pago: paymentDate, banco_emisor: emittingBank || 'Zelle', monto_bs: globalPrice * globalRate })
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referencia: paymentReference,
+          fecha_pago: paymentDate,
+          banco_emisor: emittingBank || 'Zelle',
+          monto_bs: globalPrice * globalRate
+        })
       });
-      const data = await response.json();
       if (response.ok) {
-        setShowLocalPaymentForm(false); setPaymentReference(''); setPaymentDate(''); setEmittingBank('');
-        toast({ title: "¡Reporte Recibido! ⏳", description: `Referencia #${data.id_pago} guardada.`, variant: "success", duration: 8000 });
-      } else toast({ title: "Atención", description: data.detail || "Error.", variant: "destructive" });
-    } catch (error) { toast({ title: "Error", description: "Revisa tu internet.", variant: "destructive" }); } 
+        setShowLocalPaymentForm(false);
+        toast({ title: "Reporte Enviado", description: "Validaremos tu pago a la brevedad.", variant: "success" });
+      }
+    } catch (e) { toast({ title: "Error", variant: "destructive" }); }
     finally { setIsSubmittingLocal(false); }
   };
 
   const handleSave = () => onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
 
-  const fetchLocalPaymentsInbox = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) setLocalPaymentsList(await response.json());
-    } catch (error) { console.error("Error:", error); }
-  };
-
-  useEffect(() => { if (isAdminAuthenticated) fetchLocalPaymentsInbox(); }, [isAdminAuthenticated]);
-
-  const handleAdminAuth = () => {
-    if (adminPasswordInput === 'ocolrotcod') { setIsAdminAuthenticated(true); toast({ title: "Bóveda Abierta", variant: "success" }); }
-    else toast({ title: "Acceso Denegado", variant: "destructive" });
-    setAdminPasswordInput('');
-  };
-
-  const handleSaveAdminSettings = async () => {
-    try {
-      const cleanRate = parseFloat(String(tempRate).replace(',', '.'));
-      const cleanPrice = parseFloat(String(tempPrice).replace(',', '.'));
-      if (isNaN(cleanRate) || isNaN(cleanPrice)) return toast({ title: "Error", description: "Solo números.", variant: "destructive" });
-
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/parametros-globales`, {
-        method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasa_bcv: cleanRate, precio_licencia: cleanPrice })
-      });
-      if (response.ok) {
-        const data = await response.json(); setGlobalRate(data.tasa_bcv); setGlobalPrice(data.precio_licencia);
-        toast({ title: "Valores Guardados", variant: "success" });
-      }
-    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
-  };
-
-  const handleApprovePayment = async (pagoId) => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/aprobar`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) { toast({ title: "Aprobado", variant: "success" }); fetchLocalPaymentsInbox(); }
-    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
-  };
-
-  const handleRejectPayment = async (pagoId) => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/rechazar`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) { toast({ title: "Rechazado", variant: "info" }); fetchLocalPaymentsInbox(); }
-    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
-  };
-
-  // 🦾 AQUÍ ESTÁ LA MAGIA: Una Sola Fuente de Verdad.
   const effectivelyValid = isLicenseValid;
   const LicenseStatusIcon = effectivelyValid ? CheckCircle : XCircle;
   const licenseStatusColor = effectivelyValid ? 'text-green-500' : 'text-red-500';
@@ -279,7 +151,7 @@ function SettingsPage({
   return (
     <div className="flex flex-col items-center p-4 space-y-6">
       
-      {/* PANEL DE LICENCIA Y PAGOS */}
+      {/* SECCIÓN DE LICENCIA */}
       <Card className="w-full max-w-2xl border-2 border-indigo-100 shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-4">
           <h3 className="text-white text-lg font-bold flex items-center gap-2">
@@ -298,250 +170,104 @@ function SettingsPage({
               </div>
               <p className="text-gray-600 text-sm">
                 {effectivelyValid 
-                  ? "Cuentas con acceso ilimitado a todas las herramientas operativas y financieras del sistema." 
-                  : "Tu cuenta se encuentra en un periodo de evaluación. Para evitar interrupciones, actualiza a la versión PRO."}
+                  ? "Cuentas con acceso ilimitado a todas las herramientas del sistema." 
+                  : "Tu cuenta está en evaluación. Actualiza a PRO para evitar interrupciones."}
               </p>
-
               {effectivelyValid && (
-                <div className="mt-4 pt-4 border-t border-indigo-50">
-                  <Button onClick={handleDownloadReceipt} variant="outline" className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50 shadow-sm transition-all hover:shadow">
-                    <Download className="mr-2 h-4 w-4" /> Descargar Comprobante de Pago
-                  </Button>
-                </div>
+                <Button onClick={handleDownloadReceipt} variant="outline" className="mt-4 bg-white border-indigo-200 text-indigo-700">
+                  <Download className="mr-2 h-4 w-4" /> Descargar Comprobante
+                </Button>
               )}
             </div>
 
             {!effectivelyValid && (
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 min-w-[320px] max-w-sm flex-shrink-0">
-                <p className="text-2xl font-black text-center text-gray-800 mb-4">${globalPrice.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ año</span></p>
-                
-                <div className="space-y-3">
-                  <Button onClick={handleUpgradeToPro} disabled={isLoadingPayment} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg transition-transform hover:scale-105">
-                    <CreditCard className="mr-2 h-4 w-4" /> {isLoadingPayment ? "Conectando..." : "Pagar con Tarjeta"}
-                  </Button>
-
-                  <div className="flex items-center py-1">
-                    <div className="flex-grow border-t border-gray-300"></div>
-                    <span className="flex-shrink-0 mx-2 text-gray-400 text-xs font-semibold">O</span>
-                    <div className="flex-grow border-t border-gray-300"></div>
-                  </div>
-
-                  <div className="w-full relative z-0">
-                    <PayPalScriptProvider options={{ "client-id": "AYNbitigiyGUkE6fkxVloFhjT5qYHhRdrEAE4kVCARG9TuYlQDxdQSZzp51CG8u9InDQYRfCrTPxklNh", currency: "USD" }}>
-                      <PayPalButtons 
-                        style={{ layout: "vertical", shape: "rect", label: "pay", height: 40 }}
-                        createOrder={async () => {
-                          const token = localStorage.getItem('access_token');
-                          const res = await fetch(`${apiBaseUrl}/payments/paypal/create-order`, { method: "POST", headers: { 'Authorization': `Bearer ${token}` } });
-                          const order = await res.json(); return order.id;
-                        }}
-                        onApprove={async (data, actions) => {
-                          const token = localStorage.getItem('access_token');
-                          const res = await fetch(`${apiBaseUrl}/payments/paypal/capture-order`, {
-                            method: "POST", headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ orderID: data.orderID })
-                          });
-                          const captureData = await res.json();
-                          if (captureData.status === "success") {
-                            toast({ title: "¡Pago Exitoso! 🎉", description: "Licencia PRO activada.", variant: "success", duration: 8000 });
-                            setTimeout(() => window.location.reload(), 1500);
-                          }
-                        }}
-                      />
-                    </PayPalScriptProvider>
-                  </div>
-
-                  <div className="flex items-center pt-2 pb-1">
-                    <div className="flex-grow border-t border-gray-300"></div>
-                    <span className="flex-shrink-0 mx-2 text-gray-400 text-xs font-semibold">PAGO LOCAL</span>
-                    <div className="flex-grow border-t border-gray-300"></div>
-                  </div>
-
-                  <Button 
-                    variant={showLocalPaymentForm ? "secondary" : "outline"}
-                    onClick={() => setShowLocalPaymentForm(!showLocalPaymentForm)} 
-                    className={`w-full font-bold shadow-sm transition-all ${showLocalPaymentForm ? 'bg-slate-200 text-slate-800' : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-300'}`}
-                  >
-                    <Smartphone className="mr-2 h-4 w-4" /> Reportar Pago Móvil / Zelle
-                  </Button>
-
-                  {showLocalPaymentForm && (
-                    <div className="mt-4 p-5 bg-white border border-slate-200 rounded-2xl shadow-inner animate-in slide-in-from-top-2 duration-300 space-y-4">
-                      
-                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                        <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100"><Landmark className="h-6 w-6 text-indigo-600" /></div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-slate-800 text-base">Reporte de Pago Local</h4>
-                          <p className="text-xs text-slate-500">Transfiere el monto exacto y registra los datos abajo.</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-indigo-600 p-3 rounded-xl border border-indigo-700 text-center shadow-sm">
-                        <p className="text-xs font-medium text-indigo-100 mb-1">Monto exacto a transferir (Bs.)</p>
-                        <p className="text-2xl font-black text-white tracking-wide">Bs. {(globalPrice * globalRate).toLocaleString('es-VE', {minimumFractionDigits: 2})}</p>
-                        <p className="text-[10px] text-indigo-200 mt-1">Calculado a la tasa de {globalRate} Bs/$</p>
-                      </div>
-                      
-                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-                         <div className="flex items-start gap-3">
-                           <Smartphone className="h-5 w-5 text-indigo-500 mt-0.5"/>
-                           <div className="text-xs text-slate-600 flex-1 space-y-1">
-                             <p className="font-semibold text-slate-700">Datos para Pago Móvil (Bs.)</p>
-                             <p className="flex justify-between"><strong>Banco:</strong> <span>Mercantil (0105)</span></p>
-                             <p className="flex justify-between"><strong>Teléfono:</strong> <span>0424-4530606</span></p>
-                             <p className="flex justify-between"><strong>CI/RIF:</strong> <span>J-504781745</span></p>
-                           </div>
-                         </div>
-                         <div className="border-t border-slate-200 my-1"></div>
-                         <div className="flex items-start gap-3">
-                           <Landmark className="h-5 w-5 text-green-500 mt-0.5"/>
-                           <div className="text-xs text-slate-600 flex-1 space-y-1">
-                             <p className="font-semibold text-slate-700">Datos para Zelle ($)</p>
-                             <p className="flex justify-between"><strong>Email:</strong> <span className="text-indigo-600 font-medium">gtelca.ventas@gmail.com</span></p>
-                           </div>
-                         </div>
-                      </div>
-
-                      <div className="space-y-3 pt-1">
-                        <h5 className="font-bold text-slate-700 text-sm">Detalles de tu transacción</h5>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                                <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><ShieldCheck className="h-3 w-3"/> Referencia</Label>
-                                <Input value={paymentReference} onChange={e => setPaymentReference(e.target.value)} placeholder="Ej. 123456" className="h-9 text-sm bg-slate-50 border-slate-200" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5"/> Fecha</Label>
-                                <Input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} className="h-9 text-sm bg-slate-50 border-slate-200" />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5"><Landmark className="h-3.5 w-3.5"/> Banco Emisor (Opcional para Zelle)</Label>
-                            <HeadlessSafeSelect value={emittingBank} onChange={setEmittingBank} options={venezuelanBanks} placeholder="Selecciona el banco desde donde pagaste" className="w-full bg-slate-50 border-slate-200 text-sm"/>
-                        </div>
-                        <Button onClick={handleLocalPaymentSubmit} disabled={isSubmittingLocal} className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 shadow transition-transform hover:scale-105">
-                          {isSubmittingLocal ? "Validando..." : <><Send className="h-4 w-4 mr-2"/> Enviar Reporte de Pago</>}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-[10px] text-gray-400 mt-3 text-center">Pagos seguros procesados por Stripe®, PayPal® o Trato Directo</p>
-                </div>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 w-full md:w-auto">
+                <p className="text-2xl font-black text-center text-gray-800 mb-4">${globalPrice.toFixed(2)} <span className="text-sm font-normal text-gray-400">/ año</span></p>
+                <Button onClick={handleUpgradeToPro} disabled={isLoadingPayment} className="w-full bg-indigo-600 font-bold mb-3">
+                  Pagar con Tarjeta
+                </Button>
+                <Button onClick={() => setShowLocalPaymentForm(!showLocalPaymentForm)} variant="outline" className="w-full border-slate-300 font-bold">
+                  Pago Móvil / Zelle
+                </Button>
               </div>
             )}
           </div>
+
+          {showLocalPaymentForm && !effectivelyValid && (
+            <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4 animate-in slide-in-from-top-2">
+               <div className="bg-indigo-600 p-3 rounded-lg text-center">
+                  <p className="text-xs text-indigo-100">Monto en Bolívares (Tasa: {globalRate})</p>
+                  <p className="text-xl font-bold text-white">Bs. {(globalPrice * globalRate).toLocaleString('es-VE')}</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Referencia</Label>
+                    <Input value={paymentReference} onChange={e => setPaymentReference(e.target.value)} placeholder="123456" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Fecha</Label>
+                    <Input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
+                  </div>
+               </div>
+               <HeadlessSafeSelect label="Banco Emisor" value={emittingBank} onChange={setEmittingBank} options={venezuelanBanks} />
+               <Button onClick={handleLocalPaymentSubmit} disabled={isSubmittingLocal} className="w-full bg-emerald-600 font-bold">
+                 {isSubmittingLocal ? "Validando..." : "Enviar Reporte"}
+               </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl shadow-lg rounded-lg">
+      {/* CONFIGURACIÓN GENERAL CON LABELS BLINDADOS */}
+      <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">Configuración General</CardTitle>
-          <CardDescription className="text-gray-600">Ajusta las preferencias de visualización y tu clave manual.</CardDescription>
+          <CardTitle className="text-2xl font-bold">Configuración General</CardTitle>
+          <CardDescription>Ajusta visualización e idioma del sistema.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div><Label className="mb-2 block text-sm font-medium text-gray-700">Idioma de la Interfaz</Label><HeadlessSafeSelect value={localSelectedLanguage} onChange={setLocalSelectedLanguage} options={languageOptions} className="w-full"/></div>
-          <div><Label className="mb-2 block text-sm font-medium text-gray-700">Símbolo de Moneda</Label><HeadlessSafeSelect value={localCurrencySymbol} onChange={setLocalCurrencySymbol} options={[{ id: '$', nombre: '$ (Dólar / Peso)' }, { id: '€', nombre: '€ (Euro)' }, { id: 'Bs', nombre: 'Bs (Bolívar)' }, { id: 'COP', nombre: 'COP (Peso Colombiano)' }, { id: 'MXN', nombre: 'MXN (Peso Mexicano)' }, { id: 'CLP', nombre: 'CLP (Peso Chileno)' }, { id: 'R$', nombre: 'R$ (Real Brasileño)' }, { id: '£', nombre: '£ (Libra Esterlina)' }]} className="w-full"/></div>
-          <div><Label className="mb-2 block text-sm font-medium text-gray-700">Formato de Fecha</Label><HeadlessSafeSelect value={localDateFormat} onChange={setLocalDateFormat} options={dateFormatOptions} className="w-full"/></div>
-          <div><Label className="mb-2 block text-sm font-medium text-gray-700">País y Región</Label><HeadlessSafeSelect value={localSelectedCountry} onChange={setLocalSelectedCountry} options={countryOptions} className="w-full"/></div>
+          <HeadlessSafeSelect label="Idioma de la Interfaz" value={localSelectedLanguage} onChange={setLocalSelectedLanguage} options={languageOptions} />
+          <HeadlessSafeSelect label="Símbolo de Moneda" value={localCurrencySymbol} onChange={setLocalCurrencySymbol} options={[{id: '$', nombre: 'Dólar ($)'}, {id: 'Bs', nombre: 'Bolívar (Bs)'}, {id: '€', nombre: 'Euro (€)'}]} />
+          <HeadlessSafeSelect label="Formato de Fecha" value={localDateFormat} onChange={setLocalDateFormat} options={dateFormatOptions} />
+          <HeadlessSafeSelect label="País y Región" value={localSelectedCountry} onChange={setLocalSelectedCountry} options={countryOptions} />
           
-          <div className="pt-4 border-t border-gray-100">
-            <Label className="mb-2 block text-sm font-medium text-gray-700">Clave de Licencia (Manual)</Label>
-            <Input type="text" value={localLicenseKey} onChange={(e) => setLocalLicenseKey(e.target.value)} placeholder="Introduce tu clave de licencia manual" className="w-full"/>
-            <div className={`flex items-center mt-2 text-sm ${licenseStatusColor}`}><LicenseStatusIcon size={16} className="mr-2" /><span>{licenseStatusText}</span></div>
+          <div className="pt-4 border-t">
+            <Label className="mb-2 block">Clave de Licencia Manual</Label>
+            <Input value={localLicenseKey} onChange={e => setLocalLicenseKey(e.target.value)} />
+            <div className={`flex items-center mt-2 text-sm ${licenseStatusColor}`}><LicenseStatusIcon size={16} className="mr-2" />{licenseStatusText}</div>
           </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">Guardar Configuración</Button>
-          </div>
+          <div className="flex justify-end pt-4"><Button onClick={handleSave} className="bg-blue-600 font-bold">Guardar Cambios</Button></div>
         </CardContent>
       </Card>
 
-      <div className="w-full max-w-2xl flex flex-col items-center mt-8 pt-8 border-t border-dashed border-gray-200">
-        <button 
-          onClick={() => setShowAdminPanel(!showAdminPanel)} 
-          className="text-gray-300 hover:text-gray-400 transition-colors"
-          title="Área Administrativa"
-        >
-          <Lock size={16} />
-        </button>
-
+      {/* ÁREA ADMIN CEO */}
+      <div className="w-full max-w-2xl flex flex-col items-center mt-8 border-t border-dashed border-gray-200 pt-8">
+        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-gray-300 hover:text-gray-400"><Lock size={16} /></button>
         {showAdminPanel && (
-          <div className="w-full mt-4 bg-slate-900 rounded-xl p-5 shadow-2xl animate-in slide-in-from-bottom-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Settings2 className="text-emerald-400 h-5 w-5" />
-              <h4 className="text-white font-bold tracking-widest text-sm uppercase">Terminal de Control Global</h4>
-            </div>
-
+          <Card className="w-full mt-4 bg-slate-900 border-none p-5 text-white">
             {!isAdminAuthenticated ? (
               <div className="flex gap-2">
-                <Input type="password" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} placeholder="Introduce la Clave Maestra" className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"/>
-                <Button onClick={handleAdminAuth} className="bg-emerald-600 hover:bg-emerald-500 text-white"><KeyRound size={16} className="mr-2" /> Desbloquear</Button>
+                <Input type="password" value={adminPasswordInput} onChange={e => setAdminPasswordInput(e.target.value)} placeholder="Clave Maestra" className="bg-slate-800 border-slate-700" />
+                <Button onClick={() => adminPasswordInput === 'ocolrotcod' ? setIsAdminAuthenticated(true) : toast({title: "Denegado", variant: "destructive"})} className="bg-emerald-600">Desbloquear</Button>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Costo Licencia (USD)</Label>
-                    <Input type="text" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-slate-400 text-xs uppercase tracking-wider">Tasa BCV (Bs)</Label>
-                    <Input type="text" value={tempRate} onChange={(e) => setTempRate(e.target.value)} className="bg-slate-800 border-slate-700 text-white font-mono text-lg"/>
-                  </div>
-                </div>
-                <div className="flex justify-end pt-2 border-t border-slate-800">
-                  <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">Guardar y Aplicar Globalmente</Button>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-slate-700">
-                  <h4 className="text-white font-bold tracking-widest text-sm uppercase flex items-center gap-2 mb-4">
-                    <Landmark className="text-blue-400 h-5 w-5" /> Buzón de Cobranza (Pagos Locales)
-                  </h4>
-                  
-                  {localPaymentsList.length === 0 ? (
-                    <p className="text-slate-500 text-sm italic">No hay reportes de pago registrados en el sistema.</p>
-                  ) : (
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {localPaymentsList.map((pago) => (
-                        <div key={pago.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:bg-slate-800/80">
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-white font-bold text-sm tracking-wide">#{pago.id} - Ref: {pago.referencia}</span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                pago.estatus === 'PENDIENTE' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                                pago.estatus === 'APROBADO' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                                'bg-red-500/20 text-red-400 border border-red-500/30'
-                              }`}>
-                                {pago.estatus}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-400 mb-1">Cliente: <span className="text-indigo-300 font-medium">{pago.email_usuario}</span></p>
-                            <p className="text-xs text-slate-400">
-                              <span className="text-slate-300 font-semibold">{pago.banco_emisor}</span> | Bs. {pago.monto_bs.toLocaleString('es-VE')} | Fecha: {pago.fecha_pago}
-                            </p>
-                          </div>
-                          
-                          {pago.estatus === 'PENDIENTE' && (
-                            <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-                              <Button onClick={() => handleRejectPayment(pago.id)} size="sm" variant="outline" className="flex-1 md:flex-none border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 h-8">
-                                <XCircle className="h-4 w-4 mr-1.5" /> Rechazar
-                              </Button>
-                              <Button onClick={() => handleApprovePayment(pago.id)} size="sm" className="flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-500 text-white h-8">
-                                <CheckCircle className="h-4 w-4 mr-1.5" /> Aprobar
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div><Label className="text-xs text-slate-400">Costo (USD)</Label><Input value={tempPrice} onChange={e => setTempPrice(e.target.value)} className="bg-slate-800" /></div>
+                    <div><Label className="text-xs text-slate-400">Tasa (Bs)</Label><Input value={tempRate} onChange={e => setTempRate(e.target.value)} className="bg-slate-800" /></div>
+                 </div>
+                 <Button onClick={async () => {
+                    const token = localStorage.getItem('access_token');
+                    await fetch(`${apiBaseUrl}/parametros-globales`, {
+                      method: 'PUT', headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+                      body: JSON.stringify({tasa_bcv: parseFloat(tempRate), precio_licencia: parseFloat(tempPrice)})
+                    });
+                    toast({title: "Global Actualizado"});
+                 }} className="w-full bg-blue-600">Aplicar Globalmente</Button>
               </div>
             )}
-          </div>
+          </Card>
         )}
       </div>
-
     </div>
   );
 }
