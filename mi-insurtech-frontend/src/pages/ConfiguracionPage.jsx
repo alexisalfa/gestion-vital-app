@@ -4,40 +4,18 @@ import SettingsPage from '../components/SettingsPage';
 import { Loader2, ShieldCheck } from 'lucide-react'; 
 import { useGlobal } from '../context/GlobalContext';
 
-function ConfiguracionPage({
-  selectedLanguage,
-  currencySymbol,
-  dateFormat,
-  selectedCountry,
-  licenseKey,
-  setSelectedLanguage,
-  setCurrencySymbol,
-  setDateFormat,
-  setSelectedCountry,
-  setLicenseKey,
-  saveSettings,
-  LANGUAGE_OPTIONS,
-  CURRENCY_SYMBOL_OPTIONS,
-  DATE_FORMAT_OPTIONS,
-  COUNTRY_OPTIONS,
-  MASTER_LICENSE_KEY,
-}) {
+function ConfiguracionPage(props) {
   const { API_BASE_URL } = useGlobal();
   const [isVerifying, setIsVerifying] = useState(true);
   const [backendLicenseValid, setBackendLicenseValid] = useState(false);
 
-  // 🦾 INJERTO ROBUSTO Y AUTÓNOMO: Verificamos directamente con Python
   useEffect(() => {
     let isMounted = true;
-
     const verificarLicenciaReal = async () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          if (isMounted) {
-            setBackendLicenseValid(false);
-            setIsVerifying(false);
-          }
+          if (isMounted) { setBackendLicenseValid(false); setIsVerifying(false); }
           return;
         }
 
@@ -47,18 +25,15 @@ function ConfiguracionPage({
 
         if (response.ok) {
           const stats = await response.json();
-          const now = new Date().getTime();
-          const deadline = new Date(stats.fecha_vencimiento).getTime();
+          // 🦾 REGLA DE NEGOCIO EXACTA: Es PRO si no es prueba O si el plan es anual
+          const esPro = stats.es_prueba === false || stats.plan_tipo === 'PRO_ANNUAL';
           
-          // Es válida si Python dice que está activa Y no ha expirado
-          if (isMounted) {
-            setBackendLicenseValid(stats.licencia_activa && (deadline > now));
-          }
+          if (isMounted) setBackendLicenseValid(esPro);
         } else {
           if (isMounted) setBackendLicenseValid(false);
         }
       } catch (error) {
-        console.error("Error validando bóveda:", error);
+        console.error("Error de validación:", error);
         if (isMounted) setBackendLicenseValid(false);
       } finally {
         if (isMounted) setIsVerifying(false);
@@ -66,13 +41,10 @@ function ConfiguracionPage({
     };
 
     verificarLicenciaReal();
-
-    return () => {
-      isMounted = false; // Cleanup para evitar fugas de memoria
-    };
+    return () => { isMounted = false; };
   }, [API_BASE_URL]);
 
-  // --- UX NIVEL ENTERPRISE: PANTALLA DE VALIDACIÓN ---
+  // --- UX NIVEL ENTERPRISE: ÚNICA PANTALLA DE CARGA ---
   if (isVerifying) { 
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center space-y-5 animate-in fade-in duration-500">
@@ -95,26 +67,9 @@ function ConfiguracionPage({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Preferencias del Sistema</h2>
-      
       <SettingsPage
-        selectedLanguage={selectedLanguage} 
-        currencySymbol={currencySymbol} 
-        dateFormat={dateFormat}
-        selectedCountry={selectedCountry} 
-        licenseKey={licenseKey} 
-        // ⚠️ Pasamos el resultado de la validación real
+        {...props}
         isLicenseValid={backendLicenseValid} 
-        setSelectedLanguage={setSelectedLanguage} 
-        setCurrencySymbol={setCurrencySymbol} 
-        setDateFormat={setDateFormat}
-        setSelectedCountry={setSelectedCountry} 
-        setLicenseKey={setLicenseKey} 
-        onSaveSettings={saveSettings}
-        languageOptions={LANGUAGE_OPTIONS} 
-        currencyOptions={CURRENCY_SYMBOL_OPTIONS} 
-        dateFormatOptions={DATE_FORMAT_OPTIONS}
-        countryOptions={COUNTRY_OPTIONS} 
-        masterLicenseKey={MASTER_LICENSE_KEY}
       />
     </div>
   );

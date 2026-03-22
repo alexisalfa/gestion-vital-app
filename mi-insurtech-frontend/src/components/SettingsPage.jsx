@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect'; 
-import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays, Lock, KeyRound, Settings2, Download } from 'lucide-react'; // <-- Añadido Download
+import { CheckCircle, XCircle, ShieldCheck, CreditCard, AlertTriangle, CheckCircle2, Smartphone, Landmark, Send, CalendarDays, Lock, KeyRound, Settings2, Download } from 'lucide-react';
 import { useToast } from '@/lib/use-toast';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; 
-import jsPDF from 'jspdf'; // <-- Importamos el motor de PDFs
+import jsPDF from 'jspdf';
 
 function SettingsPage({
   selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey,
@@ -18,24 +18,20 @@ function SettingsPage({
 }) {
   const { toast } = useToast();
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
-  const [isProFromBackend, setIsProFromBackend] = useState(false);
   const apiBaseUrl = 'https://gestion-vital-app.onrender.com/api/v1';
 
-  // Estados locales
   const [localSelectedLanguage, setLocalSelectedLanguage] = useState(selectedLanguage);
   const [localCurrencySymbol, setLocalCurrencySymbol] = useState(currencySymbol);
   const [localDateFormat, setLocalDateFormat] = useState(dateFormat);
   const [localSelectedCountry, setLocalSelectedCountry] = useState(selectedCountry);
   const [localLicenseKey, setLocalLicenseKey] = useState(licenseKey);
 
-  // Estados Pago Local
   const [showLocalPaymentForm, setShowLocalPaymentForm] = useState(false);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
   const [emittingBank, setEmittingBank] = useState('');
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
-  // Estados Panel Admin Global
   const [globalPrice, setGlobalPrice] = useState(99.00);
   const [globalRate, setGlobalRate] = useState(36.25);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -55,60 +51,37 @@ function SettingsPage({
   ];
 
   // ==========================================
-  // CONEXIÓN CON EL BACKEND 
+  // CONEXIÓN CON EL BACKEND (Solo Tasa y Precio)
   // ==========================================
-  const fetchGlobalParams = async () => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/parametros-globales`);
-      if (response.ok) {
-        const data = await response.json();
-        setGlobalRate(data.tasa_bcv);
-        setGlobalPrice(data.precio_licencia);
-        setTempRate(data.tasa_bcv);
-        setTempPrice(data.precio_licencia);
-      }
-    } catch (error) {
-      console.error("Error obteniendo parámetros globales:", error);
-    }
-  };
-
-  const autoSincronizarBCV = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return; 
-      const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGlobalRate(data.tasa_bcv);
-        setTempRate(data.tasa_bcv);
-      }
-    } catch (error) {
-      console.log("El motor automático falló, usando tasa manual almacenada.", error);
-    }
-  };
-
-  const checkRealProStatus = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/statistics/summary`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.es_prueba === false || data.plan_tipo === 'PRO_ANNUAL') {
-          setIsProFromBackend(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error verificando estatus PRO en BD:", error);
-    }
-  };
-
   useEffect(() => { 
-    checkRealProStatus(); 
+    const fetchGlobalParams = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/parametros-globales`);
+        if (response.ok) {
+          const data = await response.json();
+          setGlobalRate(data.tasa_bcv);
+          setGlobalPrice(data.precio_licencia);
+          setTempRate(data.tasa_bcv);
+          setTempPrice(data.precio_licencia);
+        }
+      } catch (error) { console.error("Error:", error); }
+    };
+
+    const autoSincronizarBCV = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) return; 
+        const response = await fetch(`${apiBaseUrl}/parametros-globales/sincronizar-bcv`, {
+          method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setGlobalRate(data.tasa_bcv);
+          setTempRate(data.tasa_bcv);
+        }
+      } catch (error) { console.log("BCV Automático falló", error); }
+    };
+
     fetchGlobalParams(); 
     autoSincronizarBCV(); 
   }, []);
@@ -118,7 +91,7 @@ function SettingsPage({
     if (query.get("payment") === "success") {
       toast({ title: "¡Pago Exitoso! 🎉", description: "Tu licencia PRO ha sido activada.", variant: "success", duration: 8000 });
       window.history.replaceState(null, '', window.location.pathname);
-      setTimeout(() => checkRealProStatus(), 1500);
+      setTimeout(() => window.location.reload(), 1500); // Recarga para actualizar estado global
     }
     if (query.get("payment") === "cancel") {
       toast({ title: "Pago Cancelado", description: "El proceso fue interrumpido.", variant: "destructive" });
@@ -131,32 +104,30 @@ function SettingsPage({
     setLocalDateFormat(dateFormat); setLocalSelectedCountry(selectedCountry); setLocalLicenseKey(licenseKey);
   }, [selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey]);
 
-  // ==========================================
-  // GENERADOR DE RECIBO PDF (NUEVO)
-  // ==========================================
   const handleDownloadReceipt = () => {
     const doc = new jsPDF();
-    const token = localStorage.getItem('access_token'); // Usualmente guardaste el email aquí
-    const usuarioRecibo = token && token.includes('@') ? token : "Cliente Registrado";
+    const userData = localStorage.getItem('user');
+    let usuarioRecibo = "Cliente Registrado";
+    if (userData) {
+      try { usuarioRecibo = JSON.parse(userData).full_name || JSON.parse(userData).email; } catch(e){}
+    } else {
+      const token = localStorage.getItem('access_token');
+      if (token && token.includes('@')) usuarioRecibo = token;
+    }
     const fechaActual = new Date().toLocaleDateString('es-VE');
 
-    // Estilos y Colores
     doc.setFont("helvetica");
-
-    // Header (Logo/Título simulado)
-    doc.setFillColor(63, 81, 181); // Color Índigo (del header)
+    doc.setFillColor(63, 81, 181); 
     doc.rect(0, 0, 210, 40, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text("GESTIÓN VITAL", 20, 25);
 
-    // Título del documento
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(16);
     doc.text("RECIBO DE PAGO DIGITAL", 20, 60);
 
-    // Datos de tu empresa
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 100, 100);
@@ -164,7 +135,6 @@ function SettingsPage({
     doc.text("Soporte: gtelca.ventas@gmail.com", 20, 75);
     doc.text("Plataforma SaaS de Seguros", 20, 80);
 
-    // Datos del cliente
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -177,11 +147,9 @@ function SettingsPage({
     doc.text(`Fecha de Emisión: ${fechaActual}`, 120, 75);
     doc.text(`Referencia: GV-${Math.floor(Math.random() * 90000) + 10000}`, 120, 80);
 
-    // Línea separadora
     doc.setDrawColor(200, 200, 200);
     doc.line(20, 90, 190, 90);
 
-    // Detalles del Cargo (Tabla simple)
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -194,39 +162,29 @@ function SettingsPage({
     doc.text("Licencia Gestión Vital PRO (Suscripción 1 Año)", 20, 115);
     doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 115);
 
-    // Total final
     doc.line(20, 125, 190, 125);
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(50, 50, 50);
     doc.text("TOTAL PAGADO:", 110, 140);
-    doc.setTextColor(46, 125, 50); // Color Verde
+    doc.setTextColor(46, 125, 50);
     doc.text(`$${globalPrice.toFixed(2)} USD`, 160, 140);
 
-    // Footer / Disclaimer Legal
     doc.setTextColor(150, 150, 150);
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("Este documento es un comprobante electrónico de prestación de servicio digital.", 20, 265);
-    doc.text("Sirve únicamente para fines de control administrativo interno del usuario y no sustituye una factura", 20, 270);
-    doc.text("fiscal bajo las regulaciones y providencias locales. Los impuestos aplicables son responsabilidad", 20, 275);
-    doc.text("de las partes según su jurisdicción tributaria.", 20, 280);
-    doc.text("Gracias por confiar en Gestión Vital.", 20, 285);
+    doc.text("Este documento es un comprobante electrónico.", 20, 265);
+    doc.text("Gracias por confiar en Gestión Vital.", 20, 270);
 
-    // Descargar
     doc.save(`Recibo_GestionVital_${fechaActual}.pdf`);
   };
 
-  // ==========================================
-  // MÉTODOS DE PAGOS 
-  // ==========================================
   const handleUpgradeToPro = async () => {
     setIsLoadingPayment(true);
     const token = localStorage.getItem('access_token');
     try {
       const response = await fetch(`${apiBaseUrl}/payments/create-checkout-session`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
       if (!response.ok) throw new Error("No se pudo conectar con la pasarela.");
       const data = await response.json();
@@ -240,79 +198,41 @@ function SettingsPage({
   const handleLocalPaymentSubmit = async () => {
     if (!paymentReference || !paymentDate || (showLocalPaymentForm && emittingBank === '' && !emittingBank.includes('zelle'))) {
         if(emittingBank === '' && (paymentReference.length < 10)) { 
-             toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor (si aplica).", variant: "destructive" });
+             toast({ title: "Datos incompletos", description: "Por favor ingresa Referencia, Fecha y Banco Emisor.", variant: "destructive" });
              return;
         }
     }
-
     setIsSubmittingLocal(true);
-
     try {
       const token = localStorage.getItem('access_token');
-      const montoCalculado = globalPrice * globalRate;
-
       const response = await fetch(`${apiBaseUrl}/pagos-locales/reportar`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          referencia: paymentReference,
-          fecha_pago: paymentDate,
-          banco_emisor: emittingBank || 'Zelle',
-          monto_bs: montoCalculado
-        })
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referencia: paymentReference, fecha_pago: paymentDate, banco_emisor: emittingBank || 'Zelle', monto_bs: globalPrice * globalRate })
       });
-
       const data = await response.json();
-
       if (response.ok) {
-        setShowLocalPaymentForm(false);
-        setPaymentReference(''); 
-        setPaymentDate(''); 
-        setEmittingBank('');
-        toast({ title: "¡Reporte Recibido! ⏳", description: `Referencia interna #${data.id_pago} guardada. Nuestro equipo está validando tu transacción.`, variant: "success", duration: 8000 });
-      } else {
-        toast({ title: "Atención", description: data.detail || "No pudimos procesar el reporte.", variant: "destructive" });
-      }
-    } catch (error) {
-      toast({ title: "Error de Conexión", description: "Revisa tu internet y vuelve a intentar.", variant: "destructive" });
-    } finally {
-      setIsSubmittingLocal(false);
-    }
+        setShowLocalPaymentForm(false); setPaymentReference(''); setPaymentDate(''); setEmittingBank('');
+        toast({ title: "¡Reporte Recibido! ⏳", description: `Referencia #${data.id_pago} guardada.`, variant: "success", duration: 8000 });
+      } else toast({ title: "Atención", description: data.detail || "Error.", variant: "destructive" });
+    } catch (error) { toast({ title: "Error", description: "Revisa tu internet.", variant: "destructive" }); } 
+    finally { setIsSubmittingLocal(false); }
   };
 
   const handleSave = () => onSaveSettings(localSelectedLanguage, localCurrencySymbol, localDateFormat, localSelectedCountry, localLicenseKey);
 
-  // ==========================================
-  // FUNCIONES DEL PANEL DE ADMINISTRACIÓN CEO
-  // ==========================================
   const fetchLocalPaymentsInbox = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLocalPaymentsList(data);
-      }
-    } catch (error) {
-      console.error("Error cargando el buzón de pagos:", error);
-    }
+      const response = await fetch(`${apiBaseUrl}/pagos-locales`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (response.ok) setLocalPaymentsList(await response.json());
+    } catch (error) { console.error("Error:", error); }
   };
 
-  useEffect(() => {
-    if (isAdminAuthenticated) {
-      fetchLocalPaymentsInbox();
-    }
-  }, [isAdminAuthenticated]);
+  useEffect(() => { if (isAdminAuthenticated) fetchLocalPaymentsInbox(); }, [isAdminAuthenticated]);
 
   const handleAdminAuth = () => {
-    if (adminPasswordInput === 'ocolrotcod') {
-      setIsAdminAuthenticated(true);
-      toast({ title: "Bóveda Abierta", description: "Modo CEO activado.", variant: "success" });
-    } else {
-      toast({ title: "Acceso Denegado", description: "Clave maestra incorrecta.", variant: "destructive" });
-    }
+    if (adminPasswordInput === 'ocolrotcod') { setIsAdminAuthenticated(true); toast({ title: "Bóveda Abierta", variant: "success" }); }
+    else toast({ title: "Acceso Denegado", variant: "destructive" });
     setAdminPasswordInput('');
   };
 
@@ -320,68 +240,38 @@ function SettingsPage({
     try {
       const cleanRate = parseFloat(String(tempRate).replace(',', '.'));
       const cleanPrice = parseFloat(String(tempPrice).replace(',', '.'));
-
-      if (isNaN(cleanRate) || isNaN(cleanPrice)) {
-        toast({ title: "Error de Formato", description: "Por favor verifica que solo estés ingresando números.", variant: "destructive" });
-        return;
-      }
+      if (isNaN(cleanRate) || isNaN(cleanPrice)) return toast({ title: "Error", description: "Solo números.", variant: "destructive" });
 
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${apiBaseUrl}/parametros-globales`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ tasa_bcv: cleanRate, precio_licencia: cleanPrice })
       });
-
       if (response.ok) {
-        const data = await response.json();
-        setGlobalRate(data.tasa_bcv);
-        setGlobalPrice(data.precio_licencia);
-        toast({ title: "Valores Guardados", description: "La tasa BCV y el precio han sido actualizados en la base de datos.", variant: "success" });
-      } else {
-        toast({ title: "Error", description: "No se pudieron guardar los cambios en el servidor.", variant: "destructive" });
+        const data = await response.json(); setGlobalRate(data.tasa_bcv); setGlobalPrice(data.precio_licencia);
+        toast({ title: "Valores Guardados", variant: "success" });
       }
-    } catch (error) {
-      toast({ title: "Error de conexión", description: "Revisa tu conexión a internet.", variant: "destructive" });
-    }
+    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
   };
 
   const handleApprovePayment = async (pagoId) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/aprobar`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        toast({ title: "¡Pago Aprobado! 🎉", description: "El cliente ahora tiene Licencia PRO.", variant: "success" });
-        fetchLocalPaymentsInbox(); 
-      } else {
-        const errorData = await response.json();
-        toast({ title: "Error", description: errorData.detail || "No se pudo aprobar.", variant: "destructive" });
-      }
-    } catch (error) {
-      toast({ title: "Error de conexión", description: "Intente de nuevo.", variant: "destructive" });
-    }
+      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/aprobar`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+      if (response.ok) { toast({ title: "Aprobado", variant: "success" }); fetchLocalPaymentsInbox(); }
+    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
   };
 
   const handleRejectPayment = async (pagoId) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/rechazar`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        toast({ title: "Pago Rechazado", description: "El ticket fue marcado como inválido.", variant: "info" });
-        fetchLocalPaymentsInbox(); 
-      }
-    } catch (error) {
-      toast({ title: "Error de conexión", description: "Intente de nuevo.", variant: "destructive" });
-    }
+      const response = await fetch(`${apiBaseUrl}/pagos-locales/${pagoId}/rechazar`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+      if (response.ok) { toast({ title: "Rechazado", variant: "info" }); fetchLocalPaymentsInbox(); }
+    } catch (error) { toast({ title: "Error", variant: "destructive" }); }
   };
 
-  const effectivelyValid = isLicenseValid || isProFromBackend;
+  // 🦾 AQUÍ ESTÁ LA MAGIA: Una Sola Fuente de Verdad.
+  const effectivelyValid = isLicenseValid;
   const LicenseStatusIcon = effectivelyValid ? CheckCircle : XCircle;
   const licenseStatusColor = effectivelyValid ? 'text-green-500' : 'text-red-500';
   const licenseStatusText = effectivelyValid ? 'Licencia Válida (PRO)' : 'Periodo de Prueba';
@@ -412,7 +302,6 @@ function SettingsPage({
                   : "Tu cuenta se encuentra en un periodo de evaluación. Para evitar interrupciones, actualiza a la versión PRO."}
               </p>
 
-              {/* 🚀 NUEVO BOTÓN PARA DESCARGAR EL RECIBO 🚀 */}
               {effectivelyValid && (
                 <div className="mt-4 pt-4 border-t border-indigo-50">
                   <Button onClick={handleDownloadReceipt} variant="outline" className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50 shadow-sm transition-all hover:shadow">
@@ -420,7 +309,6 @@ function SettingsPage({
                   </Button>
                 </div>
               )}
-
             </div>
 
             {!effectivelyValid && (
@@ -456,7 +344,7 @@ function SettingsPage({
                           const captureData = await res.json();
                           if (captureData.status === "success") {
                             toast({ title: "¡Pago Exitoso! 🎉", description: "Licencia PRO activada.", variant: "success", duration: 8000 });
-                            setTimeout(() => checkRealProStatus(), 1500);
+                            setTimeout(() => window.location.reload(), 1500);
                           }
                         }}
                       />
@@ -567,9 +455,6 @@ function SettingsPage({
         </CardContent>
       </Card>
 
-      {/* ========================================================= */}
-      {/* EL BOTÓN SECRETO DEL CEO (Bóveda Administrativa)          */}
-      {/* ========================================================= */}
       <div className="w-full max-w-2xl flex flex-col items-center mt-8 pt-8 border-t border-dashed border-gray-200">
         <button 
           onClick={() => setShowAdminPanel(!showAdminPanel)} 
@@ -607,7 +492,6 @@ function SettingsPage({
                   <Button onClick={handleSaveAdminSettings} className="bg-blue-600 hover:bg-blue-500 text-white w-full md:w-auto">Guardar y Aplicar Globalmente</Button>
                 </div>
 
-                {/* BUZÓN DE COBRANZA */}
                 <div className="mt-8 pt-6 border-t border-slate-700">
                   <h4 className="text-white font-bold tracking-widest text-sm uppercase flex items-center gap-2 mb-4">
                     <Landmark className="text-blue-400 h-5 w-5" /> Buzón de Cobranza (Pagos Locales)
@@ -652,7 +536,6 @@ function SettingsPage({
                     </div>
                   )}
                 </div>
-
               </div>
             )}
           </div>
