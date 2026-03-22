@@ -76,6 +76,34 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
+  // --- INJERTO: DESENCRIPTAR EL TOKEN PARA SACAR EL NOMBRE ---
+  const getUserDisplayName = () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return 'Usuario VIP';
+      
+      // Decodificamos la parte central del JWT (el Payload)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const payload = JSON.parse(jsonPayload);
+      
+      // Intentamos sacar el nombre, si no está, sacamos el correo antes del @
+      if (payload.name) return payload.name;
+      if (payload.sub) return payload.sub.split('@')[0].toUpperCase(); 
+      
+      return 'Usuario VIP';
+    } catch (e) {
+      return 'Usuario VIP';
+    }
+  };
+
+  const userName = getUserDisplayName();
+  // -----------------------------------------------------------
+
   // --- TUS VARIABLES ORIGINALES RESTAURADAS (NUNCA DEBIERON CAMBIARSE) ---
   const pieData = useMemo(() => [
     { name: 'Primas Activas', value: statistics?.total_primas || 0, color: '#10b981' }, 
@@ -130,8 +158,9 @@ const Dashboard = ({
         <div className="flex items-center gap-3">
           <Clock className={`h-6 w-6 ${timeLeft !== "EXPIRADO" && timeLeft !== "LICENCIA ACTIVA" ? "animate-pulse" : ""}`} />
           <div>
-            <p className="text-sm font-bold uppercase tracking-tight">
+            <p className="text-sm font-bold uppercase tracking-tight flex items-center gap-2">
               {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? "Licencia de Prueba" : "Licencia Profesional"}
+              <span className="text-blue-200">|</span> <span className="text-emerald-400">{userName}</span>
             </p>
             <p className="text-xs opacity-90 italic">
               {timeLeft === "EXPIRADO" ? "Acceso restringido. Contacte a soporte." : "Tiempo restante para la activación total."}
