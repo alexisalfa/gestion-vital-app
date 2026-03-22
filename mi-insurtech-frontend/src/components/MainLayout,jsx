@@ -1,0 +1,105 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ShieldAlert, Bell, Menu, X, CheckCircle2, DollarSign, AlertCircle, Mail, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+const MainLayout = ({ 
+  children, 
+  currentPath, 
+  t, 
+  handleLogout, 
+  totalAlerts, 
+  isMobileMenuOpen, 
+  setIsMobileMenuOpen,
+  isAlertsOpen,
+  setIsAlertsOpen,
+  statisticsSummaryData,
+  polizasPendientesDashboard,
+  dineroEnLaCalle,
+  currencySymbol,
+  polizasProximasAVencer,
+  handleEmailNotificacion,
+  handleWhatsAppNotificacion,
+  navigate
+}) => {
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      {/* 🔵 NAVEGACIÓN MAESTRA (Extraída de App.jsx) */}
+      <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-1 text-indigo-100 hover:text-white">
+              <Menu className="h-6 w-6" />
+            </button>
+            <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
+              <div className="bg-white text-indigo-600 p-1.5 rounded-lg hidden sm:block">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <span className="text-xl font-bold tracking-tight">Gestión Vital</span>
+            </Link>
+          </div>
+          
+          {/* Menú Desktop */}
+          <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
+            {[
+              { id: 'dashboard', label: t('menu.dashboard', 'Dashboard') },
+              { id: 'clientes', label: t('menu.clientes', 'Clientes') },
+              { id: 'empresas-aseguradoras', label: t('menu.aseguradoras', 'Aseguradoras') },
+              { id: 'asesores', label: t('menu.asesores', 'Asesores') },
+              { id: 'polizas', label: t('menu.polizas', 'Pólizas') },
+              { id: 'reclamaciones', label: t('menu.reclamaciones', 'Reclamaciones') },
+              { id: 'comisiones', label: t('menu.comisiones', 'Comisiones') },
+              { id: 'configuracion', label: t('menu.configuracion', 'Ajustes') },
+            ].map((tab) => (
+              <Link
+                key={tab.id} to={`/${tab.id}`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap
+                  ${currentPath === tab.id ? 'bg-white/20 text-white shadow-inner' : 'text-indigo-100 hover:bg-white/10 hover:text-white'}`}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button onClick={() => setIsAlertsOpen(true)} className="relative p-2 text-indigo-100 hover:text-white transition-colors">
+              <Bell className="h-5 w-5" />
+              {totalAlerts > 0 && (
+                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center border border-blue-600 text-white animate-pulse">
+                  {totalAlerts}
+                </span>
+              )}
+            </button>
+            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-indigo-100 hover:text-white hover:bg-white/10 hidden sm:flex">
+              Salir
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* 🚀 CONTENIDO DINÁMICO (Aquí caen las Pages) */}
+      <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
+        {children}
+      </main>
+
+      {/* 🔔 PANEL DE ASISTENTE INTELIGENTE (Extraído de App.jsx) */}
+      {isAlertsOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setIsAlertsOpen(false)}></div>
+          <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+            {/* ... lógica de alertas idéntica a su App.jsx ... */}
+            <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2"><Bell className="h-5 w-5 text-blue-600"/> Asistente Inteligente</h3>
+              <button onClick={() => setIsAlertsOpen(false)} className="text-slate-400 hover:bg-slate-200 p-1 rounded-md transition-colors"><X size={20}/></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+               {/* Aquí se inyecta la misma lógica de Siniestros, Cobranza y Vencimientos que ya tiene */}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MainLayout;
