@@ -159,7 +159,10 @@ function App() {
   }, [statisticsSummaryData, reclamaciones]);
 
   const dineroEnLaCalle = useMemo(() => {
-    const pendientes = comisiones.filter(c => c.estatus_pago?.toLowerCase() === 'pendiente');
+    // 🦾 BLINDAJE: Agregamos ?. y una validación extra para evitar el error toLowerCase
+    const pendientes = comisiones.filter(c => 
+      c && c.estatus_pago && String(c.estatus_pago).toLowerCase() === 'pendiente'
+    );
     const total = pendientes.reduce((sum, c) => sum + (parseFloat(c.monto_final) || 0), 0);
     return { cantidad: pendientes.length, total };
   }, [comisiones]);

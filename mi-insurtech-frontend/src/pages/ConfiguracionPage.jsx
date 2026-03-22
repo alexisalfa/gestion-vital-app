@@ -25,15 +25,14 @@ function ConfiguracionPage(props) {
 
         if (response.ok) {
           const stats = await response.json();
-          // 🦾 REGLA DE NEGOCIO EXACTA: Es PRO si no es prueba O si el plan es anual
+          // 🦾 LÓGICA ROBUSTA: Es PRO si no es prueba O si el plan es anual
           const esPro = stats.es_prueba === false || stats.plan_tipo === 'PRO_ANNUAL';
-          
           if (isMounted) setBackendLicenseValid(esPro);
         } else {
           if (isMounted) setBackendLicenseValid(false);
         }
       } catch (error) {
-        console.error("Error de validación:", error);
+        console.error("Error en validación:", error);
         if (isMounted) setBackendLicenseValid(false);
       } finally {
         if (isMounted) setIsVerifying(false);
@@ -44,21 +43,15 @@ function ConfiguracionPage(props) {
     return () => { isMounted = false; };
   }, [API_BASE_URL]);
 
-  // --- UX NIVEL ENTERPRISE: ÚNICA PANTALLA DE CARGA ---
   if (isVerifying) { 
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center space-y-5 animate-in fade-in duration-500">
-        <div className="relative">
-          <div className="absolute inset-0 bg-blue-200 rounded-full blur-2xl animate-pulse"></div>
-          <div className="bg-white p-4 rounded-full shadow-2xl relative z-10 border border-slate-100">
-            <ShieldCheck className="h-12 w-12 text-blue-600 animate-pulse" />
-          </div>
+        <div className="bg-white p-4 rounded-full shadow-2xl relative z-10 border border-slate-100">
+          <ShieldCheck className="h-12 w-12 text-blue-600 animate-pulse" />
         </div>
-        <div className="text-center space-y-2">
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Validando Bóveda Segura</h3>
-          <p className="text-sm font-semibold text-slate-500 flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-indigo-500" /> Sincronizando con el servidor...
-          </p>
+        <div className="text-center">
+          <h3 className="text-xl font-black text-slate-800">Validando Bóveda</h3>
+          <p className="text-sm font-semibold text-slate-500">Sincronizando...</p>
         </div>
       </div>
     );
@@ -66,11 +59,8 @@ function ConfiguracionPage(props) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Preferencias del Sistema</h2>
-      <SettingsPage
-        {...props}
-        isLicenseValid={backendLicenseValid} 
-      />
+      <h2 className="text-2xl font-bold text-slate-800">Preferencias del Sistema</h2>
+      <SettingsPage {...props} isLicenseValid={backendLicenseValid} />
     </div>
   );
 }
