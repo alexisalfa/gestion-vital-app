@@ -25,9 +25,14 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
 
       const data = await response.json();
       
-      // Guardamos la llave de la bóveda (igual que en el login normal)
+      // Guardamos la llave de la bóveda
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('token_type', data.token_type);
+      
+      // 🦾 NUEVO: Guardamos el perfil del usuario completo para el Dashboard
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
       
       // Le avisamos a App.jsx que abra las puertas
       onLoginSuccess();
