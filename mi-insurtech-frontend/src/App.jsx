@@ -381,27 +381,7 @@ function App() {
             } />
 
             <Route path="/configuracion" element={
-              <ConfiguracionPage 
-                selectedLanguage={selectedLanguage} 
-                currencySymbol={currencySymbol} 
-                dateFormat={dateFormat} 
-                selectedCountry={selectedCountry} 
-                licenseKey={licenseKey} 
-                isLicenseValid={isLicenseValid} 
-                setSelectedLanguage={setSelectedLanguage} 
-                setCurrencySymbol={setCurrencySymbol} 
-                setDateFormat={setDateFormat} 
-                setSelectedCountry={setSelectedCountry} 
-                setLicenseKey={setLicenseKey} 
-                saveSettings={saveSettings} 
-                LANGUAGE_OPTIONS={LANGUAGE_OPTIONS} 
-                CURRENCY_SYMBOL_OPTIONS={CURRENCY_SYMBOL_OPTIONS} 
-                DATE_FORMAT_OPTIONS={DATE_FORMAT_OPTIONS} 
-                COUNTRY_OPTIONS={COUNTRY_OPTIONS} 
-                MASTER_LICENSE_KEY={MASTER_LICENSE_KEY} 
-                statistics={statisticsSummaryData} 
-                isLoadingStats={isLoadingStatisticsSummary} 
-              />
+              <ConfiguracionPage selectedLanguage={selectedLanguage} currencySymbol={currencySymbol} dateFormat={dateFormat} selectedCountry={selectedCountry} licenseKey={licenseKey} isLicenseValid={isLicenseValid} setSelectedLanguage={setSelectedLanguage} setCurrencySymbol={setCurrencySymbol} setDateFormat={setDateFormat} setSelectedCountry={setSelectedCountry} setLicenseKey={setLicenseKey} saveSettings={saveSettings} LANGUAGE_OPTIONS={LANGUAGE_OPTIONS} CURRENCY_SYMBOL_OPTIONS={CURRENCY_SYMBOL_OPTIONS} DATE_FORMAT_OPTIONS={DATE_FORMAT_OPTIONS} COUNTRY_OPTIONS={COUNTRY_OPTIONS} MASTER_LICENSE_KEY={MASTER_LICENSE_KEY} />
             } />
             
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import SettingsPage from '../components/SettingsPage';
 import { Loader2, ShieldCheck } from 'lucide-react'; 
+import { useGlobal } from '../context/GlobalContext';
 
 function ConfiguracionPage({
   selectedLanguage,
@@ -9,7 +10,6 @@ function ConfiguracionPage({
   dateFormat,
   selectedCountry,
   licenseKey,
-  isLicenseValid, // Lo recibimos, pero lo ignoraremos por seguridad
   setSelectedLanguage,
   setCurrencySymbol,
   setDateFormat,
@@ -21,40 +21,59 @@ function ConfiguracionPage({
   DATE_FORMAT_OPTIONS,
   COUNTRY_OPTIONS,
   MASTER_LICENSE_KEY,
-
-  // --- 🦾 INJERTO ROBUSTO: DATOS REALES DEL BACKEND ---
-  statistics,       
-  isLoadingStats    
 }) {
+  const { API_BASE_URL } = useGlobal();
   const [isVerifying, setIsVerifying] = useState(true);
   const [backendLicenseValid, setBackendLicenseValid] = useState(false);
 
+  // 🦾 INJERTO ROBUSTO Y AUTÓNOMO: Verificamos directamente con Python
   useEffect(() => {
-    // 1. Si la API de Python todavía está cargando, bloqueamos la pantalla
-    if (isLoadingStats) {
-      setIsVerifying(true);
-      return;
-    }
+    let isMounted = true;
 
-    // 2. Cuando Python responde, verificamos la verdad absoluta
-    if (statistics) {
-      const now = new Date().getTime();
-      const deadline = new Date(statistics.fecha_vencimiento).getTime();
-      
-      // La licencia es válida SÓLO si el backend dice que está activa Y no ha expirado
-      const isValid = statistics.licencia_activa && (deadline > now);
-      setBackendLicenseValid(isValid);
-    } else {
-      setBackendLicenseValid(false);
-    }
-    
-    // 3. Liberamos la pantalla
-    setIsVerifying(false);
-  }, [statistics, isLoadingStats]);
+    const verificarLicenciaReal = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          if (isMounted) {
+            setBackendLicenseValid(false);
+            setIsVerifying(false);
+          }
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/statistics/summary`, { 
+          headers: { 'Authorization': `Bearer ${token}` } 
+        });
+
+        if (response.ok) {
+          const stats = await response.json();
+          const now = new Date().getTime();
+          const deadline = new Date(stats.fecha_vencimiento).getTime();
+          
+          // Es válida si Python dice que está activa Y no ha expirado
+          if (isMounted) {
+            setBackendLicenseValid(stats.licencia_activa && (deadline > now));
+          }
+        } else {
+          if (isMounted) setBackendLicenseValid(false);
+        }
+      } catch (error) {
+        console.error("Error validando bóveda:", error);
+        if (isMounted) setBackendLicenseValid(false);
+      } finally {
+        if (isMounted) setIsVerifying(false);
+      }
+    };
+
+    verificarLicenciaReal();
+
+    return () => {
+      isMounted = false; // Cleanup para evitar fugas de memoria
+    };
+  }, [API_BASE_URL]);
 
   // --- UX NIVEL ENTERPRISE: PANTALLA DE VALIDACIÓN ---
-  // Mientras verifica, no mostramos ni la configuración ni la pasarela de pago
-  if (isVerifying || isLoadingStats === undefined) { 
+  if (isVerifying) { 
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center space-y-5 animate-in fade-in duration-500">
         <div className="relative">
@@ -83,7 +102,7 @@ function ConfiguracionPage({
         dateFormat={dateFormat}
         selectedCountry={selectedCountry} 
         licenseKey={licenseKey} 
-        // ⚠️ AQUÍ ESTÁ LA MAGIA: Pasamos la validación REAL de Python, no la del disco duro
+        // ⚠️ Pasamos el resultado de la validación real
         isLicenseValid={backendLicenseValid} 
         setSelectedLanguage={setSelectedLanguage} 
         setCurrencySymbol={setCurrencySymbol} 
