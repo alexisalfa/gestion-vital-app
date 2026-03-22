@@ -76,35 +76,46 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
-  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (CORREGIDO) ---
+  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (A PRUEBA DE BALAS) ---
   const getUserDisplayName = () => {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) return 'Usuario VIP';
       
-      const base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      
-      // ⚠️ EL ARREGLO: Agregar el "Padding" matemático que exige JavaScript
-      const pad = base64.length % 4;
-      if (pad) {
-        base64 += '='.repeat(4 - pad);
+      // CASO A: ¿Es un JWT estándar encriptado? (Tiene 3 partes separadas por puntos)
+      if (token.includes('.') && token.split('.').length === 3) {
+        const base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        
+        const pad = base64.length % 4;
+        if (pad) {
+          base64 += '='.repeat(4 - pad);
+        }
+        
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload = JSON.parse(jsonPayload);
+        
+        if (payload.name) return payload.name;
+        if (payload.sub) return payload.sub.split('@')[0].toUpperCase();
+        if (payload.email) return payload.email.split('@')[0].toUpperCase();
       }
       
-      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+      // CASO B: El token es directamente un correo electrónico en texto plano
+      if (token.includes('@')) {
+        return token.split('@')[0].toUpperCase();
+      }
       
-      const payload = JSON.parse(jsonPayload);
-      
-      // Buscamos el correo en 'sub', 'email', o el nombre
-      if (payload.name) return payload.name;
-      if (payload.sub) return payload.sub.split('@')[0].toUpperCase();
-      if (payload.email) return payload.email.split('@')[0].toUpperCase();
-      
+      // CASO C: El token es una cadena de texto cualquiera
+      if (token.length > 0 && !token.includes('.')) {
+         return token.toUpperCase();
+      }
+
       return 'Usuario VIP';
     } catch (e) {
-      console.error("Error decodificando el token:", e);
+      console.error("Error leyendo el token de acceso:", e);
       return 'Usuario VIP';
     }
   };
