@@ -76,6 +76,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    /* 🎨 Cambio estrictamente visual: pinta el fondo sin alterar márgenes ni anchos */
+    @apply bg-slate-50 text-foreground; 
   }
 }
