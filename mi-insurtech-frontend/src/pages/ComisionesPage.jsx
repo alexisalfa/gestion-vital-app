@@ -4,74 +4,50 @@ import ComisionForm from '../components/ComisionForm';
 import ComisionImport from '../components/ComisionImport';
 import ComisionList from '../components/ComisionList';
 
-function ComisionesPage({
-  apiBaseUrl,
-  comisiones,
-  asesores,
-  polizas,
-  editingComision,
-  setEditingComision,
-  handleComisionSaved,
-  handleEditComision,
-  handleDeleteComision,
-  isLoadingAdvisors,
-  isLoadingPolicies,
-  comisionCurrentPage,
-  setComisionCurrentPage,
-  itemsPerPage,
-  totalComisiones,
-  setComisionAsesorIdFilter,
-  setComisionEstadoPagoFilter,
-  setComisionFechaInicioFilter,
-  setComisionFechaFinFilter,
-  dateFormat,
-  getDateFormatOptions,
-  // 🚀 1. RECIBIMOS LAS HERRAMIENTAS DE APP.JSX AQUÍ
-  exportToCsv,
-  exportToPdf
-}) {
+function ComisionesPage(props) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Liquidación de Comisiones</h2>
       
       <ComisionForm 
-        onComisionSaved={handleComisionSaved} 
-        editingComision={editingComision} 
-        setEditingComision={setEditingComision} 
-        apiBaseUrl={apiBaseUrl} 
-        asesores={asesores} 
-        polizas={polizas} 
-        comisiones={comisiones}  
-        isLoadingAdvisors={isLoadingAdvisors} 
-        isLoadingPolicies={isLoadingPolicies} 
+        onComisionSaved={props.handleComisionSaved} 
+        editingComision={props.editingComision} 
+        setEditingComision={props.setEditingComision} 
+        apiBaseUrl={props.apiBaseUrl} 
+        asesores={props.asesores} 
+        polizas={props.polizas} 
+        comisiones={props.comisiones}  
+        isLoadingAdvisors={props.isLoadingAdvisors} 
+        isLoadingPolicies={props.isLoadingPolicies} 
       />
       
       <ComisionImport 
-        apiBaseUrl={apiBaseUrl} 
-        onImportComplete={handleComisionSaved} 
+        apiBaseUrl={props.apiBaseUrl} 
+        onImportComplete={props.handleComisionSaved} 
       />
       
       <ComisionList
-        key={`list-sync-${asesores.length}-${polizas.length}-${comisiones.length}`}
-        comisiones={comisiones} 
-        asesores={asesores} 
-        polizas={polizas} 
-        getDateFormatOptions={getDateFormatOptions}
-        dateFormat={dateFormat} 
-        totalComisiones={totalComisiones} 
-        onEditComision={handleEditComision} 
-        onDeleteComision={handleDeleteComision}
-        currentPage={comisionCurrentPage} 
-        setCurrentPage={setComisionCurrentPage} 
-        itemsPerPage={itemsPerPage}
-        setAsesorIdFilter={setComisionAsesorIdFilter} 
-        setEstadoPagoFilter={setComisionEstadoPagoFilter} 
-        setFechaInicioFilter={setComisionFechaInicioFilter} 
-        setFechaFinFilter={setComisionFechaFinFilter}
-        onPagoExitoso={handleComisionSaved}
-        // 🚀 2. SE LAS ENTREGAMOS A LA TABLA AQUÍ
-        exportToCsv={exportToCsv}
-        exportToPdf={exportToPdf}
+        key={`list-sync-${props.asesores?.length}-${props.polizas?.length}-${props.comisiones?.length}`}
+        comisiones={props.comisiones} 
+        asesores={props.asesores} 
+        polizas={props.polizas} 
+        getDateFormatOptions={props.getDateFormatOptions}
+        dateFormat={props.dateFormat} 
+        totalComisiones={props.totalComisiones} 
+        onEditComision={props.handleEditComision} 
+        onDeleteComision={props.handleDeleteComision}
+        currentPage={props.comisionCurrentPage} 
+        setCurrentPage={props.setComisionCurrentPage} 
+        handlePageChange={props.setComisionCurrentPage} // 👈 DOBLE BLINDAJE POR SI ACASO
+        itemsPerPage={props.itemsPerPage}
+        setAsesorIdFilter={props.setComisionAsesorIdFilter} 
+        setEstadoPagoFilter={props.setComisionEstadoPagoFilter} 
+        setFechaInicioFilter={props.setComisionFechaInicioFilter} 
+        setFechaFinFilter={props.setComisionFechaFinFilter}
+        onPagoExitoso={props.handleComisionSaved}
+        exportToCsv={props.exportToCsv}
+        exportToPdf={props.exportToPdf}
+        currencySymbol={props.currencySymbol}
       />
     </div>
   );

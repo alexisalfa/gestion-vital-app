@@ -349,46 +349,33 @@ function App() {
           } />
 
           <Route path="/comisiones" element={
-          <ComisionesPage 
-            apiBaseUrl={API_BASE_URL} 
-            comisiones={comisiones} 
-            asesores={asesores} 
-            polizas={polizas} 
-            editingComision={editingComision} 
-            setEditingComision={setEditingComision} 
-            handleComisionSaved={handleComisionSaved} 
-            handleEditComision={handleEditComision} 
-            handleDeleteComision={(id) => handleDeleteComision(id, handleComisionSaved)} 
-            handleComisionDelete={(id) => handleDeleteComision(id, handleComisionSaved)} // 👈 Por si lo renombró internamente
-            isLoadingAdvisors={isLoadingAdvisors} 
-            isLoadingPolicies={isLoadingPolicies} 
-            isLoadingComisiones={isLoadingComisiones} // 👈 Corregido
-            comisionCurrentPage={comisionCurrentPage} 
-            setComisionCurrentPage={setComisionCurrentPage} 
-            handleComisionPageChange={(page) => setComisionCurrentPage(page)} // 👈 CRÍTICO: Paginación estandarizada
-            itemsPerPage={COMISIONES_PER_PAGE} 
-            totalComisiones={totalComisiones} 
-            dateFormat={dateFormat} 
-            getDateFormatOptions={getDateFormatOptions} 
-            exportToCsv={exportToCsv} 
-            exportToPdf={exportToPdf}
-            // 👇 Filtros - Setters
-            setComisionAsesorIdFilter={setComisionAsesorIdFilter}
-            setComisionEstadoPagoFilter={setComisionEstadoPagoFilter}
-            setComisionFechaInicioFilter={setComisionFechaInicioFilter}
-            setComisionFechaFinFilter={setComisionFechaFinFilter}
-            // 👇 Filtros - Valores actuales
-            comisionAsesorIdFilter={comisionAsesorIdFilter}
-            comisionEstadoPagoFilter={comisionEstadoPagoFilter}
-            comisionFechaInicioFilter={comisionFechaInicioFilter}
-            comisionFechaFinFilter={comisionFechaFinFilter}
-            currencySymbol={currencySymbol}
-            // 👇 Por si copió la estructura de otra página que usaba buscador
-            handleComisionSearch={() => {}} 
-            comisionSearchTerm={""}
-            fetchCommissionsData={fetchCommissionsData}
-          />
-        } />
+            <ComisionesPage 
+              apiBaseUrl={API_BASE_URL} 
+              comisiones={comisiones} 
+              asesores={asesores} 
+              polizas={polizas} 
+              editingComision={editingComision} 
+              setEditingComision={setEditingComision} 
+              handleComisionSaved={handleComisionSaved} 
+              handleEditComision={handleEditComision} 
+              handleDeleteComision={(id) => handleDeleteComision(id, handleComisionSaved)} 
+              isLoadingAdvisors={isLoadingAdvisors} 
+              isLoadingPolicies={isLoadingPolicies} 
+              comisionCurrentPage={comisionCurrentPage} 
+              setComisionCurrentPage={setComisionCurrentPage} 
+              itemsPerPage={COMISIONES_PER_PAGE} 
+              totalComisiones={totalComisiones} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              setComisionAsesorIdFilter={setComisionAsesorIdFilter}
+              setComisionEstadoPagoFilter={setComisionEstadoPagoFilter}
+              setComisionFechaInicioFilter={setComisionFechaInicioFilter}
+              setComisionFechaFinFilter={setComisionFechaFinFilter}
+              currencySymbol={currencySymbol}
+            />
+          } />
 
           <Route path="/configuracion" element={
             <ConfiguracionPage selectedLanguage={selectedLanguage} currencySymbol={currencySymbol} dateFormat={dateFormat} selectedCountry={selectedCountry} licenseKey={licenseKey} isLicenseValid={isLicenseValid} setSelectedLanguage={setSelectedLanguage} setCurrencySymbol={setCurrencySymbol} setDateFormat={setDateFormat} setSelectedCountry={setSelectedCountry} setLicenseKey={setLicenseKey} saveSettings={saveSettings} LANGUAGE_OPTIONS={LANGUAGE_OPTIONS} CURRENCY_SYMBOL_OPTIONS={CURRENCY_SYMBOL_OPTIONS} DATE_FORMAT_OPTIONS={DATE_FORMAT_OPTIONS} COUNTRY_OPTIONS={COUNTRY_OPTIONS} MASTER_LICENSE_KEY={MASTER_LICENSE_KEY} />
