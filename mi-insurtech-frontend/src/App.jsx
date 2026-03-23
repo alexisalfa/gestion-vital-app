@@ -361,6 +361,7 @@ function App() {
               handleDeleteComision={(id) => handleDeleteComision(id, handleComisionSaved)} 
               isLoadingAdvisors={isLoadingAdvisors} 
               isLoadingPolicies={isLoadingPolicies} 
+              isLoadingComisiones={isLoadingCommissions} 
               comisionCurrentPage={comisionCurrentPage} 
               setComisionCurrentPage={setComisionCurrentPage} 
               itemsPerPage={COMISIONES_PER_PAGE} 
@@ -373,6 +374,11 @@ function App() {
               setComisionEstadoPagoFilter={setComisionEstadoPagoFilter}
               setComisionFechaInicioFilter={setComisionFechaInicioFilter}
               setComisionFechaFinFilter={setComisionFechaFinFilter}
+              comisionAsesorIdFilter={comisionAsesorIdFilter}
+              comisionEstadoPagoFilter={comisionEstadoPagoFilter}
+              comisionFechaInicioFilter={comisionFechaInicioFilter}
+              comisionFechaFinFilter={comisionFechaFinFilter}
+              fetchCommissionsData={fetchCommissionsData}
               currencySymbol={currencySymbol}
             />
           } />
