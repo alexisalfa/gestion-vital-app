@@ -25,7 +25,10 @@ function ComisionesPage({
   setComisionFechaInicioFilter,
   setComisionFechaFinFilter,
   dateFormat,
-  getDateFormatOptions
+  getDateFormatOptions,
+  // 🚀 1. RECIBIMOS LAS HERRAMIENTAS DE APP.JSX AQUÍ
+  exportToCsv,
+  exportToPdf
 }) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -66,6 +69,9 @@ function ComisionesPage({
         setFechaInicioFilter={setComisionFechaInicioFilter} 
         setFechaFinFilter={setComisionFechaFinFilter}
         onPagoExitoso={handleComisionSaved}
+        // 🚀 2. SE LAS ENTREGAMOS A LA TABLA AQUÍ
+        exportToCsv={exportToCsv}
+        exportToPdf={exportToPdf}
       />
     </div>
   );
