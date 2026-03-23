@@ -5,12 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect';
-// INJERTO 1: Importamos el Eye
-import { Trash2Icon, PencilIcon, FileDown, FileText, Search, Banknote, Eye } from 'lucide-react';
+import { Trash2Icon, PencilIcon, FileDown, FileText, Search, Banknote, Eye, Calendar, UserCheck } from 'lucide-react';
 import { useConfirmation } from './ConfirmationContext'; 
 import { useToast } from '@/lib/use-toast'; 
 import Pagination from './Pagination'; 
-// INJERTO 2: Importamos el Modal 360
 import ClientProfile360 from './ClientProfile360';
 
 function ComisionList({
@@ -43,17 +41,13 @@ function ComisionList({
   const { confirm } = useConfirmation();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
-
-  // --- INJERTO 3: ESTADO PARA EL PERFIL 360 ---
   const [selectedClient360, setSelectedClient360] = useState(null);
 
-  // --- FUNCIÓN PARA CRUZAR COMISIÓN -> PÓLIZA -> CLIENTE ---
   const getClienteIdFromComision = (idPoliza) => {
     const poliza = polizas.find(p => String(p.id) === String(idPoliza));
     return poliza ? poliza.cliente_id : null;
   };
 
-  // --- NUEVA FUNCIÓN: PAGO RÁPIDO ---
   const handlePagoRapidoComision = async (id) => {
     try {
       const token = localStorage.getItem('access_token');
@@ -66,29 +60,17 @@ function ComisionList({
       });
 
       if (response.ok) {
-        toast({ 
-          title: "Pago Registrado", 
-          description: "La comisión ha sido liquidada exitosamente.", 
-          variant: "success" 
-        });
-        
-        if (onPagoExitoso) {
-          onPagoExitoso();
-        }
+        toast({ title: "Pago Registrado", description: "La comisión ha sido liquidada exitosamente.", variant: "success" });
+        if (onPagoExitoso) onPagoExitoso();
       } else {
         const errorData = await response.json();
-        toast({ 
-          title: "Error", 
-          description: errorData.detail || "Hubo un problema al procesar el pago.", 
-          variant: "destructive" 
-        });
+        toast({ title: "Error", description: errorData.detail || "Hubo un problema al procesar el pago.", variant: "destructive" });
       }
     } catch (error) {
       toast({ title: "Error de conexión", description: error.message, variant: "destructive" });
     }
   };
 
-  // --- FORMATEO DE DATOS ---
   const formatDisplayDate = (isoString) => {
     if (!isoString) return 'N/A';
     const date = new Date(isoString);
@@ -96,10 +78,13 @@ function ComisionList({
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    }).format(amount || 0);
+    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0);
+  };
+
+  // Generador de Iniciales para el Avatar del Asesor
+  const getInitials = (name) => {
+    if (!name || name === 'N/A') return 'A';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   const handleSearchClick = (e) => {
@@ -108,19 +93,13 @@ function ComisionList({
   };
 
   const handleClearFilters = () => {
-    setAsesorIdFilter('');
-    setEstadoPagoFilter('');
-    setFechaInicioFilter('');
-    setFechaFinFilter('');
+    setAsesorIdFilter(''); setEstadoPagoFilter(''); setFechaInicioFilter(''); setFechaFinFilter('');
     onSearch('', '', '', '');
   };
 
   const comisionHeaders = [
-    { key: 'asesor_nombre', label: 'Asesor' }, 
-    { key: 'poliza_numero', label: 'Póliza' },
-    { key: 'monto_final', label: 'Comisión' }, 
-    { key: 'fecha_generacion', label: 'Fecha' }, 
-    { key: 'estatus_pago', label: 'Estado' }
+    { key: 'asesor_nombre', label: 'Asesor' }, { key: 'poliza_numero', label: 'Póliza' },
+    { key: 'monto_final', label: 'Comisión' }, { key: 'fecha_generacion', label: 'Fecha' }, { key: 'estatus_pago', label: 'Estado' }
   ];
 
   const getExportData = () => {
@@ -131,184 +110,127 @@ function ComisionList({
     }));
   };
 
-  const handleExportCsv = () => {
-    setIsExporting(true);
-    onExport(getExportData(), 'reporte_comisiones', comisionHeaders);
-    setIsExporting(false);
-  };
-
-  const handleExportPdf = () => {
-    setIsExporting(true);
-    onExportPdf(getExportData(), 'reporte_comisiones', comisionHeaders, 'Reporte de Comisiones');
-    setIsExporting(false);
-  };
+  const handleExportCsv = () => { setIsExporting(true); onExport(getExportData(), 'reporte_comisiones', comisionHeaders); setIsExporting(false); };
+  const handleExportPdf = () => { setIsExporting(true); onExportPdf(getExportData(), 'reporte_comisiones', comisionHeaders, 'Reporte de Comisiones'); setIsExporting(false); };
 
   const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
 
   return (
     <>
-      <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden">
+      <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden bg-white">
         <CardContent className="p-6">
-          {/* Cabecera con botones de exportación */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b pb-4">
-            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Banknote className="h-6 w-6 text-blue-600" /> Registro de Liquidaciones
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
+            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Banknote className="h-6 w-6 text-indigo-600" /> Registro de Liquidaciones
+              <span className="bg-indigo-50 text-indigo-700 text-xs py-1 px-3 rounded-full ml-2 border border-indigo-100 font-bold">{totalItems} Pagos</span>
             </h3>
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleExportCsv} 
-                variant="outline" 
-                className="border-green-200 text-green-700 hover:bg-green-50"
-                disabled={isExporting || comisiones.length === 0}
-              >
-                <FileDown className="h-4 w-4 mr-2" /> CSV
-              </Button>
-              <Button 
-                onClick={handleExportPdf} 
-                variant="outline" 
-                className="border-red-200 text-red-700 hover:bg-red-50"
-                disabled={isExporting || comisiones.length === 0}
-              >
-                <FileText className="h-4 w-4 mr-2" /> PDF
-              </Button>
+            <div className="flex gap-2 w-full lg:w-auto">
+              <Button onClick={handleExportCsv} variant="outline" className="flex-1 lg:flex-none border-green-200 text-green-700 hover:bg-green-50 font-bold" disabled={isExporting || comisiones.length === 0}><FileDown className="h-4 w-4 mr-2" /> CSV</Button>
+              <Button onClick={handleExportPdf} variant="outline" className="flex-1 lg:flex-none border-red-200 text-red-700 hover:bg-red-50 font-bold" disabled={isExporting || comisiones.length === 0}><FileText className="h-4 w-4 mr-2" /> PDF</Button>
             </div>
           </div>
 
-          {/* Panel de Filtros */}
-          <form onSubmit={handleSearchClick} className="mb-6 bg-slate-50 p-4 rounded-xl border space-y-4">
+          <form onSubmit={handleSearchClick} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-gray-500 uppercase">Asesor</Label>
-                <HeadlessSafeSelect 
-                  value={asesorIdFilter} 
-                  onChange={setAsesorIdFilter} 
-                  options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} 
-                  className="bg-white" 
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-gray-500 uppercase">Estado</Label>
-                <HeadlessSafeSelect 
-                  value={estadoPagoFilter} 
-                  onChange={setEstadoPagoFilter} 
-                  options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} 
-                  className="bg-white" 
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-gray-500 uppercase">Desde</Label>
-                <Input 
-                  type="date" 
-                  value={fechaInicioFilter} 
-                  onChange={e => setFechaInicioFilter(e.target.value)} 
-                  className="bg-white" 
-                />
-              </div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Asesor</Label><HeadlessSafeSelect value={asesorIdFilter} onChange={setAsesorIdFilter} options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} className="bg-white" /></div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Estado</Label><HeadlessSafeSelect value={estadoPagoFilter} onChange={setEstadoPagoFilter} options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} className="bg-white" /></div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Desde</Label><Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-white" /></div>
               <div className="flex items-end gap-2">
-                <Button type="submit" className="flex-1 bg-slate-800 text-white font-bold">
-                  <Search className="h-4 w-4 mr-2"/> Filtrar
-                </Button>
+                <Button type="submit" className="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold"><Search className="h-4 w-4 mr-2"/> Filtrar</Button>
                 <Button type="button" variant="outline" onClick={handleClearFilters}>Limpiar</Button>
               </div>
             </div>
           </form>
 
-          {/* Tabla de Resultados */}
-          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Asesor</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Póliza</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Monto Final</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Fecha</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado Pago</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {comisiones.map((c) => {
-                  const clienteIdAsociado = getClienteIdFromComision(c.id_poliza);
-                  
-                  return (
-                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
-                        {asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-bold">
-                        {polizas.find(p => String(p.id) === String(c.id_poliza))?.numero_poliza || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900">
-                        {currencySymbol} {formatCurrency(c.monto_final)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {formatDisplayDate(c.fecha_generacion)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                          c.estatus_pago === 'pendiente' ? 'bg-amber-100 text-amber-700' : 
-                          c.estatus_pago === 'pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {c.estatus_pago ? c.estatus_pago.toUpperCase() : 'PENDIENTE'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
+          {comisiones.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
+              <div className="bg-white p-4 rounded-full shadow-sm border border-slate-100 mb-4"><Banknote className="h-10 w-10 text-slate-300" /></div>
+              <h3 className="text-lg font-bold text-slate-700">No hay liquidaciones</h3>
+              <p className="text-sm text-slate-500 text-center mt-1">Genera una nueva comisión o ajusta los filtros de búsqueda.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Asesor & Estado</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Póliza & Fecha</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Liquidación</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-100">
+                  {comisiones.map((c) => {
+                    const clienteIdAsociado = getClienteIdFromComision(c.id_poliza);
+                    const nombreAsesor = asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A';
+                    const numeroPoliza = polizas.find(p => String(p.id) === String(c.id_poliza))?.numero_poliza || 'N/A';
+                    const isPagado = c.estatus_pago?.toLowerCase() === 'pagado';
+                    const isPendiente = c.estatus_pago?.toLowerCase() === 'pendiente';
+
+                    return (
+                      <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                         
-                        {/* INJERTO 4: EL BOTÓN DEL OJITO 360 */}
-                        {clienteIdAsociado && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => setSelectedClient360(clienteIdAsociado)} 
-                            className="text-purple-600 hover:bg-purple-100 rounded-full"
-                            title="Ver Expediente CRM 360 del Cliente"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        )}
+                        {/* 1. ASESOR & ESTADO (Con Avatar y LED) */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
+                              {getInitials(nombreAsesor)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800 flex items-center gap-1">
+                                {nombreAsesor} <UserCheck className="h-3.5 w-3.5 text-blue-500"/>
+                              </p>
+                              <div className="mt-1">
+                                <span className={`px-2 py-0.5 inline-flex items-center gap-1.5 text-[10px] font-bold rounded-full border 
+                                  ${isPagado ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                                    isPendiente ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isPagado ? 'bg-emerald-500' : isPendiente ? 'bg-amber-500' : 'bg-slate-500'}`}></span>
+                                  {c.estatus_pago ? c.estatus_pago.toUpperCase() : 'PENDIENTE'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-                        {/* BOTÓN DE PAGO RÁPIDO */}
-                        {c.estatus_pago?.toLowerCase() === 'pendiente' && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => confirm({ 
-                              title: "Confirmar Pago", 
-                              message: "¿Confirmas que ya transferiste esta comisión al asesor?",
-                              onConfirm: () => handlePagoRapidoComision(c.id) 
-                            })} 
-                            className="text-emerald-600 hover:bg-emerald-100 rounded-full"
-                            title="Registrar pago rápido"
-                          >
-                            <Banknote className="h-5 w-5" />
-                          </Button>
-                        )}
+                        {/* 2. PÓLIZA & FECHA */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <p className="text-sm font-black text-indigo-600">Pol: {numeroPoliza}</p>
+                          <p className="text-xs flex items-center gap-1 mt-1 text-slate-500 font-medium">
+                            <Calendar className="h-3.5 w-3.5"/> Generada: {formatDisplayDate(c.fecha_generacion)}
+                          </p>
+                        </td>
 
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => onEditComision(c)} 
-                          className="text-blue-600 hover:bg-blue-100 rounded-full"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => confirm({ title: "Eliminar Comisión", onConfirm: () => onDeleteComision(c.id) })} 
-                          className="text-rose-500 hover:bg-rose-100 rounded-full"
-                        >
-                          <Trash2Icon className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {/* 3. LIQUIDACIÓN (Cajita Gris) */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                           <div className="inline-flex items-center bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100 text-sm">
+                              <span className="text-slate-500 font-bold mr-2">A Pagar:</span>
+                              <span className="font-black text-emerald-600">{currencySymbol} {formatCurrency(c.monto_final)}</span>
+                           </div>
+                        </td>
 
-          {/* Paginación */}
+                        {/* 4. ACCIONES */}
+                        <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
+                          {clienteIdAsociado && (
+                            <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(clienteIdAsociado)} className="text-purple-600 hover:bg-purple-100 rounded-full" title="Ver Expediente CRM 360 del Cliente">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {isPendiente && (
+                            <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Confirmar Pago", message: "¿Confirmas que ya transferiste esta comisión al asesor?", onConfirm: () => handlePagoRapidoComision(c.id) })} className="text-emerald-600 hover:bg-emerald-100 rounded-full" title="Registrar pago rápido">
+                              <Banknote className="h-5 w-5" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" onClick={() => onEditComision(c)} className="text-blue-600 hover:bg-blue-100 rounded-full" title="Editar"><PencilIcon className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar", onConfirm: () => onDeleteComision(c.id) })} className="text-rose-500 hover:bg-rose-100 rounded-full" title="Borrar"><Trash2Icon className="h-4 w-4" /></Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {totalPages > 1 && (
             <div className="mt-6 flex justify-center">
                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
@@ -317,12 +239,8 @@ function ComisionList({
         </CardContent>
       </Card>
 
-      {/* INJERTO 5: RENDERIZAMOS LA VENTANA EMERGENTE 360 AL FINAL */}
       {selectedClient360 && (
-        <ClientProfile360 
-          clientId={selectedClient360} 
-          onClose={() => setSelectedClient360(null)} 
-        />
+        <ClientProfile360 clientId={selectedClient360} onClose={() => setSelectedClient360(null)} />
       )}
     </>
   );
