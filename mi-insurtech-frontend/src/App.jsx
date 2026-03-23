@@ -349,7 +349,33 @@ function App() {
           } />
 
           <Route path="/comisiones" element={
-            <ComisionesPage apiBaseUrl={API_BASE_URL} comisiones={comisiones} asesores={asesores} polizas={polizas} editingComision={editingComision} setEditingComision={setEditingComision} handleComisionSaved={handleComisionSaved} handleEditComision={handleEditComision} handleDeleteComision={(id) => handleDeleteComision(id, handleComisionSaved)} isLoadingAdvisors={isLoadingAdvisors} isLoadingPolicies={isLoadingPolicies} comisionCurrentPage={comisionCurrentPage} setComisionCurrentPage={setComisionCurrentPage} itemsPerPage={COMISIONES_PER_PAGE} totalComisiones={totalComisiones} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} exportToCsv={exportToCsv} exportToPdf={exportToPdf} />
+            <ComisionesPage 
+              apiBaseUrl={API_BASE_URL} 
+              comisiones={comisiones} 
+              asesores={asesores} 
+              polizas={polizas} 
+              editingComision={editingComision} 
+              setEditingComision={setEditingComision} 
+              handleComisionSaved={handleComisionSaved} 
+              handleEditComision={handleEditComision} 
+              handleDeleteComision={(id) => handleDeleteComision(id, handleComisionSaved)} 
+              isLoadingAdvisors={isLoadingAdvisors} 
+              isLoadingPolicies={isLoadingPolicies} 
+              comisionCurrentPage={comisionCurrentPage} 
+              setComisionCurrentPage={setComisionCurrentPage} 
+              itemsPerPage={COMISIONES_PER_PAGE} 
+              totalComisiones={totalComisiones} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf}
+              // 👇 ESTAS SON LAS PIEZAS QUE FALTABAN PARA LOS FILTROS
+              setComisionAsesorIdFilter={setComisionAsesorIdFilter}
+              setComisionEstadoPagoFilter={setComisionEstadoPagoFilter}
+              setComisionFechaInicioFilter={setComisionFechaInicioFilter}
+              setComisionFechaFinFilter={setComisionFechaFinFilter}
+              currencySymbol={currencySymbol}
+            />
           } />
 
           <Route path="/configuracion" element={
