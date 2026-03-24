@@ -1,5 +1,7 @@
+// src/hooks/useConfiguracion.js
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/lib/use-toast';
+import fetchWrapper from '../utils/fetchWrapper'; // 🔥 INJERTO: Nuestro motor central
 
 export const useConfiguracion = (MASTER_LICENSE_KEY, i18n, API_BASE_URL) => {
   const { toast } = useToast();
@@ -16,25 +18,19 @@ export const useConfiguracion = (MASTER_LICENSE_KEY, i18n, API_BASE_URL) => {
   // 🦾 2. Verdad Profunda (Backend): Autonomía del Cerebrito
   useEffect(() => {
     const verificarEstatusReal = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
-
       try {
-        const response = await fetch(`${API_BASE_URL}/statistics/summary`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-          const stats = await response.json();
-          // Si Python dice que el plan es PRO, el Cerebrito lo acepta como verdad absoluta
-          const esProEnBackend = stats.es_prueba === false || stats.plan_tipo === 'PRO_ANNUAL';
-          
-          if (esProEnBackend) {
-            setIsLicenseValid(true);
-          }
+        // Usamos el wrapper: más limpio y centralizado
+        const stats = await fetchWrapper(`${API_BASE_URL}/statistics/summary`);
+        
+        // Si Python dice que el plan es PRO, el Cerebrito lo acepta como verdad absoluta
+        const esProEnBackend = stats.es_prueba === false || stats.plan_tipo === 'PRO_ANNUAL';
+        
+        if (esProEnBackend) {
+          setIsLicenseValid(true);
         }
       } catch (error) {
-        console.error("Cerebrito: No pude contactar con el cuartel general.", error);
+        // El error muere aquí silenciosamente sin molestar al usuario
+        console.error("Cerebrito: No pude contactar con el cuartel general.", error.message);
       }
     };
 

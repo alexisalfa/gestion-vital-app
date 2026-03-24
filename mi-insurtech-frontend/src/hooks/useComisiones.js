@@ -1,5 +1,7 @@
+// src/hooks/useComisiones.js
 import { useState, useCallback } from 'react';
 import { useToast } from '@/lib/use-toast';
+import fetchWrapper from '../utils/fetchWrapper'; // 🔥 INJERTO: Motor centralizado
 
 export const useComisiones = (apiBaseUrl, handleLogout, polizas, asesores) => {
   const { toast } = useToast();
@@ -13,9 +15,8 @@ export const useComisiones = (apiBaseUrl, handleLogout, polizas, asesores) => {
   const [comisionFechaFinFilter, setComisionFechaFinFilter] = useState('');
   const [comisionCurrentPage, setComisionCurrentPage] = useState(1);
 
+  // 🚀 FETCH REFACTORIZADO Y LIMPIO
   const fetchCommissionsData = useCallback(async (offset, limit, asesor_id_filter, estatus_pago_filter, fecha_inicio_filter, fecha_fin_filter) => {
-    const token = localStorage.getItem('access_token');
-    if (!token) { setIsLoadingComisiones(false); return; }
     setIsLoadingComisiones(true);
     try {
       const queryParams = new URLSearchParams({ offset: offset.toString(), limit: limit.toString() });
@@ -24,16 +25,12 @@ export const useComisiones = (apiBaseUrl, handleLogout, polizas, asesores) => {
       if (fecha_inicio_filter) queryParams.append('fecha_inicio', fecha_inicio_filter);
       if (fecha_fin_filter) queryParams.append('fecha_fin', fecha_fin_filter);
 
-      const response = await fetch(`${apiBaseUrl}/comisiones/?${queryParams.toString()}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) { handleLogout(); return; }
-        throw new Error(`Error en la respuesta: ${response.status}`);
-      }
-      const data = await response.json();
+      // Usamos el wrapper central
+      const data = await fetchWrapper(`${apiBaseUrl}/comisiones/?${queryParams.toString()}`);
+      
       const comisionesList = Array.isArray(data) ? data : (data.items || []);
       
+      // Enriquecimiento de datos intacto
       const comisionesEnriquecidas = comisionesList.map(com => {
         const poliza = polizas.find(p => p.id === com.id_poliza);
         const asesor = asesores.find(a => a.id === com.id_asesor);
@@ -45,30 +42,46 @@ export const useComisiones = (apiBaseUrl, handleLogout, polizas, asesores) => {
       });
 
       setComisiones(comisionesEnriquecidas); 
-      setTotalComisiones(parseInt(response.headers.get('X-Total-Count') || '0', 10)); 
+      // Adaptación para extraer el total_count del JSON o de la longitud
+      setTotalComisiones(data.total_count !== undefined ? data.total_count : (data.total !== undefined ? data.total : comisionesEnriquecidas.length));
     } catch (error) {
-      console.error("ERROR: fetchCommissionsData", error);
+      if (error.message === "Token_Expirado" || error.message === "No_Token") {
+        handleLogout();
+        return;
+      }
+      console.error("ERROR: fetchCommissionsData", error.message);
     } finally {
       setIsLoadingComisiones(false);
     }
   }, [apiBaseUrl, handleLogout, polizas, asesores]);
 
+  // 🚀 DELETE REFACTORIZADO Y AMORTIGUADO
   const handleDeleteComision = useCallback(async (id, onComplete) => {
-    const token = localStorage.getItem('access_token');
     try {
-      const response = await fetch(`${apiBaseUrl}/comisiones/${id}`, {
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        toast({ title: "Éxito", description: "Comisión eliminada correctamente", variant: "success" });
-        if (onComplete) onComplete();
-      } else {
-        throw new Error('Error al eliminar');
-      }
+      await fetchWrapper(`${apiBaseUrl}/comisiones/${id}`, { method: 'DELETE' });
+      
+      toast({ title: "Éxito", description: "Comisión eliminada correctamente", variant: "success" });
+      if (onComplete) onComplete();
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo eliminar la comisión", variant: "destructive" });
+      if (error.message === "Token_Expirado" || error.message === "No_Token") {
+        handleLogout();
+        return;
+      }
+      
+      // 🛡️ MÁGIA UX: Intercepción inteligente para Comisiones
+      toast({ 
+        title: "❌ Acción Bloqueada", 
+        description: "No se puede eliminar esta comisión. Verifique si ya se encuentra liquidada, pagada o vinculada a un cierre de mes.", 
+        variant: "destructive" 
+      });
     }
-  }, [apiBaseUrl, toast]);
+  }, [apiBaseUrl, handleLogout, toast]);
 
-  return { comisiones, totalComisiones, isLoadingComisiones, comisionAsesorIdFilter, comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter, comisionCurrentPage, setComisionAsesorIdFilter, setComisionEstadoPagoFilter, setComisionFechaInicioFilter, setComisionFechaFinFilter, setComisionCurrentPage, fetchCommissionsData, handleDeleteComision };
+  return { 
+    comisiones, totalComisiones, isLoadingComisiones, comisionAsesorIdFilter, 
+    comisionEstadoPagoFilter, comisionFechaInicioFilter, comisionFechaFinFilter, 
+    comisionCurrentPage, setComisionAsesorIdFilter, setComisionEstadoPagoFilter, 
+    setComisionFechaInicioFilter, setComisionFechaFinFilter, setComisionCurrentPage, 
+    fetchCommissionsData, handleDeleteComision 
+  };
 };
