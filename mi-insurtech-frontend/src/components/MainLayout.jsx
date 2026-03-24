@@ -34,7 +34,7 @@ const MainLayout = ({
   navigate
 }) => {
   return (
-    <div className="min-h-screen bg-[#f8fafc] bg-gradient-to-br from-indigo-100/40 via-white to-blue-100/40 flex flex-col font-sans transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-slate-200 flex flex-col font-sans transition-colors duration-500">
       
       {/* 🔵 NAVEGACIÓN MAESTRA */}
       <nav className="bg-blue-700/80 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 border-b border-white/10 transition-all duration-300">
