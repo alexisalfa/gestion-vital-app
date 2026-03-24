@@ -76,25 +76,20 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
-  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (VÍA LOCALSTORAGE) ---
+  // --- 🦾 EXTRAER IDENTIDAD DEL USUARIO ---
   const getUserDisplayName = () => {
     try {
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
-        // Si tiene nombre completo real (y no el genérico), usamos el primer nombre
         if (user.full_name && user.full_name !== "Usuario Nuevo") {
           return user.full_name.split(' ')[0]; 
         }
-        // Si no hay nombre válido, sacamos el correo antes del @
         if (user.email) return user.email.split('@')[0].toUpperCase();
       }
-      
-      // Fallback de emergencia si por alguna razón no hay objeto user
       const token = localStorage.getItem('access_token');
       if (token && token.includes('@')) return token.split('@')[0].toUpperCase();
       if (token && token.length > 0 && !token.includes('.')) return token.toUpperCase();
-      
       return 'VIP';
     } catch (e) {
       return 'VIP';
@@ -145,103 +140,123 @@ const Dashboard = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* 🏆 BANNER DE LICENCIA CORREGIDO CON NOMBRE DEL USUARIO Y SALUDO 🏆 */}
-      <div className={`rounded-xl p-4 text-white shadow-lg flex items-center justify-between border-b-4 transition-colors duration-500 ${
+      {/* 🏆 BANNER DE LICENCIA 🏆 */}
+      <div className={`rounded-2xl p-5 text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-between border-b-4 transition-all duration-500 ${
         timeLeft === "LICENCIA ACTIVA" 
-          ? "bg-gradient-to-r from-blue-700 to-indigo-900 border-indigo-950" 
+          ? "bg-gradient-to-r from-blue-700 via-indigo-800 to-indigo-950 border-indigo-500" 
           : timeLeft === "EXPIRADO" 
             ? "bg-black border-gray-800" 
             : "bg-gradient-to-r from-orange-500 to-red-600 border-red-700"
       }`}>
-        <div className="flex items-center gap-3">
-          <Clock className={`h-6 w-6 ${timeLeft !== "EXPIRADO" && timeLeft !== "LICENCIA ACTIVA" ? "animate-pulse" : ""}`} />
+        <div className="flex items-center gap-4">
+          <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm border border-white/20">
+            <Clock className={`h-6 w-6 text-white ${timeLeft !== "EXPIRADO" && timeLeft !== "LICENCIA ACTIVA" ? "animate-pulse text-red-200" : ""}`} />
+          </div>
           <div>
-            <p className="text-sm font-bold uppercase tracking-tight flex items-center gap-2">
+            <p className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
               {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? "Licencia de Prueba" : "Licencia Profesional"}
-              <span className="text-blue-200">|</span> 
-              <span className="text-emerald-400 normal-case tracking-normal">¡Hola, {userName} 👋!</span>
+              <span className="text-indigo-300">|</span> 
+              <span className="text-emerald-300 normal-case tracking-normal text-base font-black">¡Hola, {userName} 👋!</span>
             </p>
-            <p className="text-xs opacity-90 italic">
-              {timeLeft === "EXPIRADO" ? "Acceso restringido. Contacte a soporte." : "Tiempo restante para la activación total."}
+            <p className="text-xs text-indigo-200 font-medium mt-0.5">
+              {timeLeft === "EXPIRADO" ? "Acceso restringido. Contacte a soporte." : "Plataforma operativa y blindada."}
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-mono font-bold">{timeLeft}</p>
-          <p className="text-[10px] uppercase font-bold tracking-widest">Estado del Servicio</p>
+        <div className="text-right bg-black/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
+          <p className="text-2xl font-mono font-black tracking-tight">{timeLeft}</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-200 mt-1">Estado de Red</p>
         </div>
       </div>
 
-      {/* 📊 TARJETAS DE INDICADORES (KPIs) - EFECTO CRISTAL (FORZADO) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* 📊 TARJETAS DE INDICADORES (KPIs) - NIVEL ENTERPRISE */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
         
-        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 border-l-4 border-l-blue-500 !shadow-xl transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-700 uppercase">
-            <CardTitle className="text-xs font-bold">Clientes</CardTitle>
-            <Users size={20} className="text-blue-600" />
+        <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/60 border-l-4 border-l-blue-500 !shadow-lg hover:!shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Clientes</CardTitle>
+            <div className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20 group-hover:scale-110 transition-transform duration-300">
+              <Users size={20} className="text-blue-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{statistics?.total_clientes_activos || 0}</div>
+            <div className="text-3xl font-black text-slate-800 tracking-tight">{statistics?.total_clientes_activos || 0}</div>
           </CardContent>
         </Card>
 
-        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 border-l-4 border-l-emerald-500 !shadow-xl transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-700 uppercase">
-            <CardTitle className="text-xs font-bold">Pólizas & Ganancia</CardTitle>
-            <ShieldCheck size={20} className="text-emerald-600" />
+        <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/60 border-l-4 border-l-emerald-500 !shadow-lg hover:!shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pólizas</CardTitle>
+            <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
+              <ShieldCheck size={20} className="text-emerald-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-slate-800 mb-2">{statistics?.total_polizas_activas || 0} <span className="text-sm font-normal text-slate-600">registradas</span></div>
-            <div className="flex flex-col space-y-1 mt-1">
-              <span className="text-sm text-emerald-700 font-extrabold uppercase tracking-wide">
-                Primas: <span className="text-lg ml-1">{formatMoney(statistics?.total_primas || 0, currencySymbol, currentLanguage)}</span>
-              </span>
-              <span className="text-sm text-indigo-700 font-extrabold uppercase tracking-wide">
-                Comisión: <span className="text-lg ml-1">{formatMoney(statistics?.total_comisiones || 0, currencySymbol, currentLanguage)}</span>
-              </span>
+            <div className="text-2xl font-black text-slate-800 mb-2">{statistics?.total_polizas_activas || 0} <span className="text-xs font-bold text-slate-500 tracking-wide uppercase ml-1">Activas</span></div>
+            <div className="flex flex-col space-y-1 mt-2 bg-white/30 p-2 rounded-lg border border-white/50">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Primas:</span>
+                <span className="text-sm font-black text-emerald-700">{formatMoney(statistics?.total_primas || 0, currencySymbol, currentLanguage)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Comisión:</span>
+                <span className="text-sm font-black text-indigo-700">{formatMoney(statistics?.total_comisiones || 0, currencySymbol, currentLanguage)}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 border-l-4 border-l-red-500 !shadow-xl transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-700 uppercase">
-            <CardTitle className="text-xs font-bold">Siniestros</CardTitle>
-            <AlertCircle size={20} className="text-red-600" />
+        <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/60 border-l-4 border-l-red-500 !shadow-lg hover:!shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Siniestros</CardTitle>
+            <div className="bg-red-500/10 p-2.5 rounded-xl border border-red-500/20 group-hover:scale-110 transition-transform duration-300">
+              <AlertCircle size={20} className="text-red-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{statistics?.total_reclamaciones_pendientes || 0}</div>
-            <p className="text-[10px] text-red-600 italic font-medium uppercase tracking-tighter">Trámite pendiente</p>
+            <div className="text-3xl font-black text-red-600 tracking-tight">{statistics?.total_reclamaciones_pendientes || 0}</div>
+            <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mt-1 bg-red-50 inline-block px-2 py-1 rounded-md border border-red-100">Casos Pendientes</p>
           </CardContent>
         </Card>
 
-        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 border-l-4 border-l-indigo-500 !shadow-xl transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-700 uppercase">
-            <CardTitle className="text-xs font-bold">Red Operativa</CardTitle>
-            <Building2 size={20} className="text-indigo-600" />
+        <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/60 border-l-4 border-l-indigo-500 !shadow-lg hover:!shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Red</CardTitle>
+            <div className="bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+              <Building2 size={20} className="text-indigo-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col text-sm font-bold space-y-1">
-              <span className="text-slate-800">{statistics?.total_asesores_activos || 0} <span className="font-normal text-slate-600">Asesores</span></span>
-              <span className="text-indigo-800">{statistics?.total_empresas_activas || 0} <span className="font-normal text-indigo-600">Aseguradoras</span></span>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between bg-white/30 p-2 rounded-lg border border-white/50">
+                <span className="text-sm font-black text-slate-800">{statistics?.total_asesores_activos || 0}</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Asesores</span>
+              </div>
+              <div className="flex items-center justify-between bg-white/30 p-2 rounded-lg border border-white/50">
+                <span className="text-sm font-black text-indigo-800">{statistics?.total_empresas_activas || 0}</span>
+                <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Compañías</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 border-l-4 border-l-rose-500 !shadow-xl transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-700 uppercase">
-            <CardTitle className="text-xs font-bold">Siniestralidad</CardTitle>
-            <Activity size={20} className="text-rose-600" />
+        <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/60 border-l-4 border-l-rose-500 !shadow-lg hover:!shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Ratio</CardTitle>
+            <div className="bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20 group-hover:scale-110 transition-transform duration-300">
+              <Activity size={20} className="text-rose-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-black ${getRatioColor(lossRatio.ratio).split(' ')[0]}`}>
+            <div className={`text-3xl font-black tracking-tight ${getRatioColor(lossRatio.ratio).split(' ')[0]}`}>
               {lossRatio.ratio}%
             </div>
-            <div className="mt-2 space-y-1">
-                <div className="flex justify-between text-[10px] font-bold text-slate-600 uppercase">
-                    <span>Pagado:</span>
+            <div className="mt-2 bg-white/30 p-2 rounded-lg border border-white/50 space-y-2">
+                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span>Pagos:</span>
                     <span className="text-rose-700">{formatMoney(lossRatio.totalSiniestros, currencySymbol, currentLanguage)}</span>
                 </div>
-                <div className="w-full bg-slate-300/50 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-slate-200/50 rounded-full h-1.5 overflow-hidden border border-white/30">
                     <div 
                         className={`h-full rounded-full transition-all duration-1000 ${getRatioColor(lossRatio.ratio).split(' ')[1]}`} 
                         style={{ width: `${Math.min(lossRatio.ratio, 100)}%` }}
@@ -253,51 +268,53 @@ const Dashboard = ({
 
       </div>
 
-      {/* TUS GRÁFICOS ORIGINALES INTACTOS */}
+      {/* 📈 GRÁFICOS CON CRISTAL ESMERILADO (GLASSMORPHISM) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Gráfico Circular Original */}
-        <Card className="shadow-md border-none p-4 h-[350px] relative">
-          <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
-            <PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros
+        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 !shadow-xl p-5 h-[360px] relative rounded-2xl hover:!shadow-2xl transition-shadow duration-300">
+          <h4 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-6 flex items-center gap-3">
+            <div className="bg-indigo-500/10 p-2 rounded-lg"><PieChartIcon size={16} className="text-indigo-600"/></div>
+            Balance Primas vs Siniestros
           </h4>
           
-          <div className={`w-full h-full pb-10 transition-opacity duration-300 ${!hasPieData ? 'opacity-30' : 'opacity-100'}`}>
+          <div className={`w-full h-full pb-14 transition-opacity duration-300 ${!hasPieData ? 'opacity-30' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie 
                   data={hasPieData ? pieData : [{ name: 'Primas Activas', value: 50, color: '#10b981' }, { name: 'Reclamaciones', value: 50, color: '#ef4444' }]} 
-                  innerRadius={60} 
-                  outerRadius={80} 
+                  innerRadius={65} 
+                  outerRadius={90} 
                   paddingAngle={5} 
                   dataKey="value"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={2}
                 >
                   {(hasPieData ? pieData : [{ color: '#10b981' }, { color: '#ef4444' }]).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                {hasPieData && <Tooltip formatter={(value) => formatMoney(value, currencySymbol, currentLanguage)} />}
-                {hasPieData && <Legend verticalAlign="bottom" height={36} />}
+                {hasPieData && <Tooltip formatter={(value) => formatMoney(value, currencySymbol, currentLanguage)} contentStyle={{borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)'}}/>}
+                {hasPieData && <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: 'bold', color: '#475569'}} />}
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {!hasPieData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-gray-800 text-amber-400 text-sm font-bold rounded-full px-5 py-2.5 shadow-xl flex items-center gap-2">
-                ✨ Simulación de lo que esperas
+              <div className="bg-slate-800/80 backdrop-blur-md text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/10">
+                ✨ Simulación de Escenario
               </div>
             </div>
           )}
         </Card>
 
-        {/* Gráfico de Barras Original */}
-        <Card className="shadow-md border-none p-4 h-[350px] relative">
-          <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
-            <BarChart3 size={16} className="text-blue-600"/> Distribución Operativa
+        <Card className="!bg-white/30 !backdrop-blur-xl border !border-white/50 !shadow-xl p-5 h-[360px] relative rounded-2xl hover:!shadow-2xl transition-shadow duration-300">
+          <h4 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-6 flex items-center gap-3">
+            <div className="bg-blue-500/10 p-2 rounded-lg"><BarChart3 size={16} className="text-blue-600"/></div>
+            Capacidad Operativa
           </h4>
           
-          <div className={`w-full h-full pb-10 transition-opacity duration-300 ${!hasBarData ? 'opacity-30' : 'opacity-100'}`}>
+          <div className={`w-full h-full pb-14 transition-opacity duration-300 ${!hasBarData ? 'opacity-30' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hasBarData ? barData : [
                 { name: 'Clientes', total: 4 },
@@ -305,52 +322,52 @@ const Dashboard = ({
                 { name: 'Asesores', total: 3 },
                 { name: 'Empresas', total: 1 }
               ]}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                {hasBarData && <Tooltip cursor={{fill: '#f3f4f6'}} />}
-                <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 'bold'}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 'bold'}} dx={-10} />
+                {hasBarData && <Tooltip cursor={{fill: 'rgba(255,255,255,0.4)'}} contentStyle={{borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)'}}/>}
+                <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 6, 6]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {!hasBarData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-gray-800 text-amber-400 text-sm font-bold rounded-full px-5 py-2.5 shadow-xl flex items-center gap-2">
-                ✨ Simulación de lo que esperas
+              <div className="bg-slate-800/80 backdrop-blur-md text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/10">
+                ✨ Simulación de Escenario
               </div>
             </div>
           )}
         </Card>
       </div>
 
-      {/* LA TABLA DE AGENDA DE RENOVACIONES AL FINAL */}
-      <Card className="border-t-4 border-t-amber-500 shadow-md">
-        <CardHeader className="bg-amber-50 border-b border-amber-100 pb-4">
-          <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-amber-600" /> 
-            Agenda de Renovaciones Próximas (30 Días)
+      {/* 📅 TABLA DE AGENDA - CRISTAL TOTAL */}
+      <Card className="!bg-white/40 !backdrop-blur-xl border !border-white/50 border-t-4 border-t-amber-500 !shadow-xl rounded-2xl overflow-hidden">
+        <CardHeader className="bg-amber-500/10 border-b border-white/40 pb-5">
+          <CardTitle className="text-lg font-black text-amber-900 flex items-center gap-3">
+            <div className="bg-amber-500/20 p-2 rounded-lg border border-amber-500/30"><CalendarDays className="h-6 w-6 text-amber-700" /></div>
+            Agenda Estratégica de Renovaciones (30 Días)
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {upcomingPolicies.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 font-medium bg-white">
-              No tienes pólizas por vencer en los próximos 30 días. ¡Todo al día!
+            <div className="p-12 text-center text-slate-500 font-bold tracking-wide uppercase bg-transparent">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3 opacity-50" />
+              Tu cartera está al día. No hay vencimientos próximos.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left border-collapse bg-white">
-                <thead className="bg-gray-50 border-b">
+              <table className="w-full text-sm text-left border-collapse bg-transparent">
+                <thead className="bg-white/30 border-b border-white/40">
                   <tr>
-                    <th className="p-4 font-bold text-gray-600 uppercase">Póliza / Tipo</th>
-                    <th className="p-4 font-bold text-gray-600 uppercase">Vencimiento</th>
-                    <th className="p-4 font-bold text-gray-600 uppercase">Prima a Renovar</th>
-                    <th className="p-4 font-bold text-gray-600 uppercase text-right">Acción Comercial</th>
+                    <th className="p-5 font-black text-slate-600 uppercase tracking-widest text-[10px]">Póliza / Contrato</th>
+                    <th className="p-5 font-black text-slate-600 uppercase tracking-widest text-[10px]">Plazo de Vencimiento</th>
+                    <th className="p-5 font-black text-slate-600 uppercase tracking-widest text-[10px]">Prima a Renovar</th>
+                    <th className="p-5 font-black text-slate-600 uppercase tracking-widest text-[10px] text-right">Ejecución</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-white/40">
                   {upcomingPolicies.map((poliza) => {
-                    // Cálculo de días restantes
                     const hoy = new Date();
                     const fechaFin = new Date(poliza.fecha_fin);
                     const diffTime = fechaFin - hoy;
@@ -358,32 +375,32 @@ const Dashboard = ({
                     const esUrgente = diffDays <= 7;
 
                     return (
-                      <tr key={poliza.id} className="hover:bg-amber-50/30 transition-colors">
-                        <td className="p-4">
-                          <div className="font-bold text-indigo-700">{poliza.numero_poliza}</div>
-                          <div className="text-xs text-gray-500">{poliza.tipo_poliza}</div>
+                      <tr key={poliza.id} className="hover:bg-amber-500/10 transition-colors duration-200">
+                        <td className="p-5">
+                          <div className="font-black text-indigo-900 text-base">{poliza.numero_poliza}</div>
+                          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{poliza.tipo_poliza}</div>
                         </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${esUrgente ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-amber-100 text-amber-700'}`}>
-                              {diffDays > 0 ? `En ${diffDays} días` : 'HOY'}
+                        <td className="p-5">
+                          <div className="flex items-center gap-3">
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase border ${esUrgente ? 'bg-red-500/20 text-red-800 border-red-500/30 animate-pulse shadow-sm' : 'bg-amber-500/20 text-amber-800 border-amber-500/30'}`}>
+                              {diffDays > 0 ? `Quedan ${diffDays} días` : 'VENCE HOY'}
                             </span>
-                            <span className="text-gray-600 font-medium">
+                            <span className="text-slate-600 font-bold text-xs">
                               ({fechaFin.toLocaleDateString('es-ES')})
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 font-bold text-gray-800">
+                        <td className="p-5 font-black text-slate-800 text-base">
                           {formatMoney(poliza.prima, currencySymbol, currentLanguage)}
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="p-5 text-right">
                           <Button 
                             onClick={() => handleWhatsAppRenovacion(poliza)}
                             size="sm"
-                            className="bg-[#25D366] hover:bg-[#1da851] text-white shadow-sm font-bold"
+                            className="bg-[#25D366] hover:bg-[#1ea952] text-white shadow-lg font-bold rounded-xl px-4 py-5 transition-transform hover:-translate-y-0.5"
                           >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Cobrar por WA
+                            <MessageCircle className="h-5 w-5 mr-2" />
+                            Gestionar WA
                           </Button>
                         </td>
                       </tr>
