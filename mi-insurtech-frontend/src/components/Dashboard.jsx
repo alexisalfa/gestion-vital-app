@@ -76,47 +76,28 @@ const Dashboard = ({
     return () => clearInterval(timer);
   }, [statistics, isLoadingStats]);
 
-  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (A PRUEBA DE BALAS) ---
+  // --- 🦾 INJERTO DE ELITE: EXTRAER IDENTIDAD DEL USUARIO (VÍA LOCALSTORAGE) ---
   const getUserDisplayName = () => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return 'Usuario VIP';
-      
-      // CASO A: ¿Es un JWT estándar encriptado? (Tiene 3 partes separadas por puntos)
-      if (token.includes('.') && token.split('.').length === 3) {
-        const base64Url = token.split('.')[1];
-        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        
-        const pad = base64.length % 4;
-        if (pad) {
-          base64 += '='.repeat(4 - pad);
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        // Si tiene nombre completo real (y no el genérico), usamos el primer nombre
+        if (user.full_name && user.full_name !== "Usuario Nuevo") {
+          return user.full_name.split(' ')[0]; 
         }
-        
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        
-        const payload = JSON.parse(jsonPayload);
-        
-        if (payload.name) return payload.name;
-        if (payload.sub) return payload.sub.split('@')[0].toUpperCase();
-        if (payload.email) return payload.email.split('@')[0].toUpperCase();
+        // Si no hay nombre válido, sacamos el correo antes del @
+        if (user.email) return user.email.split('@')[0].toUpperCase();
       }
       
-      // CASO B: El token es directamente un correo electrónico en texto plano
-      if (token.includes('@')) {
-        return token.split('@')[0].toUpperCase();
-      }
+      // Fallback de emergencia si por alguna razón no hay objeto user
+      const token = localStorage.getItem('access_token');
+      if (token && token.includes('@')) return token.split('@')[0].toUpperCase();
+      if (token && token.length > 0 && !token.includes('.')) return token.toUpperCase();
       
-      // CASO C: El token es una cadena de texto cualquiera
-      if (token.length > 0 && !token.includes('.')) {
-         return token.toUpperCase();
-      }
-
-      return 'Usuario VIP';
+      return 'VIP';
     } catch (e) {
-      console.error("Error leyendo el token de acceso:", e);
-      return 'Usuario VIP';
+      return 'VIP';
     }
   };
 
@@ -164,7 +145,7 @@ const Dashboard = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* 🏆 BANNER DE LICENCIA CORREGIDO CON NOMBRE DEL USUARIO 🏆 */}
+      {/* 🏆 BANNER DE LICENCIA CORREGIDO CON NOMBRE DEL USUARIO Y SALUDO 🏆 */}
       <div className={`rounded-xl p-4 text-white shadow-lg flex items-center justify-between border-b-4 transition-colors duration-500 ${
         timeLeft === "LICENCIA ACTIVA" 
           ? "bg-gradient-to-r from-blue-700 to-indigo-900 border-indigo-950" 
@@ -177,8 +158,8 @@ const Dashboard = ({
           <div>
             <p className="text-sm font-bold uppercase tracking-tight flex items-center gap-2">
               {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? "Licencia de Prueba" : "Licencia Profesional"}
-              {/* AQUÍ ESTÁ LA INYECCIÓN DEL NOMBRE */}
-              <span className="text-blue-200">|</span> <span className="text-emerald-400">{userName}</span>
+              <span className="text-blue-200">|</span> 
+              <span className="text-emerald-400 normal-case tracking-normal">¡Hola, {userName} 👋!</span>
             </p>
             <p className="text-xs opacity-90 italic">
               {timeLeft === "EXPIRADO" ? "Acceso restringido. Contacte a soporte." : "Tiempo restante para la activación total."}
@@ -191,7 +172,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* RESTO DEL DASHBOARD INTACTO */}
+      {/* TARJETAS DE INDICADORES (KPIs) INTACTAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         
         <Card className="border-l-4 border-l-blue-500 shadow-sm transition-all hover:scale-[1.02]">
@@ -272,8 +253,10 @@ const Dashboard = ({
 
       </div>
 
+      {/* TUS GRÁFICOS ORIGINALES INTACTOS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
+        {/* Gráfico Circular Original */}
         <Card className="shadow-md border-none p-4 h-[350px] relative">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros
@@ -308,6 +291,7 @@ const Dashboard = ({
           )}
         </Card>
 
+        {/* Gráfico de Barras Original */}
         <Card className="shadow-md border-none p-4 h-[350px] relative">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <BarChart3 size={16} className="text-blue-600"/> Distribución Operativa
@@ -340,6 +324,7 @@ const Dashboard = ({
         </Card>
       </div>
 
+      {/* LA TABLA DE AGENDA DE RENOVACIONES AL FINAL */}
       <Card className="border-t-4 border-t-amber-500 shadow-md">
         <CardHeader className="bg-amber-50 border-b border-amber-100 pb-4">
           <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
@@ -365,6 +350,7 @@ const Dashboard = ({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {upcomingPolicies.map((poliza) => {
+                    // Cálculo de días restantes
                     const hoy = new Date();
                     const fechaFin = new Date(poliza.fecha_fin);
                     const diffTime = fechaFin - hoy;
