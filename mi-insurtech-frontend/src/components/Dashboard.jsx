@@ -172,7 +172,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* TARJETAS DE INDICADORES (KPIs) INTACTAS */}
+      {/* 📊 TARJETAS DE INDICADORES (KPIs) - VERSIÓN GLASSMORPHISM */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         
         <Card className="border-l-4 border-l-blue-500 shadow-sm transition-all hover:scale-[1.02]">

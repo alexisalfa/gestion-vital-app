@@ -322,9 +322,20 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           <Route path="/dashboard" element={
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <Dashboard statistics={statisticsSummaryData} upcomingPolicies={polizasProximasAVencer} empresasAseguradoras={empresasAseguradoras} isLoadingStats={isLoadingStatisticsSummary} isLoadingUpcoming={isLoadingPolizasProximasAVencer} currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} lossRatio={lossRatioData} />
-              <div className="mt-8"><DashboardCharts polizas={polizas} reclamaciones={reclamaciones} empresas={empresasAseguradoras} /></div>
+            <div className="space-y-6 animate-in fade-in duration-500 bg-transparent"> 
+              <Dashboard 
+                statistics={statisticsSummaryData} 
+                upcomingPolicies={polizasProximasAVencer} 
+                empresasAseguradoras={empresasAseguradoras} 
+                isLoadingStats={isLoadingStatisticsSummary} 
+                isLoadingUpcoming={isLoadingPolizasProximasAVencer} 
+                currencySymbol={currencySymbol} 
+                dateFormat={dateFormat} 
+                getDateFormatOptions={getDateFormatOptions} 
+                lossRatio={lossRatioData} 
+              />
+              {/* Quitamos el div con mt-8 si este tiene fondo blanco sólido */}
+              <DashboardCharts polizas={polizas} reclamaciones={reclamaciones} empresas={empresasAseguradoras} />
             </div>
           } />
           
