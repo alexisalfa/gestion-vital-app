@@ -274,7 +274,7 @@ const Dashboard = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        <Card className="shadow-md border-none p-4 h-[350px] relative">
+        <Card className="border border-white/40 shadow-xl rounded-2xl bg-white/20 backdrop-blur-xl hover:bg-white/30 transition-all duration-300 relative h-[350px] p-4 overflow-hidden">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <PieChartIcon size={16} className="text-indigo-600"/> Ratio Primas vs Siniestros
           </h4>
@@ -308,7 +308,7 @@ const Dashboard = ({
           )}
         </Card>
 
-        <Card className="shadow-md border-none p-4 h-[350px] relative">
+        <Card className="border border-white/40 shadow-xl rounded-2xl bg-white/20 backdrop-blur-xl hover:bg-white/30 transition-all duration-300 relative h-[350px] p-4 overflow-hidden">
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <BarChart3 size={16} className="text-blue-600"/> Distribución Operativa
           </h4>

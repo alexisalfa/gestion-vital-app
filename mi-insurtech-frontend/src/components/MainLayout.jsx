@@ -23,10 +23,11 @@ const MainLayout = ({
   navigate
 }) => {
   return (
-    <div className="min-h-screen bg-[#f8fafc] bg-gradient-to-br from-slate-100 via-indigo-50/50 to-blue-100/40 flex flex-col font-sans transition-colors duration-500">
+    // 1. FONDO MAESTRO: Gradiente vibrante que se verá a través del cristal
+    <div className="min-h-screen bg-[#f8fafc] bg-gradient-to-br from-indigo-100/40 via-white to-blue-100/40 flex flex-col font-sans transition-colors duration-500">
       
-      {/* 🔵 NAVEGACIÓN MAESTRA */}
-      <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50 transition-all duration-300">
+      {/* 🔵 NAVEGACIÓN MAESTRA - Estilo Glassmorphism */}
+      <nav className="bg-blue-700/80 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 border-b border-white/10 transition-all duration-300">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           
           {/* Logo + Menú Mobile */}
@@ -105,24 +106,22 @@ const MainLayout = ({
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setIsAlertsOpen(false)}
           ></div>
-          <div className="relative w-full max-w-sm bg-white/50 dark:bg-slate-800/50 backdrop-blur-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl">
+          <div className="relative w-full max-w-sm bg-white/50 backdrop-blur-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl">
             
-            {/* Header del panel */}
-            <div className="p-4 border-b flex justify-between items-center bg-white/30 dark:bg-slate-700/30 backdrop-blur-md">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <div className="p-4 border-b flex justify-between items-center bg-white/30 backdrop-blur-md">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <Bell className="h-5 w-5 text-blue-600" /> Asistente Inteligente
               </h3>
               <button
                 onClick={() => setIsAlertsOpen(false)}
-                className="text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 p-1 rounded-md transition-colors duration-200"
+                className="text-slate-400 hover:bg-slate-200 p-1 rounded-md transition-colors duration-200"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Contenido de alertas */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Aquí se inyecta la lógica de Siniestros, Cobranza y Vencimientos */}
+              {/* Contenido de alertas */}
             </div>
           </div>
         </div>
