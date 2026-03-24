@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Bell, Menu, X, CheckCircle2, DollarSign, AlertCircle, Mail, MessageCircle } from 'lucide-react';
+import { ShieldAlert, Bell, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const MainLayout = ({ 
-  children, 
-  currentPath, 
-  t, 
-  handleLogout, 
-  totalAlerts, 
-  isMobileMenuOpen, 
+const MainLayout = ({
+  children,
+  currentPath,
+  t,
+  handleLogout,
+  totalAlerts,
+  isMobileMenuOpen,
   setIsMobileMenuOpen,
   isAlertsOpen,
   setIsAlertsOpen,
@@ -23,22 +23,28 @@ const MainLayout = ({
   navigate
 }) => {
   return (
-    <div className="min-h-screen bg-blue-50 flex flex-col font-sans">
-      {/* 🔵 NAVEGACIÓN MAESTRA (Extraída de App.jsx) */}
-      <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex flex-col font-sans transition-colors duration-500">
+      
+      {/* 🔵 NAVEGACIÓN MAESTRA */}
+      <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          
+          {/* Logo + Menú Mobile */}
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-1 text-indigo-100 hover:text-white">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-1 text-indigo-100 hover:text-white transition-colors duration-200"
+            >
               <Menu className="h-6 w-6" />
             </button>
             <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
-              <div className="bg-white text-indigo-600 p-1.5 rounded-lg hidden sm:block">
+              <div className="bg-white text-indigo-600 p-1.5 rounded-lg hidden sm:block shadow-md">
                 <ShieldAlert className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold tracking-tight">Gestión Vital</span>
             </Link>
           </div>
-          
+
           {/* Menú Desktop */}
           <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
             {[
@@ -52,7 +58,8 @@ const MainLayout = ({
               { id: 'configuracion', label: t('menu.configuracion', 'Ajustes') },
             ].map((tab) => (
               <Link
-                key={tab.id} to={`/${tab.id}`}
+                key={tab.id}
+                to={`/${tab.id}`}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap
                   ${currentPath === tab.id ? 'bg-white/20 text-white shadow-inner' : 'text-indigo-100 hover:bg-white/10 hover:text-white'}`}
               >
@@ -61,8 +68,12 @@ const MainLayout = ({
             ))}
           </div>
 
+          {/* Botones de acciones */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <button onClick={() => setIsAlertsOpen(true)} className="relative p-2 text-indigo-100 hover:text-white transition-colors">
+            <button
+              onClick={() => setIsAlertsOpen(true)}
+              className="relative p-2 text-indigo-100 hover:text-white transition-colors duration-200"
+            >
               <Bell className="h-5 w-5" />
               {totalAlerts > 0 && (
                 <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center border border-blue-600 text-white animate-pulse">
@@ -70,30 +81,48 @@ const MainLayout = ({
                 </span>
               )}
             </button>
-            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-indigo-100 hover:text-white hover:bg-white/10 hidden sm:flex">
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="text-indigo-100 hover:text-white hover:bg-white/10 hidden sm:flex transition-colors duration-200"
+            >
               Salir
             </Button>
           </div>
         </div>
       </nav>
 
-      {/* 🚀 CONTENIDO DINÁMICO (Aquí caen las Pages) */}
+      {/* 🚀 CONTENIDO DINÁMICO */}
       <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
         {children}
       </main>
 
-      {/* 🔔 PANEL DE ASISTENTE INTELIGENTE (Extraído de App.jsx) */}
+      {/* 🔔 PANEL DE ALERTAS - Glassmorphism */}
       {isAlertsOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end">
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setIsAlertsOpen(false)}></div>
-          <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-            {/* ... lógica de alertas idéntica a su App.jsx ... */}
-            <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2"><Bell className="h-5 w-5 text-blue-600"/> Asistente Inteligente</h3>
-              <button onClick={() => setIsAlertsOpen(false)} className="text-slate-400 hover:bg-slate-200 p-1 rounded-md transition-colors"><X size={20}/></button>
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsAlertsOpen(false)}
+          ></div>
+          <div className="relative w-full max-w-sm bg-white/50 dark:bg-slate-800/50 backdrop-blur-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl">
+            
+            {/* Header del panel */}
+            <div className="p-4 border-b flex justify-between items-center bg-white/30 dark:bg-slate-700/30 backdrop-blur-md">
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <Bell className="h-5 w-5 text-blue-600" /> Asistente Inteligente
+              </h3>
+              <button
+                onClick={() => setIsAlertsOpen(false)}
+                className="text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 p-1 rounded-md transition-colors duration-200"
+              >
+                <X size={20} />
+              </button>
             </div>
+
+            {/* Contenido de alertas */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-               {/* Aquí se inyecta la misma lógica de Siniestros, Cobranza y Vencimientos que ya tiene */}
+              {/* Aquí se inyecta la lógica de Siniestros, Cobranza y Vencimientos */}
             </div>
           </div>
         </div>
