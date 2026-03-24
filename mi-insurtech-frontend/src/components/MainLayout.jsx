@@ -23,10 +23,10 @@ const MainLayout = ({
   navigate
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex flex-col font-sans transition-colors duration-500">
+    <div className="min-h-screen bg-[#f8fafc] bg-gradient-to-br from-slate-100 via-indigo-50/50 to-blue-100/40 flex flex-col font-sans transition-colors duration-500">
       
       {/* 🔵 NAVEGACIÓN MAESTRA */}
-      <nav className="bg-blue-600 text-white shadow-md sticky top-0 z-50 transition-all duration-300">
+      <nav className="bg-blue-600/90 backdrop-blur-lg text-white shadow-lg sticky top-0 z-50 border-b border-white/10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           
           {/* Logo + Menú Mobile */}
