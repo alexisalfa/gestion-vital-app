@@ -172,76 +172,76 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* 📊 TARJETAS DE INDICADORES (KPIs) - VERSIÓN GLASSMORPHISM */}
+      {/* 📊 TARJETAS DE INDICADORES (KPIs) - EFECTO CRISTAL ESMERILADO */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         
-        <Card className="border-l-4 border-l-blue-500 shadow-sm transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
+        <Card className="bg-white/40 backdrop-blur-md border border-white/40 border-l-4 border-l-blue-500 shadow-xl transition-all hover:scale-[1.02]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-600 uppercase">
             <CardTitle className="text-xs font-bold">Clientes</CardTitle>
-            <Users size={20} className="text-blue-500" />
+            <Users size={20} className="text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800">{statistics?.total_clientes_activos || 0}</div>
+            <div className="text-2xl font-bold text-slate-800">{statistics?.total_clientes_activos || 0}</div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-emerald-500 shadow-sm transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
+        <Card className="bg-white/40 backdrop-blur-md border border-white/40 border-l-4 border-l-emerald-500 shadow-xl transition-all hover:scale-[1.02]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-600 uppercase">
             <CardTitle className="text-xs font-bold">Pólizas & Ganancia</CardTitle>
-            <ShieldCheck size={20} className="text-emerald-500" />
+            <ShieldCheck size={20} className="text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-gray-700 mb-2">{statistics?.total_polizas_activas || 0} <span className="text-sm font-normal text-gray-400">registradas</span></div>
+            <div className="text-xl font-bold text-slate-700 mb-2">{statistics?.total_polizas_activas || 0} <span className="text-sm font-normal text-slate-500">registradas</span></div>
             <div className="flex flex-col space-y-1 mt-1">
-              <span className="text-sm text-emerald-600 font-extrabold uppercase tracking-wide">
+              <span className="text-sm text-emerald-700 font-extrabold uppercase tracking-wide">
                 Primas: <span className="text-lg ml-1">{formatMoney(statistics?.total_primas || 0, currencySymbol, currentLanguage)}</span>
               </span>
-              <span className="text-sm text-indigo-600 font-extrabold uppercase tracking-wide">
+              <span className="text-sm text-indigo-700 font-extrabold uppercase tracking-wide">
                 Comisión: <span className="text-lg ml-1">{formatMoney(statistics?.total_comisiones || 0, currencySymbol, currentLanguage)}</span>
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-500 shadow-sm transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
+        <Card className="bg-white/40 backdrop-blur-md border border-white/40 border-l-4 border-l-red-500 shadow-xl transition-all hover:scale-[1.02]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-600 uppercase">
             <CardTitle className="text-xs font-bold">Siniestros</CardTitle>
-            <AlertCircle size={20} className="text-red-500" />
+            <AlertCircle size={20} className="text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{statistics?.total_reclamaciones_pendientes || 0}</div>
-            <p className="text-[10px] text-red-400 italic font-medium uppercase tracking-tighter">Trámite pendiente</p>
+            <p className="text-[10px] text-red-500 italic font-medium uppercase tracking-tighter">Trámite pendiente</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-indigo-500 shadow-sm transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
+        <Card className="bg-white/40 backdrop-blur-md border border-white/40 border-l-4 border-l-indigo-500 shadow-xl transition-all hover:scale-[1.02]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-600 uppercase">
             <CardTitle className="text-xs font-bold">Red Operativa</CardTitle>
-            <Building2 size={20} className="text-indigo-500" />
+            <Building2 size={20} className="text-indigo-600" />
           </CardHeader>
           <CardContent>
             <div className="flex flex-col text-sm font-bold space-y-1">
-              <span className="text-gray-700">{statistics?.total_asesores_activos || 0} <span className="font-normal text-gray-500">Asesores</span></span>
-              <span className="text-indigo-700">{statistics?.total_empresas_activas || 0} <span className="font-normal text-indigo-400">Aseguradoras</span></span>
+              <span className="text-slate-700">{statistics?.total_asesores_activos || 0} <span className="font-normal text-slate-500">Asesores</span></span>
+              <span className="text-indigo-700">{statistics?.total_empresas_activas || 0} <span className="font-normal text-indigo-500">Aseguradoras</span></span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-rose-500 shadow-sm transition-all hover:scale-[1.02]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 text-gray-500 uppercase">
+        <Card className="bg-white/40 backdrop-blur-md border border-white/40 border-l-4 border-l-rose-500 shadow-xl transition-all hover:scale-[1.02]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 text-slate-600 uppercase">
             <CardTitle className="text-xs font-bold">Siniestralidad</CardTitle>
-            <Activity size={20} className="text-rose-500" />
+            <Activity size={20} className="text-rose-600" />
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-black ${getRatioColor(lossRatio.ratio).split(' ')[0]}`}>
               {lossRatio.ratio}%
             </div>
             <div className="mt-2 space-y-1">
-                <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
+                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
                     <span>Pagado:</span>
                     <span className="text-rose-600">{formatMoney(lossRatio.totalSiniestros, currencySymbol, currentLanguage)}</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div 
                         className={`h-full rounded-full transition-all duration-1000 ${getRatioColor(lossRatio.ratio).split(' ')[1]}`} 
                         style={{ width: `${Math.min(lossRatio.ratio, 100)}%` }}
