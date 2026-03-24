@@ -1,11 +1,11 @@
 // src/hooks/useClientes.js
 import { useState, useCallback } from 'react';
 import { useToast } from '@/lib/use-toast';
+import fetchWrapper from '../utils/fetchWrapper'; // 🔥 INJERTO: Nuestro nuevo motor central
 
 export const useClientes = (apiBaseUrl, handleLogout) => {
   const { toast } = useToast();
 
-  // 1. Los Estados (Variables)
   const [clientes, setClientes] = useState([]);
   const [totalClients, setTotalClients] = useState(0);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
@@ -13,55 +13,52 @@ export const useClientes = (apiBaseUrl, handleLogout) => {
   const [clienteEmailFilter, setClienteEmailFilter] = useState('');
   const [clienteCurrentPage, setClienteCurrentPage] = useState(1);
 
-  // 2. La función de Buscar al Backend
+  // 🚀 FETCH REFACTORIZADO Y LIMPIO
   const fetchClientsData = useCallback(async (offset, limit, searchTerm, emailFilter) => {
-    const token = localStorage.getItem('access_token');
-    if (!token) { setIsLoadingClients(false); return; }
     setIsLoadingClients(true);
     try {
       const queryParams = new URLSearchParams({ offset, limit });
       if (searchTerm) queryParams.append('search_term', searchTerm);
       if (emailFilter) queryParams.append('email_filter', emailFilter);
 
-      const response = await fetch(`${apiBaseUrl}/clientes/?${queryParams.toString()}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) { handleLogout(); return; }
-        throw new Error(`Error ${response.status}`);
-      }
-      const data = await response.json();
+      // Usamos el wrapper en 1 sola línea, él se encarga de los tokens y errores
+      const data = await fetchWrapper(`${apiBaseUrl}/clientes/?${queryParams.toString()}`);
+      
       const rawItems = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
       const validClients = rawItems.filter(c => c && c.id !== undefined && c.id !== null);
       
       setClientes(validClients);
       setTotalClients(data.total_count || validClients.length);
     } catch (error) {
-      console.error("ERROR: fetchClientsData:", error);
+      // Si el wrapper grita que el token murió, cerramos sesión
+      if (error.message === "Token_Expirado" || error.message === "No_Token") {
+        handleLogout();
+        return;
+      }
+      console.error("ERROR: fetchClientsData:", error.message);
     } finally {
       setIsLoadingClients(false);
     }
   }, [apiBaseUrl, handleLogout]);
 
-  // 3. La función de Borrar
+  // 🚀 DELETE REFACTORIZADO Y LIMPIO
   const handleClientDelete = useCallback(async (id, onComplete) => {
-    const token = localStorage.getItem('access_token');
     try {
-      const response = await fetch(`${apiBaseUrl}/clientes/${id}`, {
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) { handleLogout(); return; }
-        throw new Error(`Error ${response.status}`);
-      }
+      // Usamos el wrapper indicando que es método DELETE
+      await fetchWrapper(`${apiBaseUrl}/clientes/${id}`, { method: 'DELETE' });
+      
       toast({ title: "Cliente Eliminado", description: "El cliente ha sido eliminado.", variant: "success" });
-      if (onComplete) onComplete(); // Ejecutamos la recarga de datos después de borrar
+      if (onComplete) onComplete(); 
     } catch (error) {
+      if (error.message === "Token_Expirado" || error.message === "No_Token") {
+        handleLogout();
+        return;
+      }
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   }, [apiBaseUrl, handleLogout, toast]);
 
-  // 4. Utilidades de Filtro y Paginación
+  // Utilidades de Filtro y Paginación intactas
   const handleClienteSearch = (searchTerm, emailFilter) => {
     setClienteSearchTerm(searchTerm);
     setClienteEmailFilter(emailFilter);
@@ -70,19 +67,8 @@ export const useClientes = (apiBaseUrl, handleLogout) => {
 
   const handleClientePageChange = (page) => setClienteCurrentPage(page);
 
-  // 5. Entregamos todo el paquete listo para usar
   return {
-    clientes,
-    totalClients,
-    isLoadingClients,
-    clienteSearchTerm,
-    clienteEmailFilter,
-    clienteCurrentPage,
-    setClienteSearchTerm,
-    setClienteEmailFilter,
-    fetchClientsData,
-    handleClientDelete,
-    handleClienteSearch,
-    handleClientePageChange
+    clientes, totalClients, isLoadingClients, clienteSearchTerm, clienteEmailFilter, clienteCurrentPage,
+    setClienteSearchTerm, setClienteEmailFilter, fetchClientsData, handleClientDelete, handleClienteSearch, handleClientePageChange
   };
 };
