@@ -103,16 +103,16 @@ const MainLayout = ({
         {children}
       </main>
 
-      {/* 🔔 PANEL DE ALERTAS - Asistente con Lógica Integrada */}
+      {/* 🔔 PANEL DE ALERTAS - Asistente con Lógica de Visualización Forzada */}
       {isAlertsOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end">
           <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setIsAlertsOpen(false)}
           ></div>
-          <div className="relative w-full max-w-sm bg-white/70 backdrop-blur-xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl border-l border-white/20">
+          <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-2xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl border-l border-white/30">
             
-            <div className="p-4 border-b flex justify-between items-center bg-white/30 backdrop-blur-md">
+            <div className="p-4 border-b flex justify-between items-center bg-white/50 backdrop-blur-md">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <Bell className="h-5 w-5 text-blue-600" /> Asistente Inteligente
               </h3>
@@ -124,65 +124,53 @@ const MainLayout = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            {/* 🚀 CONTENEDOR DE DATOS: Si totalAlerts es > 0, mostramos el contenido */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               
-              {/* 1. SECCIÓN DE COBRANZA (Comisiones) */}
-              {dineroEnLaCalle?.cantidad > 0 && (
-                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
-                  <div className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase mb-2 tracking-wider">
-                    <DollarSign className="h-3.5 w-3.5" /> Liquidaciones Pendientes
+              {/* ALERTA 1: DINERO PENDIENTE */}
+              {dineroEnLaCalle && dineroEnLaCalle.cantidad > 0 ? (
+                <div className="bg-amber-100 border border-amber-200 p-4 rounded-xl shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase mb-1">
+                    <DollarSign className="h-3.5 w-3.5" /> Pagos Pendientes
                   </div>
-                  <p className="text-sm text-slate-700 leading-snug">
-                    Hay <span className="font-black text-amber-700">{dineroEnLaCalle.cantidad}</span> comisiones pendientes por un total de <span className="font-bold">{currencySymbol} {dineroEnLaCalle.total.toFixed(2)}</span>.
+                  <p className="text-sm text-slate-700">
+                    Tienes <span className="font-bold">{dineroEnLaCalle.cantidad}</span> liquidaciones por cobrar: <span className="font-bold">{currencySymbol} {dineroEnLaCalle.total.toFixed(2)}</span>.
                   </p>
                   <Button 
                     variant="link" 
                     onClick={() => { navigate('/comisiones'); setIsAlertsOpen(false); }}
-                    className="text-amber-700 p-0 h-auto font-bold mt-2 text-xs hover:no-underline"
+                    className="text-amber-700 p-0 h-auto font-bold mt-2 text-xs"
                   >
-                    Gestionar pagos ahora →
+                    Ir a liquidaciones →
                   </Button>
                 </div>
-              )}
+              ) : null}
 
-              {/* 2. SECCIÓN DE VENCIMIENTOS (Próximos 30 días) */}
-              {polizasProximasAVencer?.length > 0 && (
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-500">
-                  <div className="flex items-center gap-2 text-indigo-700 font-black text-[10px] uppercase mb-2 tracking-wider">
+              {/* ALERTA 2: VENCIMIENTOS PRÓXIMOS */}
+              {polizasProximasAVencer && polizasProximasAVencer.length > 0 ? (
+                <div className="bg-indigo-100 border border-indigo-200 p-4 rounded-xl shadow-sm">
+                  <div className="flex items-center gap-2 text-indigo-700 font-black text-[10px] uppercase mb-2">
                     <Zap className="h-3.5 w-3.5" /> Próximos Vencimientos
                   </div>
                   <div className="space-y-3">
                     {polizasProximasAVencer.slice(0, 5).map((poliza) => (
-                      <div key={poliza.id} className="border-l-2 border-indigo-400 pl-3 py-1 bg-white/20 rounded-r-md">
+                      <div key={poliza.id} className="border-l-2 border-indigo-500 pl-3">
                         <p className="text-xs font-bold text-slate-800">Pol: {poliza.numero_poliza}</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Vence pronto</p>
-                        <div className="flex gap-3 mt-2">
-                          <button 
-                            onClick={() => handleWhatsAppNotificacion(poliza)} 
-                            className="text-emerald-600 hover:scale-110 transition-transform"
-                            title="Notificar por WhatsApp"
-                          >
-                            <MessageCircle size={16}/>
-                          </button>
-                          <button 
-                            onClick={() => handleEmailNotificacion(poliza.id)} 
-                            className="text-blue-600 hover:scale-110 transition-transform"
-                            title="Enviar Correo"
-                          >
-                            <Mail size={16}/>
-                          </button>
+                        <div className="flex gap-4 mt-1">
+                          <button onClick={() => handleWhatsAppNotificacion(poliza)} className="text-emerald-600 hover:scale-110 transition-transform"><MessageCircle size={16}/></button>
+                          <button onClick={() => handleEmailNotificacion(poliza.id)} className="text-blue-600 hover:scale-110 transition-transform"><Mail size={16}/></button>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
-              {/* 3. ESTADO VACÍO */}
-              {(!dineroEnLaCalle?.cantidad || dineroEnLaCalle.cantidad === 0) && (!polizasProximasAVencer || polizasProximasAVencer.length === 0) && (
-                <div className="flex flex-col items-center justify-center h-full opacity-40">
+              {/* ESTADO VACÍO (Solo si realmente no hay nada) */}
+              {totalAlerts === 0 && (
+                <div className="flex flex-col items-center justify-center h-full py-20 opacity-40">
                   <CheckCircle2 className="h-12 w-12 text-slate-300 mb-2" />
-                  <p className="text-sm font-bold text-slate-400 text-center">Todo bajo control,<br/>no hay alertas nuevas.</p>
+                  <p className="text-sm font-bold text-slate-400 text-center">Sin alertas nuevas.</p>
                 </div>
               )}
             </div>
