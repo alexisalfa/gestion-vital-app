@@ -41,7 +41,7 @@ export const useClientes = (apiBaseUrl, handleLogout) => {
     }
   }, [apiBaseUrl, handleLogout]);
 
-  // 🚀 DELETE REFACTORIZADO Y LIMPIO
+  // 🚀 DELETE REFACTORIZADO Y AMORTIGUADO (Con magia UX)
   const handleClientDelete = useCallback(async (id, onComplete) => {
     try {
       // Usamos el wrapper indicando que es método DELETE
@@ -54,7 +54,13 @@ export const useClientes = (apiBaseUrl, handleLogout) => {
         handleLogout();
         return;
       }
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      
+      // 🛡️ MÁGIA UX: Interceptamos el error técnico del servidor y lo traducimos
+      toast({ 
+        title: "❌ Acción Bloqueada", 
+        description: "No se puede eliminar este cliente porque aún tiene pólizas o siniestros registrados. Elimínelos primero.", 
+        variant: "destructive" 
+      });
     }
   }, [apiBaseUrl, handleLogout, toast]);
 

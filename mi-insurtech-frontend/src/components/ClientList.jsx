@@ -108,8 +108,8 @@ function ClientList({
 
   const handleDeleteClick = (client) => {
     confirm({
-      title: "¿Eliminar Cliente?",
-      message: `Estás a punto de borrar el registro de ${client.nombre} ${client.apellido}. Esto afectará sus estadísticas CRM. Esta acción no se puede deshacer.`,
+      title: "⚠️ ¿Eliminar Cliente Definitivamente?",
+      message: `¿Quiere borrar a ${client.nombre} ${client.apellido}? Perderá todo su historial.\n\nIMPORTANTE: Si quiere eliminarlo, por favor elimine primero sus pólizas asociadas.`,
       onConfirm: () => onDeleteClient(client.id),
     });
   };
