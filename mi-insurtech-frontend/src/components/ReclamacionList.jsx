@@ -1,5 +1,5 @@
 // src/components/ReclamacionList.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { useConfirmation } from './ConfirmationContext';
 import { useToast } from '@/lib/use-toast';
 import Pagination from './Pagination'; 
 import ClientProfile360 from './ClientProfile360';
+import useDebounce from '../hooks/useDebounce'; // 🔥 INJERTO: Motor de búsqueda rápida
 
 function ReclamacionList({
   reclamaciones = [], onEditReclamacion, onDeleteReclamacion, searchTerm, estadoFilter, clienteIdFilter, polizaIdFilter,
@@ -22,6 +23,23 @@ function ReclamacionList({
   const [isExporting, setIsExporting] = useState(false);
 
   const [selectedClient360, setSelectedClient360] = useState(null);
+
+  // --- 🚀 MOTOR DE BÚSQUEDA EN TIEMPO REAL ---
+  const [localSearch, setLocalSearch] = useState(searchTerm || '');
+  const debouncedSearch = useDebounce(localSearch, 500);
+
+  useEffect(() => {
+    if (debouncedSearch !== searchTerm) {
+      setSearchTerm(debouncedSearch);
+      onSearch(debouncedSearch, estadoFilter, clienteIdFilter, polizaIdFilter, fechaReclamacionInicioFilter, fechaReclamacionFinFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    setLocalSearch(searchTerm || '');
+  }, [searchTerm]);
+  // ------------------------------------------
 
   const handleQuickStatusUpdate = async (id, nuevoEstado) => {
     let montoAprobado = 0;
@@ -91,6 +109,22 @@ function ReclamacionList({
     setIsExporting(false);
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    onSearch(localSearch, estadoFilter, clienteIdFilter, polizaIdFilter, fechaReclamacionInicioFilter, fechaReclamacionFinFilter);
+  };
+
+  const handleClearFilters = () => {
+    setLocalSearch('');
+    setSearchTerm('');
+    setEstadoFilter('');
+    setClienteIdFilter('');
+    setPolizaIdFilter('');
+    setFechaReclamacionInicioFilter('');
+    setFechaReclamacionFinFilter('');
+    onSearch('', '', '', '', '', '');
+  };
+
   return (
     <>
       <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden bg-white">
@@ -106,13 +140,25 @@ function ReclamacionList({
             </div>
           </div>
 
-          <form onSubmit={(e) => {e.preventDefault(); onSearch(searchTerm, estadoFilter, clienteIdFilter, polizaIdFilter, fechaReclamacionInicioFilter, fechaReclamacionFinFilter)}} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-4">
+          <form onSubmit={handleSearchSubmit} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Descripción</Label><Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Ej: Choque..." className="bg-white" /></div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Estado</Label><HeadlessSafeSelect value={estadoFilter} onChange={setEstadoFilter} options={[{id: '', nombre: 'Todos'}, {id: 'Pendiente', nombre: 'Pendiente'}, {id: 'Pagada', nombre: 'Pagada'}, {id: 'Rechazada', nombre: 'Rechazada'}]} className="bg-white" /></div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-500 uppercase">Descripción</Label>
+                <Input 
+                  value={localSearch} 
+                  onChange={e => setLocalSearch(e.target.value)} 
+                  placeholder="Ej: Choque..." 
+                  autoComplete="off"
+                  className="bg-white" 
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-500 uppercase">Estado</Label>
+                <HeadlessSafeSelect value={estadoFilter} onChange={setEstadoFilter} options={[{id: '', nombre: 'Todos'}, {id: 'Pendiente', nombre: 'Pendiente'}, {id: 'Pagada', nombre: 'Pagada'}, {id: 'Rechazada', nombre: 'Rechazada'}]} className="bg-white" />
+              </div>
               <div className="flex items-end gap-2">
                 <Button type="submit" className="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold"><Search className="h-4 w-4 mr-2"/> Filtrar</Button>
-                <Button type="button" variant="outline" onClick={() => onSearch('', '', '', '', '', '')}>Limpiar</Button>
+                <Button type="button" variant="outline" onClick={handleClearFilters}>Limpiar</Button>
               </div>
             </div>
           </form>
@@ -230,4 +276,15 @@ function ReclamacionList({
     </>
   );
 }
-export default ReclamacionList;
+
+// 🛡️ ESCUDO MEMO NIVEL DIOS
+export default React.memo(ReclamacionList, (prev, next) => {
+  return (
+    prev.reclamaciones === next.reclamaciones &&
+    prev.totalItems === next.totalItems &&
+    prev.currentPage === next.currentPage &&
+    prev.clients === next.clients &&
+    prev.polizas === next.polizas &&
+    prev.estadoFilter === next.estadoFilter
+  );
+});

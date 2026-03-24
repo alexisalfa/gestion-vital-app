@@ -1,11 +1,10 @@
 // src/components/PolizaList.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { HeadlessSafeSelect } from './HeadlessSafeSelect';
-// INJERTO: Añadimos Calendar a los íconos
 import { PencilIcon, Trash2Icon, Loader2, Shield, Search, FileDown, FileText, Banknote, MessageCircle, Eye, Calendar } from 'lucide-react';
 import { useConfirmation } from './ConfirmationContext'; 
 import Pagination from './Pagination'; 
@@ -13,6 +12,7 @@ import { useToast } from '@/lib/use-toast';
 
 import PagoManualModal from './PagoManualModal';
 import ClientProfile360 from './ClientProfile360';
+import useDebounce from '../hooks/useDebounce'; // 🔥 INJERTO: Motor de búsqueda rápida
 
 function PolizaList({
   polizas = [], onEditPoliza, onDeletePoliza, searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter,
@@ -28,6 +28,23 @@ function PolizaList({
   const [isPagoModalOpen, setIsPagoModalOpen] = useState(false);
   const [polizaToPay, setPolizaToPay] = useState(null);
   const [selectedClient360, setSelectedClient360] = useState(null);
+
+  // --- 🚀 MOTOR DE BÚSQUEDA EN TIEMPO REAL ---
+  const [localSearch, setLocalSearch] = useState(searchTerm || '');
+  const debouncedSearch = useDebounce(localSearch, 500);
+
+  useEffect(() => {
+    if (debouncedSearch !== searchTerm) {
+      setSearchTerm(debouncedSearch); // Sincroniza con el padre
+      onSearch(debouncedSearch, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    setLocalSearch(searchTerm || '');
+  }, [searchTerm]);
+  // ------------------------------------------
 
   const formatDisplayDate = (isoString) => {
     if (!isoString) return 'N/A';
@@ -55,7 +72,6 @@ function PolizaList({
     return 'N/A';
   };
 
-  // Generador de Iniciales para el Avatar
   const getInitials = (name) => {
     if (!name || name === 'N/A') return 'P';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -95,9 +111,13 @@ function PolizaList({
   const clienteOptions = useMemo(() => [{ id: '', nombre: 'Todos los Clientes' }, ...clients.map(c => ({ id: c.id, nombre: `${c.nombre} ${c.apellido || ''}`.trim() }))], [clients]);
   const estadoOptions = [{ id: '', nombre: 'Todos' }, { id: 'Activa', nombre: 'Activa' }, { id: 'Inactiva', nombre: 'Inactiva' }, { id: 'Vencida', nombre: 'Vencida' }, { id: 'Pendiente', nombre: 'Pendiente de Pago' }];
 
-  const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(searchTerm, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter); };
+  const handleSearchSubmit = (e) => { 
+    e.preventDefault(); 
+    onSearch(localSearch, tipoFilter, estadoFilter, clienteIdFilter, fechaInicioFilter, fechaFinFilter); 
+  };
   
   const handleClearFilters = () => {
+    setLocalSearch(''); 
     setSearchTerm(''); setTipoFilter(''); setEstadoFilter(''); setClienteIdFilter(''); setFechaInicioFilter(''); setFechaFinFilter('');
     onSearch('', '', '', '', '', '');
   };
@@ -146,7 +166,16 @@ function PolizaList({
           {/* Filtros */}
           <form onSubmit={handleSearchSubmit} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">N° Póliza</Label><Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar..." className="bg-white" /></div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-500 uppercase">N° Póliza / Cliente</Label>
+                <Input 
+                  value={localSearch} 
+                  onChange={e => setLocalSearch(e.target.value)} 
+                  placeholder="Buscar..." 
+                  autoComplete="off"
+                  className="bg-white" 
+                />
+              </div>
               <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Tipo</Label><Input value={tipoFilter} onChange={e => setTipoFilter(e.target.value)} placeholder="Ej. Salud" className="bg-white" /></div>
               <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Estado</Label><HeadlessSafeSelect id="filtro-estado" value={estadoFilter} onChange={setEstadoFilter} options={estadoOptions} className="bg-white"/></div>
               <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Cliente</Label><HeadlessSafeSelect id="filtro-cliente" value={clienteIdFilter} onChange={setClienteIdFilter} options={clienteOptions} className="bg-white"/></div>
@@ -184,7 +213,6 @@ function PolizaList({
                   {polizas.map((poliza) => {
                     const nombreCliente = getClienteNombre(poliza);
                     
-                    // Colores de los "LEDs" de estatus
                     const isActiva = poliza.estado === 'Activa';
                     const isVencida = poliza.estado === 'Vencida';
                     const isPendiente = poliza.estado === 'Pendiente';
@@ -192,7 +220,6 @@ function PolizaList({
                     return (
                       <tr key={poliza.id} className="hover:bg-slate-50/80 transition-colors">
                         
-                        {/* 1. CONTRATO / CLIENTE (Con Avatar) */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
@@ -205,13 +232,11 @@ function PolizaList({
                           </div>
                         </td>
 
-                        {/* 2. TIPO & ASEGURADORA */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <p className="text-sm font-bold text-slate-700">{poliza.tipo_poliza}</p>
                           <p className="text-xs text-slate-500">{getEmpresaNombre(poliza)}</p>
                         </td>
                         
-                        {/* 3. VALORES EN CAJITAS GRISES */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col gap-1.5">
                             <div className="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 text-xs">
@@ -225,7 +250,6 @@ function PolizaList({
                           </div>
                         </td>
 
-                        {/* 4. PRIMA & VENCIMIENTO */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <p className="text-sm font-black text-slate-900">{poliza.prima != null ? `${currencySymbol} ${formatCurrency(poliza.prima)}` : 'N/A'}</p>
                           <p className={`text-xs flex items-center gap-1 mt-1 font-medium ${isVencida ? 'text-rose-600' : 'text-slate-500'}`}>
@@ -233,7 +257,6 @@ function PolizaList({
                           </p>
                         </td>
 
-                        {/* 5. ESTADO (Con puntito LED) */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1.5 inline-flex items-center gap-2 text-xs font-bold rounded-full border 
                             ${isActiva ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
@@ -245,7 +268,6 @@ function PolizaList({
                           </span>
                         </td>
 
-                        {/* 6. ACCIONES */}
                         <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
                           <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(poliza.cliente_id)} className="text-purple-600 hover:bg-purple-100 rounded-full" title="Ver Expediente CRM 360">
                             <Eye className="h-4 w-4" />
@@ -289,4 +311,15 @@ function PolizaList({
   );
 }
 
-export default PolizaList;
+// 🛡️ ESCUDO MEMO NIVEL DIOS (Múltiple validación de props)
+export default React.memo(PolizaList, (prev, next) => {
+  return (
+    prev.polizas === next.polizas &&
+    prev.totalItems === next.totalItems &&
+    prev.currentPage === next.currentPage &&
+    prev.clients === next.clients &&
+    prev.empresasAseguradoras === next.empresasAseguradoras &&
+    prev.estadoFilter === next.estadoFilter &&
+    prev.tipoFilter === next.tipoFilter
+  );
+});

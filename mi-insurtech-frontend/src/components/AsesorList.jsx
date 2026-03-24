@@ -1,5 +1,5 @@
 // src/components/AsesorList.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { PencilIcon, Trash2Icon, Loader2, Search, FileDown, FileText, Mail, Phon
 import { useConfirmation } from './ConfirmationContext'; 
 import Pagination from './Pagination'; 
 import AsesorProfile360 from './AsesorProfile360';
+import useDebounce from '../hooks/useDebounce'; // 🔥 INJERTO: Motor de búsqueda rápida
 
 function AsesorList({
   asesores = [], onEditAsesor, onDeleteAsesor, currentPage, itemsPerPage, totalItems, onPageChange, searchTerm, setSearchTerm, onSearch, onExport, onExportPdf, empresasAseguradoras = []
@@ -14,6 +15,24 @@ function AsesorList({
   const { confirm } = useConfirmation();
   const [isExporting, setIsExporting] = useState(false);
   const [selectedAsesor360, setSelectedAsesor360] = useState(null);
+
+  // --- 🚀 MOTOR DE BÚSQUEDA EN TIEMPO REAL ---
+  const [localSearch, setLocalSearch] = useState(searchTerm || '');
+  const debouncedSearch = useDebounce(localSearch, 500);
+
+  // Dispara la búsqueda automáticamente cuando el usuario hace una pausa de 500ms
+  useEffect(() => {
+    if (debouncedSearch !== searchTerm) {
+      onSearch(debouncedSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  // Sincroniza el input si el filtro se limpia desde el botón o desde afuera
+  useEffect(() => {
+    setLocalSearch(searchTerm || '');
+  }, [searchTerm]);
+  // ------------------------------------------
 
   const getEmpresaNombre = (asesor) => {
     if (asesor.empresa_aseguradora?.nombre) return asesor.empresa_aseguradora.nombre;
@@ -55,13 +74,19 @@ function AsesorList({
             </div>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); onSearch(searchTerm); }} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 flex gap-2">
+          <form onSubmit={(e) => { e.preventDefault(); onSearch(localSearch); }} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar por Nombre o Cédula..." className="pl-10 bg-white border-slate-200" />
+              <Input 
+                value={localSearch} 
+                onChange={(e) => setLocalSearch(e.target.value)} 
+                placeholder="Buscar por Nombre o Cédula..." 
+                autoComplete="off"
+                className="pl-10 bg-white border-slate-200" 
+              />
             </div>
             <Button type="submit" className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 shadow-sm">Buscar</Button>
-            <Button type="button" variant="outline" onClick={() => { setSearchTerm(''); onSearch(''); }} className="border-slate-200">Limpiar</Button>
+            <Button type="button" variant="outline" onClick={() => { setLocalSearch(''); onSearch(''); }} className="border-slate-200">Limpiar</Button>
           </form>
 
           {asesores.length === 0 ? (
@@ -153,4 +178,12 @@ function AsesorList({
   );
 }
 
-export default AsesorList;
+// 🛡️ ESCUDO MEMO NIVEL DIOS
+export default React.memo(AsesorList, (prev, next) => {
+  return (
+    prev.asesores === next.asesores &&
+    prev.totalItems === next.totalItems &&
+    prev.currentPage === next.currentPage &&
+    prev.empresasAseguradoras === next.empresasAseguradoras
+  );
+});

@@ -246,4 +246,16 @@ function ComisionList({
   );
 }
 
-export default ComisionList;
+// 🛡️ ESCUDO MEMO NIVEL DIOS (Triple validación cruzada)
+export default React.memo(ComisionList, (prev, next) => {
+  return (
+    prev.comisiones === next.comisiones &&
+    prev.totalItems === next.totalItems &&
+    prev.currentPage === next.currentPage &&
+    prev.asesores === next.asesores &&
+    prev.polizas === next.polizas &&
+    prev.asesorIdFilter === next.asesorIdFilter &&
+    prev.estadoPagoFilter === next.estadoPagoFilter &&
+    prev.fechaInicioFilter === next.fechaInicioFilter
+  );
+});
