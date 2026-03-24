@@ -1,6 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Bell, Menu, X } from 'lucide-react';
+import { 
+  ShieldAlert, 
+  Bell, 
+  Menu, 
+  X, 
+  CheckCircle2, 
+  DollarSign, 
+  Zap, 
+  MessageCircle, 
+  Mail,
+  AlertTriangle 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const MainLayout = ({
@@ -13,8 +24,6 @@ const MainLayout = ({
   setIsMobileMenuOpen,
   isAlertsOpen,
   setIsAlertsOpen,
-  statisticsSummaryData,
-  polizasPendientesDashboard,
   dineroEnLaCalle,
   currencySymbol,
   polizasProximasAVencer,
@@ -23,14 +32,12 @@ const MainLayout = ({
   navigate
 }) => {
   return (
-    // 1. FONDO MAESTRO: Gradiente vibrante que se verá a través del cristal
     <div className="min-h-screen bg-[#f8fafc] bg-gradient-to-br from-indigo-100/40 via-white to-blue-100/40 flex flex-col font-sans transition-colors duration-500">
       
-      {/* 🔵 NAVEGACIÓN MAESTRA - Estilo Glassmorphism */}
+      {/* 🔵 NAVEGACIÓN MAESTRA - Glassmorphism */}
       <nav className="bg-blue-700/80 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 border-b border-white/10 transition-all duration-300">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           
-          {/* Logo + Menú Mobile */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -46,7 +53,6 @@ const MainLayout = ({
             </Link>
           </div>
 
-          {/* Menú Desktop */}
           <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
             {[
               { id: 'dashboard', label: t('menu.dashboard', 'Dashboard') },
@@ -69,7 +75,6 @@ const MainLayout = ({
             ))}
           </div>
 
-          {/* Botones de acciones */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => setIsAlertsOpen(true)}
@@ -94,19 +99,18 @@ const MainLayout = ({
         </div>
       </nav>
 
-      {/* 🚀 CONTENIDO DINÁMICO */}
       <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
         {children}
       </main>
 
-      {/* 🔔 PANEL DE ALERTAS - Glassmorphism */}
+      {/* 🔔 PANEL DE ALERTAS - Asistente con Lógica Integrada */}
       {isAlertsOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end">
           <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setIsAlertsOpen(false)}
           ></div>
-          <div className="relative w-full max-w-sm bg-white/50 backdrop-blur-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl">
+          <div className="relative w-full max-w-sm bg-white/70 backdrop-blur-xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 rounded-l-2xl border-l border-white/20">
             
             <div className="p-4 border-b flex justify-between items-center bg-white/30 backdrop-blur-md">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
@@ -120,8 +124,67 @@ const MainLayout = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Contenido de alertas */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              
+              {/* 1. SECCIÓN DE COBRANZA */}
+              {dineroEnLaCalle?.cantidad > 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
+                  <div className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase mb-2 tracking-wider">
+                    <DollarSign className="h-3.5 w-3.5" /> Liquidaciones Pendientes
+                  </div>
+                  <p className="text-sm text-slate-700 leading-snug">
+                    Hay <span className="font-black text-amber-700">{dineroEnLaCalle.cantidad}</span> comisiones pendientes por un total de <span className="font-bold">{currencySymbol} {dineroEnLaCalle.total.toFixed(2)}</span>.
+                  </p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => { navigate('/comisiones'); setIsAlertsOpen(false); }}
+                    className="text-amber-700 p-0 h-auto font-bold mt-2 text-xs hover:no-underline"
+                  >
+                    Gestionar pagos ahora →
+                  </Button>
+                </div>
+              )}
+
+              {/* 2. SECCIÓN DE VENCIMIENTOS */}
+              {polizasProximasAVencer?.length > 0 && (
+                <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-500">
+                  <div className="flex items-center gap-2 text-indigo-700 font-black text-[10px] uppercase mb-2 tracking-wider">
+                    <Zap className="h-3.5 w-3.5" /> Próximos Vencimientos
+                  </div>
+                  <div className="space-y-3">
+                    {polizasProximasAVencer.slice(0, 5).map((poliza) => (
+                      <div key={poliza.id} className="border-l-2 border-indigo-400 pl-3 py-1 bg-white/20 rounded-r-md">
+                        <p className="text-xs font-bold text-slate-800">Pol: {poliza.numero_poliza}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">Acción comercial requerida</p>
+                        <div className="flex gap-3 mt-2">
+                          <button 
+                            onClick={() => handleWhatsAppNotificacion(poliza)} 
+                            className="text-emerald-600 hover:scale-110 transition-transform"
+                            title="Notificar por WhatsApp"
+                          >
+                            <MessageCircle size={16}/>
+                          </button>
+                          <button 
+                            onClick={() => handleEmailNotificacion(poliza.id)} 
+                            className="text-blue-600 hover:scale-110 transition-transform"
+                            title="Enviar Correo"
+                          >
+                            <Mail size={16}/>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. ESTADO VACÍO */}
+              {(!dineroEnLaCalle?.cantidad || dineroEnLaCalle.cantidad === 0) && (!polizasProximasAVencer || polizasProximasAVencer.length === 0) && (
+                <div className="flex flex-col items-center justify-center h-full opacity-40">
+                  <CheckCircle2 className="h-12 w-12 text-slate-300 mb-2" />
+                  <p className="text-sm font-bold text-slate-400 text-center">Todo bajo control,<br/>no hay alertas nuevas.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
