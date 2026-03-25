@@ -11,7 +11,8 @@ import {
   Building2,
   Activity,
   CalendarDays,
-  MessageCircle
+  MessageCircle,
+  CheckCircle2 // 🛠️ ¡AQUÍ ESTABA EL CULPABLE DEL ERROR!
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
