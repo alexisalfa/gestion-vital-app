@@ -35,13 +35,13 @@ const MainLayout = ({
     <div 
       className="min-h-screen relative overflow-hidden font-sans selection:bg-indigo-500/30 bg-[#0A0F1C] bg-cover bg-center bg-fixed bg-no-repeat"
       style={{ 
-        backgroundImage: "url('/colibri_insurtech.jpg')" 
+        backgroundImage: "url('/colibri_insurtech.png')" 
       }}
     >
       {/* 🌌 EL COÑAZO FINAL: Imagen Maestra del Colibrí Cibernético */}
       {/* 🛠️ INSTRUCCIÓN IMPORTANTE PARA DESPLIEGUE:
           Para que esto funcione en Render, debes guardar tu imagen en la carpeta 'public' 
-          de tu proyecto (fuera de 'src') con el nombre exacto 'colibri_insurtech.jpg'. 
+          de tu proyecto (fuera de 'src') con el nombre exacto 'colibri_insurtech.png'. 
       */}
       
       {/* --- SOBRECAPA OSCURA (Garantiza legibilidad sobre neones brillantes) --- */}
