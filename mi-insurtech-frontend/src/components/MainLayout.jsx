@@ -24,6 +24,8 @@ const MainLayout = ({
   setIsMobileMenuOpen,
   isAlertsOpen,
   setIsAlertsOpen,
+  statisticsSummaryData, // RECUPERADO: Faltaba esta línea
+  polizasPendientesDashboard, // RECUPERADO: Faltaba esta línea
   dineroEnLaCalle,
   currencySymbol,
   polizasProximasAVencer,
@@ -38,13 +40,7 @@ const MainLayout = ({
         backgroundImage: "url('/colibri_insurtech.png')" 
       }}
     >
-      {/* 🌌 EL COÑAZO FINAL: Imagen Maestra del Colibrí Cibernético */}
-      {/* 🛠️ INSTRUCCIÓN IMPORTANTE PARA DESPLIEGUE:
-          Para que esto funcione en Render, debes guardar tu imagen en la carpeta 'public' 
-          de tu proyecto (fuera de 'src') con el nombre exacto 'colibri_insurtech.png'. 
-      */}
-      
-      {/* --- SOBRECAPA OSCURA (Garantiza legibilidad sobre neones brillantes) --- */}
+      {/* --- SOBRECAPA OSCURA --- */}
       <div className="absolute inset-0 bg-[#0A0F1C]/85 pointer-events-none"></div>
 
       {/* --- CONTENEDOR PRINCIPAL SUPERPUESTO AL FONDO --- */}
@@ -52,9 +48,9 @@ const MainLayout = ({
         
         {/* 🔵 NAVEGACIÓN MAESTRA - Cristal Ciberpunk */}
         <nav className="bg-slate-900/40 backdrop-blur-2xl text-slate-200 sticky top-0 z-50 border-b border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+          <div className="w-full px-4 sm:px-8 h-[72px] flex items-center justify-between gap-6">
             
-            {/* LADO IZQUIERDO: Logo (No se encoje) */}
+            {/* LADO IZQUIERDO: Logo (Empujado a la izquierda) */}
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -66,12 +62,15 @@ const MainLayout = ({
                 <div className="bg-gradient-to-br from-cyan-500 to-teal-600 text-white p-1.5 rounded-lg hidden sm:block shadow-[0_0_15px_rgba(45,212,191,0.5)]">
                   <ShieldAlert className="h-5 w-5" />
                 </div>
-                <span className="text-xl font-black tracking-tight text-white drop-shadow-md">Gestión Vital</span>
+                <span className="text-xl font-black tracking-tight text-white drop-shadow-md whitespace-nowrap">Gestión Vital</span>
               </Link>
             </div>
 
-            {/* CENTRO: Menú (Expandible, centrado, scroll oculto) */}
-            <div className="hidden lg:flex items-center justify-center gap-1 flex-1 overflow-x-auto px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            {/* CENTRO: Menú con Scrollbar Elegante */}
+            <div className="hidden lg:flex items-center justify-start xl:justify-center gap-1.5 flex-1 overflow-x-auto pb-2 pt-2 px-2 
+              [&::-webkit-scrollbar]:h-1.5 
+              [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-full 
+              [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/30 transition-all">
               {[
                 { id: 'dashboard', label: t('menu.dashboard', 'Dashboard') },
                 { id: 'clientes', label: t('menu.clientes', 'Clientes') },
@@ -95,8 +94,8 @@ const MainLayout = ({
               ))}
             </div>
 
-            {/* LADO DERECHO: Notificaciones y Perfil (No se encoje) */}
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            {/* LADO DERECHO: Notificaciones y Perfil (Empujado a la derecha) */}
+            <div className="flex items-center gap-4 shrink-0">
               <button
                 onClick={() => setIsAlertsOpen(true)}
                 className="relative p-2 text-slate-400 hover:text-white transition-colors duration-200"
