@@ -90,13 +90,12 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
   const displayAseguradoras = isPolizasVacio ? mockAseguradoras : dataAseguradoras;
   const displaySiniestros = isSiniestrosVacio ? mockSiniestros : dataSiniestros;
 
-  // Formateador de moneda para tooltips
   const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-  // Componente Reutilizable para la Etiqueta Flotante
+  // Componente Reutilizable para la Etiqueta Flotante (Adaptado al cristal)
   const SimulationBadge = () => (
     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-      <div className="bg-slate-900/85 backdrop-blur-sm text-white px-6 py-3 rounded-full font-bold shadow-2xl border border-slate-700/50 flex items-center gap-2 transform -translate-y-4 transition-all">
+      <div className="bg-slate-800/90 text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/10 backdrop-blur-md transform -translate-y-4 transition-all">
         <Sparkles className="h-5 w-5 text-amber-400" />
         Simulación de lo que esperas
       </div>
@@ -106,47 +105,61 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       
-      {/* GRÁFICO 1: Salud de la Cartera */}
-      <Card className="shadow-lg border-none rounded-xl relative overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-emerald-600" />
+      {/* GRÁFICO 1: Salud de la Cartera - CRISTAL */}
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+        <CardHeader className="pb-4 pt-5 px-6">
+          <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
+            <div className="bg-emerald-500/15 p-2 rounded-lg border border-emerald-500/20">
+              <Activity className="h-4 w-4 text-emerald-400" />
+            </div>
             Salud de la Cartera (Pólizas)
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6 h-80 relative">
+        <CardContent className="h-80 relative px-6 pb-6">
           {isPolizasVacio && <SimulationBadge />}
           <div className={`h-full w-full transition-opacity duration-500 ${isPolizasVacio ? 'opacity-30 grayscale-[30%]' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={displaySalud} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                <Pie 
+                  data={displaySalud} 
+                  cx="50%" cy="50%" 
+                  innerRadius={60} 
+                  outerRadius={100} 
+                  paddingAngle={5} 
+                  dataKey="value" 
+                  stroke="rgba(0,0,0,0.2)"
+                  strokeWidth={2}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
                   {displaySalud.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
-                <RechartsTooltip />
-                <Legend verticalAlign="bottom" height={36}/>
+                <RechartsTooltip contentStyle={{backgroundColor: 'rgba(10, 15, 28, 0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px'}} itemStyle={{color: '#fff', fontSize: '12px'}} labelStyle={{color: '#aaa'}} />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{color: '#cbd5e1', fontSize: '12px', fontWeight: 'bold'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      {/* GRÁFICO 2: Distribución por Aseguradora */}
-      <Card className="shadow-lg border-none rounded-xl relative overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-indigo-600" />
+      {/* GRÁFICO 2: Distribución por Aseguradora - CRISTAL */}
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+        <CardHeader className="pb-4 pt-5 px-6">
+          <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
+            <div className="bg-indigo-500/15 p-2 rounded-lg border border-indigo-500/20">
+              <Building2 className="h-4 w-4 text-indigo-400" />
+            </div>
             Top 5 Aseguradoras (Volumen)
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6 h-80 relative">
+        <CardContent className="h-80 relative px-6 pb-6">
           {isPolizasVacio && <SimulationBadge />}
           <div className={`h-full w-full transition-opacity duration-500 ${isPolizasVacio ? 'opacity-30 grayscale-[30%]' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={displayAseguradoras} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="nombre" type="category" width={100} tick={{fontSize: 12}} />
-                <RechartsTooltip />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis type="number" tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} axisLine={false} tickLine={false} />
+                <YAxis dataKey="nombre" type="category" width={100} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} axisLine={false} tickLine={false} />
+                <RechartsTooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{backgroundColor: 'rgba(10, 15, 28, 0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px'}} itemStyle={{color: '#fff', fontSize: '12px'}} labelStyle={{color: '#aaa'}} />
                 <Bar dataKey="cantidad" fill="#6366f1" radius={[0, 4, 4, 0]} name="Pólizas" />
               </BarChart>
             </ResponsiveContainer>
@@ -154,15 +167,17 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
         </CardContent>
       </Card>
 
-      {/* GRÁFICO 3: Siniestralidad (Ancho completo) */}
-      <Card className="shadow-lg border-none rounded-xl lg:col-span-2 relative overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-          <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-red-600" />
+      {/* GRÁFICO 3: Siniestralidad (Ancho completo) - CRISTAL */}
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl lg:col-span-2 relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+        <CardHeader className="pb-4 pt-5 px-6">
+          <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
+            <div className="bg-red-500/15 p-2 rounded-lg border border-red-500/20">
+              <ShieldAlert className="h-4 w-4 text-red-400" />
+            </div>
             Siniestralidad: Reportes vs Montos Pagados
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6 h-80 relative">
+        <CardContent className="h-80 relative px-6 pb-6">
           {isSiniestrosVacio && <SimulationBadge />}
           <div className={`h-full w-full transition-opacity duration-500 ${isSiniestrosVacio ? 'opacity-30 grayscale-[30%]' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
@@ -173,12 +188,12 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="mes" />
-                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                <YAxis yAxisId="right" orientation="right" stroke="#ef4444" tickFormatter={(val) => `$${val}`} />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <RechartsTooltip formatter={(value, name) => name === 'Monto Pagado' ? formatCurrency(value) : value} />
-                <Legend />
+                <XAxis dataKey="mes" tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} axisLine={false} tickLine={false} dy={10} />
+                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" tick={{fill: '#8884d8', fontSize: 12, fontWeight: 'bold'}} axisLine={false} tickLine={false} dx={-10} />
+                <YAxis yAxisId="right" orientation="right" stroke="#ef4444" tickFormatter={(val) => `$${val}`} tick={{fill: '#ef4444', fontSize: 12, fontWeight: 'bold'}} axisLine={false} tickLine={false} dx={10} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <RechartsTooltip formatter={(value, name) => name === 'Monto Pagado' ? formatCurrency(value) : value} contentStyle={{backgroundColor: 'rgba(10, 15, 28, 0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px'}} itemStyle={{color: '#fff', fontSize: '12px'}} labelStyle={{color: '#aaa'}} />
+                <Legend wrapperStyle={{color: '#cbd5e1', fontSize: '12px', fontWeight: 'bold'}} />
                 <Area yAxisId="left" type="monotone" dataKey="volumen" stroke="#8884d8" fill="#8884d8" name="N° de Casos" />
                 <Area yAxisId="right" type="monotone" dataKey="montoPagado" stroke="#ef4444" fillOpacity={1} fill="url(#colorMonto)" name="Monto Pagado" />
               </AreaChart>
