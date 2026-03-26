@@ -29,7 +29,8 @@ function ClientesPage({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Directorio de Clientes</h2>
+        {/* CRISTAL: Texto blanco, fuente más gruesa y sombra para resaltar sobre el fondo oscuro */}
+        <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Directorio de Clientes</h2>
       </div>
       
       <ClientForm 

@@ -149,100 +149,111 @@ function ClientForm({ onClientSaved, editingClient, setEditingClient, apiBaseUrl
   };
 
   return (
-    <Card className="mb-8 border-none shadow-xl rounded-xl overflow-hidden">
-      {/* Cabecera Premium */}
-      <div className={`p-6 ${editingClient ? 'bg-gradient-to-r from-amber-500 to-orange-600' : 'bg-gradient-to-r from-blue-600 to-indigo-700'} text-white flex justify-between items-center`}>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+    // CRISTAL: Card principal ahumada, con bordes y sombra
+    <Card className="mb-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden transition-all duration-300">
+      
+      {/* Cabecera Premium adaptada a cristal */}
+      <div className={`p-6 ${editingClient ? 'bg-gradient-to-r from-amber-500/20 to-orange-600/20 border-b border-amber-500/30' : 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-b border-cyan-500/30'} flex justify-between items-center`}>
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-xl backdrop-blur-md border ${editingClient ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-400'}`}>
             {editingClient ? <User className="h-6 w-6" /> : <UserPlus className="h-6 w-6" />}
           </div>
           <div>
-            <h2 className="text-xl font-bold">{editingClient ? 'Editando Perfil del Cliente' : 'Registrar Nuevo Cliente'}</h2>
-            <p className="text-blue-100 text-sm opacity-90">
+            <h2 className="text-xl font-black text-white drop-shadow-md">{editingClient ? 'Editando Perfil del Cliente' : 'Registrar Nuevo Cliente'}</h2>
+            <p className="text-slate-300 text-sm font-medium mt-0.5">
               {editingClient ? `Modificando los datos de ${formData.nombre} ${formData.apellido}` : 'Completa los datos para añadirlo a tu cartera.'}
             </p>
           </div>
         </div>
         {editingClient && (
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={() => setEditingClient(null)}>
+          <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors" onClick={() => setEditingClient(null)}>
             <X className="h-5 w-5" />
           </Button>
         )}
       </div>
 
-      <CardContent className="p-6 bg-white">
+      <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           
+          {/* INPUT: Nombre */}
           <div className="space-y-2 relative">
-            <Label htmlFor="nombre" className="text-gray-600 font-semibold">Nombres <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className={`pl-10 ${errors.nombre ? 'border-red-500 ring-1 ring-red-500' : 'bg-gray-50 focus:bg-white'}`} placeholder="Ej. Arturo" />
+            <Label htmlFor="nombre" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Nombres <span className="text-red-400">*</span></Label>
+            <div className="relative group">
+              <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className={`pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all ${errors.nombre ? 'border-red-500 ring-1 ring-red-500' : ''}`} placeholder="Ej. Arturo" />
             </div>
-            {errors.nombre && <p className="text-xs text-red-600 font-medium">{errors.nombre}</p>}
+            {errors.nombre && <p className="text-xs text-red-400 font-bold">{errors.nombre}</p>}
           </div>
 
+          {/* INPUT: Apellido */}
           <div className="space-y-2 relative">
-            <Label htmlFor="apellido" className="text-gray-600 font-semibold">Apellidos <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="apellido" name="apellido" value={formData.apellido} onChange={handleChange} className={`pl-10 ${errors.apellido ? 'border-red-500 ring-1 ring-red-500' : 'bg-gray-50 focus:bg-white'}`} placeholder="Ej. Mendoza" />
+            <Label htmlFor="apellido" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Apellidos <span className="text-red-400">*</span></Label>
+            <div className="relative group">
+              <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="apellido" name="apellido" value={formData.apellido} onChange={handleChange} className={`pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all ${errors.apellido ? 'border-red-500 ring-1 ring-red-500' : ''}`} placeholder="Ej. Mendoza" />
             </div>
-            {errors.apellido && <p className="text-xs text-red-600 font-medium">{errors.apellido}</p>}
+            {errors.apellido && <p className="text-xs text-red-400 font-bold">{errors.apellido}</p>}
           </div>
 
+          {/* INPUT: Cédula */}
           <div className="space-y-2 relative">
-            <Label htmlFor="cedula" className="text-gray-600 font-semibold">Documento de Identidad <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="cedula" name="cedula" value={formData.cedula} onChange={handleChange} placeholder="Ej. V-12345678" className={`pl-10 uppercase ${errors.cedula ? 'border-red-500 ring-1 ring-red-500' : 'bg-gray-50 focus:bg-white'}`} />
+            <Label htmlFor="cedula" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Documento de Identidad <span className="text-red-400">*</span></Label>
+            <div className="relative group">
+              <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="cedula" name="cedula" value={formData.cedula} onChange={handleChange} placeholder="Ej. V-12345678" className={`pl-10 uppercase text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all ${errors.cedula ? 'border-red-500 ring-1 ring-red-500' : ''}`} />
             </div>
-            {errors.cedula && <p className="text-xs text-red-600 font-medium">{errors.cedula}</p>}
+            {errors.cedula && <p className="text-xs text-red-400 font-bold">{errors.cedula}</p>}
           </div>
 
+          {/* INPUT: Fecha Nacimiento */}
           <div className="space-y-2 relative">
-            <Label htmlFor="fecha_nacimiento" className="text-gray-600 font-semibold">Fecha de Nacimiento <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="fecha_nacimiento" name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} required className="pl-10 bg-gray-50 focus:bg-white" />
-            </div>
-          </div>
-
-          <div className="space-y-2 relative">
-            <Label htmlFor="email" className="text-gray-600 font-semibold">Correo Electrónico <span className="text-red-500">*</span></Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="correo@ejemplo.com" className={`pl-10 lowercase ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'bg-gray-50 focus:bg-white'}`} />
-            </div>
-            {errors.email && <p className="text-xs text-red-600 font-medium">{errors.email}</p>}
-          </div>
-
-          <div className="space-y-2 relative">
-            <Label htmlFor="telefono" className="text-gray-600 font-semibold">Teléfono de Contacto</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="telefono" name="telefono" type="tel" value={formData.telefono} onChange={handleChange} placeholder="+58 414 1234567" className="pl-10 bg-gray-50 focus:bg-white" />
+            <Label htmlFor="fecha_nacimiento" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Fecha de Nacimiento <span className="text-red-400">*</span></Label>
+            <div className="relative group">
+              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              {/* Estilos especiales para el icono del calendario nativo del navegador en modo oscuro */}
+              <Input id="fecha_nacimiento" name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} required className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all [&::-webkit-calendar-picker-indicator]:invert" />
             </div>
           </div>
 
+          {/* INPUT: Email */}
+          <div className="space-y-2 relative">
+            <Label htmlFor="email" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Correo Electrónico <span className="text-red-400">*</span></Label>
+            <div className="relative group">
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="correo@ejemplo.com" className={`pl-10 lowercase text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all ${errors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`} />
+            </div>
+            {errors.email && <p className="text-xs text-red-400 font-bold">{errors.email}</p>}
+          </div>
+
+          {/* INPUT: Teléfono */}
+          <div className="space-y-2 relative">
+            <Label htmlFor="telefono" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Teléfono de Contacto</Label>
+            <div className="relative group">
+              <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="telefono" name="telefono" type="tel" value={formData.telefono} onChange={handleChange} placeholder="+58 414 1234567" className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all" />
+            </div>
+          </div>
+
+          {/* INPUT: Dirección */}
           <div className="space-y-2 md:col-span-2 relative">
-            <Label htmlFor="direccion" className="text-gray-600 font-semibold">Dirección Física</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Avenida, Calle, Edificio..." className="pl-10 bg-gray-50 focus:bg-white" />
+            <Label htmlFor="direccion" className="text-slate-300 font-bold text-xs uppercase tracking-wider">Dirección Física</Label>
+            <div className="relative group">
+              <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+              <Input id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Avenida, Calle, Edificio..." className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 placeholder:text-slate-600 transition-all" />
             </div>
           </div>
 
-          <div className="md:col-span-2 flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-100">
+          {/* BOTONES */}
+          <div className="md:col-span-2 flex justify-end space-x-4 mt-4 pt-6 border-t border-white/10">
             {editingClient && (
-              <Button type="button" variant="outline" className="text-gray-600" onClick={() => setEditingClient(null)}>
+              <Button type="button" variant="outline" className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white transition-all" onClick={() => setEditingClient(null)}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit" disabled={isSubmitting} className={`shadow-lg text-white font-bold ${editingClient ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+            <Button type="submit" disabled={isSubmitting} className={`shadow-lg font-black tracking-wide border ${editingClient ? 'bg-amber-600/80 hover:bg-amber-500 border-amber-500/50 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'bg-cyan-600/80 hover:bg-cyan-500 border-cyan-500/50 text-white shadow-[0_0_15px_rgba(8,145,178,0.5)]'} transition-all`}>
               {isSubmitting ? 'Procesando...' : (
                 <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-5 w-5" />
                   {editingClient ? 'Guardar Cambios' : 'Registrar Cliente'}
                 </span>
               )}
