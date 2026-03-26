@@ -115,51 +115,70 @@ function ComisionList({
 
   const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
 
+  // Estilos Ciberpunk para los selectores de filtros
+  const filterSelectStylesClass = "[&_button]:!bg-black/40 [&_button]:!border-white/10 [&_button]:!text-white hover:[&_button]:!border-amber-400 focus:[&_button]:!ring-amber-400 [&_div[role='listbox']]:!bg-slate-800 [&_div[role='listbox']]:!border-white/10 [&_li]:!text-slate-200 hover:[&_li]:!bg-amber-500/20 hover:[&_li]:!text-amber-300 h-10";
+
   return (
     <>
-      <Card className="mt-6 shadow-lg border-none rounded-xl overflow-hidden bg-white">
+      <Card className="mt-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] border border-white/10 relative">
         <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Banknote className="h-6 w-6 text-indigo-600" /> Registro de Liquidaciones
-              <span className="bg-indigo-50 text-indigo-700 text-xs py-1 px-3 rounded-full ml-2 border border-indigo-100 font-bold">{totalItems} Pagos</span>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 border-b border-white/10 pb-4">
+            <h3 className="text-xl font-black text-white flex items-center gap-3 drop-shadow-md">
+              <div className="bg-amber-500/20 p-2 rounded-lg border border-amber-500/30">
+                <Banknote className="h-5 w-5 text-amber-400" />
+              </div>
+              Registro de Liquidaciones
+              <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">{totalItems} Pagos</span>
             </h3>
-            <div className="flex gap-2 w-full lg:w-auto">
-              <Button onClick={handleExportCsv} variant="outline" className="flex-1 lg:flex-none border-green-200 text-green-700 hover:bg-green-50 font-bold" disabled={isExporting || comisiones.length === 0}><FileDown className="h-4 w-4 mr-2" /> CSV</Button>
-              <Button onClick={handleExportPdf} variant="outline" className="flex-1 lg:flex-none border-red-200 text-red-700 hover:bg-red-50 font-bold" disabled={isExporting || comisiones.length === 0}><FileText className="h-4 w-4 mr-2" /> PDF</Button>
+            <div className="flex gap-3 w-full lg:w-auto">
+              <Button onClick={handleExportCsv} variant="outline" className="flex-1 lg:flex-none border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/50 transition-all h-10 font-bold" disabled={isExporting || comisiones.length === 0}><FileDown className="h-4 w-4 mr-2" /> CSV</Button>
+              <Button onClick={handleExportPdf} variant="outline" className="flex-1 lg:flex-none border-rose-500/30 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/50 transition-all h-10 font-bold" disabled={isExporting || comisiones.length === 0}><FileText className="h-4 w-4 mr-2" /> PDF</Button>
             </div>
           </div>
 
-          <form onSubmit={handleSearchClick} className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-100 space-y-4">
+          <form onSubmit={handleSearchClick} className="mb-6 bg-black/20 p-5 rounded-xl border border-white/10 backdrop-blur-md space-y-4 z-20 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Asesor</Label><HeadlessSafeSelect value={asesorIdFilter} onChange={setAsesorIdFilter} options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} className="bg-white" /></div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Estado</Label><HeadlessSafeSelect value={estadoPagoFilter} onChange={setEstadoPagoFilter} options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} className="bg-white" /></div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-500 uppercase">Desde</Label><Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-white" /></div>
-              <div className="flex items-end gap-2">
-                <Button type="submit" className="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold"><Search className="h-4 w-4 mr-2"/> Filtrar</Button>
-                <Button type="button" variant="outline" onClick={handleClearFilters}>Limpiar</Button>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asesor</Label>
+                <div className={filterSelectStylesClass}>
+                  <HeadlessSafeSelect value={asesorIdFilter} onChange={setAsesorIdFilter} options={[{id: '', nombre: 'Todos'}, ...asesores.map(a => ({id: a.id, nombre: a.nombre}))]} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Estado</Label>
+                <div className={filterSelectStylesClass}>
+                  <HeadlessSafeSelect value={estadoPagoFilter} onChange={setEstadoPagoFilter} options={[{id: '', nombre: 'Todos'}, {id: 'pendiente', nombre: 'Pendiente'}, {id: 'pagado', nombre: 'Pagado'}]} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Desde</Label>
+                <Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-black/40 text-white border-white/10 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all h-10 [&::-webkit-calendar-picker-indicator]:invert" />
+              </div>
+              <div className="flex items-end gap-3">
+                <Button type="submit" className="flex-1 bg-amber-600/80 hover:bg-amber-500 text-white border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)] h-10 px-6 font-bold"><Search className="h-4 w-4 mr-2"/> Filtrar</Button>
+                <Button type="button" variant="outline" onClick={handleClearFilters} className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10">Limpiar</Button>
               </div>
             </div>
           </form>
 
           {comisiones.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
-              <div className="bg-white p-4 rounded-full shadow-sm border border-slate-100 mb-4"><Banknote className="h-10 w-10 text-slate-300" /></div>
-              <h3 className="text-lg font-bold text-slate-700">No hay liquidaciones</h3>
-              <p className="text-sm text-slate-500 text-center mt-1">Genera una nueva comisión o ajusta los filtros de búsqueda.</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
+              <div className="bg-white/5 p-4 rounded-full border border-white/10 mb-4"><Banknote className="h-10 w-10 text-slate-500" /></div>
+              <h3 className="text-lg font-bold text-white">No hay liquidaciones</h3>
+              <p className="text-sm text-slate-400 text-center mt-2 leading-relaxed">Genera una nueva comisión o ajusta los filtros de búsqueda.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+            <div className="overflow-x-auto rounded-xl border border-white/10 shadow-inner">
+              <table className="min-w-full divide-y divide-white/10">
+                <thead className="bg-slate-900/50 backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Asesor & Estado</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Póliza & Fecha</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Liquidación</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Asesor & Estado</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Póliza & Fecha</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Liquidación</th>
+                    <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
+                <tbody className="bg-transparent divide-y divide-white/5">
                   {comisiones.map((c) => {
                     const clienteIdAsociado = getClienteIdFromComision(c.id_poliza);
                     const nombreAsesor = asesores.find(a => String(a.id) === String(c.id_asesor))?.nombre || 'N/A';
@@ -168,24 +187,24 @@ function ComisionList({
                     const isPendiente = c.estatus_pago?.toLowerCase() === 'pendiente';
 
                     return (
-                      <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={c.id} className="hover:bg-white/5 transition-colors duration-200 group">
                         
-                        {/* 1. ASESOR & ESTADO (Con Avatar y LED) */}
+                        {/* 1. ASESOR & ESTADO */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
+                            <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-black text-sm border border-indigo-500/30 shadow-inner">
                               {getInitials(nombreAsesor)}
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-slate-800 flex items-center gap-1">
-                                {nombreAsesor} <UserCheck className="h-3.5 w-3.5 text-blue-500"/>
+                              <p className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors flex items-center gap-1">
+                                {nombreAsesor} <UserCheck className="h-3.5 w-3.5 text-indigo-400"/>
                               </p>
                               <div className="mt-1">
-                                <span className={`px-2 py-0.5 inline-flex items-center gap-1.5 text-[10px] font-bold rounded-full border 
-                                  ${isPagado ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                                    isPendiente ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${isPagado ? 'bg-emerald-500' : isPendiente ? 'bg-amber-500' : 'bg-slate-500'}`}></span>
-                                  {c.estatus_pago ? c.estatus_pago.toUpperCase() : 'PENDIENTE'}
+                                <span className={`px-2 py-0.5 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider rounded-full border 
+                                  ${isPagado ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 
+                                    isPendiente ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-500/20 text-slate-300 border-slate-500/30'}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.5)] ${isPagado ? 'bg-emerald-400' : isPendiente ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                  {c.estatus_pago ? c.estatus_pago : 'PENDIENTE'}
                                 </span>
                               </div>
                             </div>
@@ -194,34 +213,34 @@ function ComisionList({
 
                         {/* 2. PÓLIZA & FECHA */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <p className="text-sm font-black text-indigo-600">Pol: {numeroPoliza}</p>
-                          <p className="text-xs flex items-center gap-1 mt-1 text-slate-500 font-medium">
+                          <p className="text-sm font-black text-amber-400">Pol: {numeroPoliza}</p>
+                          <p className="text-xs flex items-center gap-1.5 mt-1 text-slate-400 font-bold">
                             <Calendar className="h-3.5 w-3.5"/> Generada: {formatDisplayDate(c.fecha_generacion)}
                           </p>
                         </td>
 
-                        {/* 3. LIQUIDACIÓN (Cajita Gris) */}
+                        {/* 3. LIQUIDACIÓN */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                           <div className="inline-flex items-center bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100 text-sm">
-                              <span className="text-slate-500 font-bold mr-2">A Pagar:</span>
-                              <span className="font-black text-emerald-600">{currencySymbol} {formatCurrency(c.monto_final)}</span>
+                           <div className="inline-flex items-center bg-white/5 px-2.5 py-1.5 rounded-md border border-white/10 text-sm">
+                              <span className="text-slate-400 font-bold mr-2">A Pagar:</span>
+                              <span className="font-black text-emerald-400 drop-shadow-md">{currencySymbol} {formatCurrency(c.monto_final)}</span>
                            </div>
                         </td>
 
                         {/* 4. ACCIONES */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right space-x-1">
+                        <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
                           {clienteIdAsociado && (
-                            <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(clienteIdAsociado)} className="text-purple-600 hover:bg-purple-100 rounded-full" title="Ver Expediente CRM 360 del Cliente">
+                            <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(clienteIdAsociado)} className="text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors" title="Ver Expediente CRM 360 del Cliente">
                               <Eye className="h-4 w-4" />
                             </Button>
                           )}
                           {isPendiente && (
-                            <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Confirmar Pago", message: "¿Confirmas que ya transferiste esta comisión al asesor?", onConfirm: () => handlePagoRapidoComision(c.id) })} className="text-emerald-600 hover:bg-emerald-100 rounded-full" title="Registrar pago rápido">
+                            <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Confirmar Pago", message: "¿Confirmas que ya transferiste esta comisión al asesor?", onConfirm: () => handlePagoRapidoComision(c.id) })} className="text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-full transition-colors" title="Registrar pago rápido">
                               <Banknote className="h-5 w-5" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => onEditComision(c)} className="text-blue-600 hover:bg-blue-100 rounded-full" title="Editar"><PencilIcon className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar", onConfirm: () => onDeleteComision(c.id) })} className="text-rose-500 hover:bg-rose-100 rounded-full" title="Borrar"><Trash2Icon className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => onEditComision(c)} className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" title="Editar"><PencilIcon className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar", onConfirm: () => onDeleteComision(c.id) })} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" title="Borrar"><Trash2Icon className="h-4 w-4" /></Button>
                         </td>
                       </tr>
                     );

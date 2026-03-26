@@ -7,7 +7,8 @@ import ComisionList from '../components/ComisionList';
 function ComisionesPage(props) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Liquidación de Comisiones</h2>
+      {/* CRISTAL: Título iluminado */}
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Liquidación de Comisiones</h2>
       
       <ComisionForm 
         onComisionSaved={props.handleComisionSaved} 
