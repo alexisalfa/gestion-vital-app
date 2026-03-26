@@ -26,7 +26,6 @@ import 'jspdf-autotable';
 import ClientForm from './components/ClientForm';
 import ReclamacionForm from './components/ReclamacionForm';
 
-// --- NUEVOS HOOKS ---
 import { useClientes } from './hooks/useClientes';
 import { usePolizas } from './hooks/usePolizas';
 import { useReclamaciones } from './hooks/useReclamaciones';
@@ -35,7 +34,6 @@ import { useAsesores } from './hooks/useAsesores';
 import { useComisiones } from './hooks/useComisiones';
 import { useConfiguracion } from './hooks/useConfiguracion';
 
-// 🏰 IMPORTACIÓN DEL NUEVO LAYOUT (ARMADURA VISUAL)
 import MainLayout from './components/MainLayout';
 
 const CLIENTES_PER_PAGE = 10;
@@ -107,10 +105,8 @@ function App() {
     return () => { window.fetch = originalFetch; };
   }, []);
 
-  // FASE 3: Consumimos la Nube Global
   const { API_BASE_URL, MASTER_LICENSE_KEY } = useGlobal();
 
-  // 🧠 CEREBRITO CONECTADO
   const {
     selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey, isLicenseValid,
     setSelectedLanguage, setCurrencySymbol, setDateFormat, setSelectedCountry, setLicenseKey, saveSettings
@@ -193,11 +189,9 @@ function App() {
 
     if (currentPath === 'dashboard') {
       fetchUpcomingPoliciesData();
-      // --- REPARACIÓN: Descargar datos para las gráficas al iniciar ---
       fetchPoliciesData(0, 9999, '', '', '', '', '', '');
       fetchClaimsData(0, 9999, '', '', '', '', '');
       fetchInsuranceCompaniesData(0, 9999, '');
-      // --------------------------------------------------------------
     } else if (currentPath === 'clientes') {
       fetchClientsData((clienteCurrentPage - 1) * CLIENTES_PER_PAGE, CLIENTES_PER_PAGE, clienteSearchTerm, clienteEmailFilter);
     } else if (currentPath === 'polizas') {
@@ -304,7 +298,6 @@ function App() {
 
   return (
     <ConfirmationProvider>
-      {/* 🏰 CAPA PROTECTORA VISUAL (Layout) */}
       <MainLayout
         currentPath={currentPath}
         t={t}
@@ -339,29 +332,170 @@ function App() {
                 getDateFormatOptions={getDateFormatOptions} 
                 lossRatio={lossRatioData} 
               />
-              {/* Quitamos el div con mt-8 si este tiene fondo blanco sólido */}
               <DashboardCharts polizas={polizas} reclamaciones={reclamaciones} empresas={empresasAseguradoras} />
             </div>
           } />
           
+          {/* 🔥 SECCIÓN DE MÓDULOS CON FILTROS REPARADOS Y BLINDADOS 🔥 */}
+          
           <Route path="/clientes" element={
-            <ClientesPage apiBaseUrl={API_BASE_URL} clientes={clientes} editingClient={editingClient} setEditingClient={setEditingClient} onClientSaved={handleClientSaved} handleClientDelete={(id) => handleClientDelete(id, handleClientSaved)} clienteSearchTerm={clienteSearchTerm} clienteEmailFilter={clienteEmailFilter} handleClienteSearch={handleClienteSearch} clienteCurrentPage={clienteCurrentPage} totalClients={totalClients} handleClientePageChange={handleClientePageChange} exportToCsv={exportToCsv} exportToPdf={exportToPdf} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} itemsPerPage={CLIENTES_PER_PAGE} />
+            <ClientesPage 
+              apiBaseUrl={API_BASE_URL} 
+              clientes={clientes} 
+              editingClient={editingClient} 
+              setEditingClient={setEditingClient} 
+              onClientSaved={handleClientSaved} 
+              handleClientDelete={(id) => handleClientDelete(id, handleClientSaved)} 
+              
+              clienteSearchTerm={clienteSearchTerm} 
+              clienteEmailFilter={clienteEmailFilter} 
+              setClienteSearchTerm={setClienteSearchTerm} 
+              setClienteEmailFilter={setClienteEmailFilter} 
+              
+              handleClienteSearch={handleClienteSearch} 
+              clienteCurrentPage={clienteCurrentPage} 
+              totalClients={totalClients} 
+              handleClientePageChange={handleClientePageChange} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+              itemsPerPage={CLIENTES_PER_PAGE} 
+            />
           } />
 
           <Route path="/polizas" element={
-            <PolizasPage apiBaseUrl={API_BASE_URL} polizas={polizas} editingPoliza={editingPoliza} setEditingPoliza={setEditingPoliza} handlePolizaSaved={handlePolizaSaved} handlePolizaDelete={(id) => handlePolizaDelete(id, handlePolizaSaved)} polizaSearchTerm={polizaSearchTerm} polizaTipoFilter={polizaTipoFilter} polizaEstadoFilter={polizaClienteIdFilter} polizaFechaInicioFilter={polizaFechaInicioFilter} polizaFechaFinFilter={polizaFechaFinFilter} handlePolizaSearch={handlePolizaSearch} polizaCurrentPage={polizaCurrentPage} handlePolizaPageChange={handlePolizaPageChange} itemsPerPage={POLIZAS_PER_PAGE} totalPolizas={totalPolizas} exportToCsv={exportToCsv} exportToPdf={exportToPdf} clientes={clientes} empresasAseguradoras={empresasAseguradoras} asesores={asesores} isLoadingClients={isLoadingClients} isLoadingCompanies={isLoadingCompanies} isLoadingAdvisors={isLoadingAdvisors} currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
+            <PolizasPage 
+              apiBaseUrl={API_BASE_URL} 
+              polizas={polizas} 
+              editingPoliza={editingPoliza} 
+              setEditingPoliza={setEditingPoliza} 
+              handlePolizaSaved={handlePolizaSaved} 
+              handlePolizaDelete={(id) => handlePolizaDelete(id, handlePolizaSaved)} 
+              
+              polizaSearchTerm={polizaSearchTerm} 
+              polizaTipoFilter={polizaTipoFilter} 
+              polizaEstadoFilter={polizaEstadoFilter} 
+              polizaClienteIdFilter={polizaClienteIdFilter} 
+              polizaFechaInicioFilter={polizaFechaInicioFilter} 
+              polizaFechaFinFilter={polizaFechaFinFilter} 
+              
+              setPolizaSearchTerm={setPolizaSearchTerm}
+              setPolizaTipoFilter={setPolizaTipoFilter}
+              setPolizaEstadoFilter={setPolizaEstadoFilter}
+              setPolizaClienteIdFilter={setPolizaClienteIdFilter}
+              setPolizaFechaInicioFilter={setPolizaFechaInicioFilter}
+              setPolizaFechaFinFilter={setPolizaFechaFinFilter}
+              
+              handlePolizaSearch={handlePolizaSearch} 
+              polizaCurrentPage={polizaCurrentPage} 
+              handlePolizaPageChange={handlePolizaPageChange} 
+              itemsPerPage={POLIZAS_PER_PAGE} 
+              totalPolizas={totalPolizas} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              clientes={clientes} 
+              empresasAseguradoras={empresasAseguradoras} 
+              asesores={asesores} 
+              isLoadingClients={isLoadingClients} 
+              isLoadingCompanies={isLoadingCompanies} 
+              isLoadingAdvisors={isLoadingAdvisors} 
+              currencySymbol={currencySymbol} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+            />
           } />
 
           <Route path="/reclamaciones" element={
-            <ReclamacionesPage apiBaseUrl={API_BASE_URL} reclamaciones={reclamaciones} editingReclamacion={editingReclamacion} setEditingReclamacion={setEditingReclamacion} handleReclamacionSaved={handleReclamacionSaved} handleReclamacionDelete={(id) => handleReclamacionDelete(id, handleReclamacionSaved)} fetchClaimsData={fetchClaimsData} reclamacionSearchTerm={reclamacionSearchTerm} reclamacionEstadoFilter={reclamacionEstadoFilter} reclamacionClienteIdFilter={reclamacionClienteIdFilter} reclamacionPolizaIdFilter={reclamacionPolizaIdFilter} reclamacionFechaReclamacionInicioFilter={reclamacionFechaReclamacionInicioFilter} reclamacionFechaReclamacionFinFilter={reclamacionFechaReclamacionFinFilter} handleReclamacionSearch={handleReclamacionSearch} reclamacionCurrentPage={reclamacionCurrentPage} itemsPerPage={RECLAMACIONES_PER_PAGE} totalReclamaciones={totalReclamaciones} handleReclamacionPageChange={handleReclamacionPageChange} exportToCsv={exportToCsv} exportToPdf={exportToPdf} clientes={clientes} polizas={polizas} isLoadingPolicies={isLoadingPolicies} isLoadingClients={isLoadingClients} isLoadingReclamaciones={isLoadingReclamaciones} currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
+            <ReclamacionesPage 
+              apiBaseUrl={API_BASE_URL} 
+              reclamaciones={reclamaciones} 
+              editingReclamacion={editingReclamacion} 
+              setEditingReclamacion={setEditingReclamacion} 
+              handleReclamacionSaved={handleReclamacionSaved} 
+              handleReclamacionDelete={(id) => handleReclamacionDelete(id, handleReclamacionSaved)} 
+              fetchClaimsData={fetchClaimsData} 
+              
+              reclamacionSearchTerm={reclamacionSearchTerm} 
+              reclamacionEstadoFilter={reclamacionEstadoFilter} 
+              reclamacionClienteIdFilter={reclamacionClienteIdFilter} 
+              reclamacionPolizaIdFilter={reclamacionPolizaIdFilter} 
+              reclamacionFechaReclamacionInicioFilter={reclamacionFechaReclamacionInicioFilter} 
+              reclamacionFechaReclamacionFinFilter={reclamacionFechaReclamacionFinFilter} 
+              
+              setReclamacionSearchTerm={setReclamacionSearchTerm}
+              setReclamacionEstadoFilter={setReclamacionEstadoFilter}
+              setReclamacionClienteIdFilter={setReclamacionClienteIdFilter}
+              setReclamacionPolizaIdFilter={setReclamacionPolizaIdFilter}
+              setReclamacionFechaReclamacionInicioFilter={setReclamacionFechaReclamacionInicioFilter}
+              setReclamacionFechaReclamacionFinFilter={setReclamacionFechaReclamacionFinFilter}
+              
+              handleReclamacionSearch={handleReclamacionSearch} 
+              reclamacionCurrentPage={reclamacionCurrentPage} 
+              itemsPerPage={RECLAMACIONES_PER_PAGE} 
+              totalReclamaciones={totalReclamaciones} 
+              handleReclamacionPageChange={handleReclamacionPageChange} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              clientes={clientes} 
+              polizas={polizas} 
+              isLoadingPolicies={isLoadingPolicies} 
+              isLoadingClients={isLoadingClients} 
+              isLoadingReclamaciones={isLoadingReclamaciones} 
+              currencySymbol={currencySymbol} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+            />
           } />
 
           <Route path="/empresas-aseguradoras" element={
-            <EmpresasAseguradorasPage apiBaseUrl={API_BASE_URL} empresas={empresasAseguradoras} editingEmpresaAseguradora={editingEmpresaAseguradora} setEditingEmpresaAseguradora={setEditingEmpresaAseguradora} handleEmpresaAseguradoraSaved={handleEmpresaAseguradoraSaved} handleEmpresaAseguradoraDelete={(id) => handleEmpresaAseguradoraDelete(id, handleEmpresaAseguradoraSaved)} empresaAseguradoraCurrentPage={empresaAseguradoraCurrentPage} itemsPerPage={EMPRESAS_ASEGURADORAS_PER_PAGE} totalEmpresasAseguradoras={totalEmpresasAseguradoras} handleEmpresaAseguradoraPageChange={handleEmpresaAseguradoraPageChange} empresaAseguradoraSearchTerm={empresaAseguradoraSearchTerm} handleEmpresaAseguradoraSearch={handleEmpresaAseguradoraSearch} exportToCsv={exportToCsv} exportToPdf={exportToPdf} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
+            <EmpresasAseguradorasPage 
+              apiBaseUrl={API_BASE_URL} 
+              empresas={empresasAseguradoras} 
+              editingEmpresaAseguradora={editingEmpresaAseguradora} 
+              setEditingEmpresaAseguradora={setEditingEmpresaAseguradora} 
+              handleEmpresaAseguradoraSaved={handleEmpresaAseguradoraSaved} 
+              handleEmpresaAseguradoraDelete={(id) => handleEmpresaAseguradoraDelete(id, handleEmpresaAseguradoraSaved)} 
+              empresaAseguradoraCurrentPage={empresaAseguradoraCurrentPage} 
+              itemsPerPage={EMPRESAS_ASEGURADORAS_PER_PAGE} 
+              totalEmpresasAseguradoras={totalEmpresasAseguradoras} 
+              handleEmpresaAseguradoraPageChange={handleEmpresaAseguradoraPageChange} 
+              
+              empresaAseguradoraSearchTerm={empresaAseguradoraSearchTerm} 
+              setEmpresaAseguradoraSearchTerm={setEmpresaAseguradoraSearchTerm} 
+              
+              handleEmpresaAseguradoraSearch={handleEmpresaAseguradoraSearch} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+            />
           } />
 
           <Route path="/asesores" element={
-            <AsesoresPage apiBaseUrl={API_BASE_URL} asesores={asesores} editingAsesor={editingAsesor} setEditingAsesor={setEditingAsesor} handleAsesorSaved={handleAsesorSaved} handleAsesorDelete={(id) => handleAsesorDelete(id, handleAsesorSaved)} asesorCurrentPage={asesorCurrentPage} itemsPerPage={ASESORES_PER_PAGE} totalAsesores={totalAsesores} handleAsesorPageChange={handleAsesorPageChange} asesorSearchTerm={asesorSearchTerm} handleAsesorSearch={handleAsesorSearch} exportToCsv={exportToCsv} exportToPdf={exportToPdf} empresasAseguradoras={empresasAseguradoras} isLoadingCompanies={isLoadingCompanies} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
+            <AsesoresPage 
+              apiBaseUrl={API_BASE_URL} 
+              asesores={asesores} 
+              editingAsesor={editingAsesor} 
+              setEditingAsesor={setEditingAsesor} 
+              handleAsesorSaved={handleAsesorSaved} 
+              handleAsesorDelete={(id) => handleAsesorDelete(id, handleAsesorSaved)} 
+              asesorCurrentPage={asesorCurrentPage} 
+              itemsPerPage={ASESORES_PER_PAGE} 
+              totalAsesores={totalAsesores} 
+              handleAsesorPageChange={handleAsesorPageChange} 
+              
+              asesorSearchTerm={asesorSearchTerm} 
+              setAsesorSearchTerm={setAsesorSearchTerm} 
+              
+              handleAsesorSearch={handleAsesorSearch} 
+              exportToCsv={exportToCsv} 
+              exportToPdf={exportToPdf} 
+              empresasAseguradoras={empresasAseguradoras} 
+              isLoadingCompanies={isLoadingCompanies} 
+              dateFormat={dateFormat} 
+              getDateFormatOptions={getDateFormatOptions} 
+            />
           } />
 
           <Route path="/comisiones" element={
@@ -409,7 +543,6 @@ function App() {
       
       <Toaster />
       
-      {/* BOTÓN FLOTANTE Y MODALES (QUEDAN FUERA DEL LAYOUT PARA CONTROL SUPERIOR) */}
       <div className="fixed bottom-8 right-8 z-[90] flex flex-col items-end gap-3">
         {isQuickMenuOpen && (
           <div className="flex flex-col gap-3 animate-in slide-in-from-bottom-5 duration-200 origin-bottom">
