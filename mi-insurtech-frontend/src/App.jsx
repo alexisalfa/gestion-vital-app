@@ -1,7 +1,7 @@
 // src/App.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom'; // <-- FASE 4
-import { useGlobal } from './context/GlobalContext'; // <-- FASE 3
+import { Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useGlobal } from './context/GlobalContext';
 
 import AuthPage from './components/AuthPage';
 import ClientesPage from './pages/ClientesPage';
@@ -193,6 +193,11 @@ function App() {
 
     if (currentPath === 'dashboard') {
       fetchUpcomingPoliciesData();
+      // --- REPARACIÓN: Descargar datos para las gráficas al iniciar ---
+      fetchPoliciesData(0, 9999, '', '', '', '', '', '');
+      fetchClaimsData(0, 9999, '', '', '', '', '');
+      fetchInsuranceCompaniesData(0, 9999, '');
+      // --------------------------------------------------------------
     } else if (currentPath === 'clientes') {
       fetchClientsData((clienteCurrentPage - 1) * CLIENTES_PER_PAGE, CLIENTES_PER_PAGE, clienteSearchTerm, clienteEmailFilter);
     } else if (currentPath === 'polizas') {
@@ -344,7 +349,7 @@ function App() {
           } />
 
           <Route path="/polizas" element={
-            <PolizasPage apiBaseUrl={API_BASE_URL} polizas={polizas} editingPoliza={editingPoliza} setEditingPoliza={setEditingPoliza} handlePolizaSaved={handlePolizaSaved} handlePolizaDelete={(id) => handlePolizaDelete(id, handlePolizaSaved)} polizaSearchTerm={polizaSearchTerm} polizaTipoFilter={polizaTipoFilter} polizaEstadoFilter={polizaEstadoFilter} polizaClienteIdFilter={polizaClienteIdFilter} polizaFechaInicioFilter={polizaFechaInicioFilter} polizaFechaFinFilter={polizaFechaFinFilter} handlePolizaSearch={handlePolizaSearch} polizaCurrentPage={polizaCurrentPage} handlePolizaPageChange={handlePolizaPageChange} itemsPerPage={POLIZAS_PER_PAGE} totalPolizas={totalPolizas} exportToCsv={exportToCsv} exportToPdf={exportToPdf} clientes={clientes} empresasAseguradoras={empresasAseguradoras} asesores={asesores} isLoadingClients={isLoadingClients} isLoadingCompanies={isLoadingCompanies} isLoadingAdvisors={isLoadingAdvisors} currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
+            <PolizasPage apiBaseUrl={API_BASE_URL} polizas={polizas} editingPoliza={editingPoliza} setEditingPoliza={setEditingPoliza} handlePolizaSaved={handlePolizaSaved} handlePolizaDelete={(id) => handlePolizaDelete(id, handlePolizaSaved)} polizaSearchTerm={polizaSearchTerm} polizaTipoFilter={polizaTipoFilter} polizaEstadoFilter={polizaClienteIdFilter} polizaFechaInicioFilter={polizaFechaInicioFilter} polizaFechaFinFilter={polizaFechaFinFilter} handlePolizaSearch={handlePolizaSearch} polizaCurrentPage={polizaCurrentPage} handlePolizaPageChange={handlePolizaPageChange} itemsPerPage={POLIZAS_PER_PAGE} totalPolizas={totalPolizas} exportToCsv={exportToCsv} exportToPdf={exportToPdf} clientes={clientes} empresasAseguradoras={empresasAseguradoras} asesores={asesores} isLoadingClients={isLoadingClients} isLoadingCompanies={isLoadingCompanies} isLoadingAdvisors={isLoadingAdvisors} currencySymbol={currencySymbol} dateFormat={dateFormat} getDateFormatOptions={getDateFormatOptions} />
           } />
 
           <Route path="/reclamaciones" element={
