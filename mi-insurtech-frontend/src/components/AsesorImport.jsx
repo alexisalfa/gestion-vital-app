@@ -14,10 +14,7 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
 
   // --- FUNCIÓN PARA DESCARGAR LA PLANTILLA MODELO ---
   const descargarPlantilla = () => {
-    // Encabezados requeridos por tu backend según las instrucciones anteriores
     const headers = ["nombre", "apellido", "cedula", "email", "telefono", "empresa_aseguradora_id"].join(",");
-    
-    // Fila de ejemplo clara para el usuario
     const ejemplo = ["Eduardo", "Cañas", "V87654321", "eduardo.canas@email.com", "0424-9998877", "1"].join(",");
     
     const csvContent = "\ufeff" + headers + "\n" + ejemplo;
@@ -71,41 +68,51 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
   };
 
   return (
-    <Card className="mb-8 border-none shadow-lg rounded-xl overflow-hidden bg-white">
-      <div className="bg-emerald-50 border-b border-emerald-100 p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-          <h3 className="text-lg font-bold text-emerald-900">Gestión de Fuerza de Ventas</h3>
+    <Card className="mb-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden transition-all duration-300">
+      
+      {/* Cabecera Ciberpunk Esmeralda */}
+      <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border-b border-emerald-500/30 p-5 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-md">
+            <FileSpreadsheet className="h-5 w-5 text-emerald-400" />
+          </div>
+          <h3 className="text-lg font-black text-white drop-shadow-md tracking-wide">Gestión de Fuerza de Ventas</h3>
         </div>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={descargarPlantilla}
-          className="bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-semibold shadow-sm"
+          className="bg-transparent border-emerald-400/50 text-emerald-300 hover:bg-emerald-500/20 hover:text-white font-bold shadow-sm transition-all"
         >
           <Download className="h-4 w-4 mr-2" /> Descargar Modelo
         </Button>
       </div>
 
       <CardContent className="p-6">
-        <div className="mb-6 flex items-start gap-3 p-3 bg-blue-50/50 border border-blue-100 rounded-lg">
-          <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-          <p className="text-sm text-blue-800">
-            Utiliza el modelo oficial para registrar nuevos asesores. La <b>cédula</b> es el campo de identidad; si ya existe, el registro se omitirá para evitar duplicados.
+        <div className="mb-6 flex items-start gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl backdrop-blur-sm">
+          <Info className="h-5 w-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-emerald-200">
+            Utiliza el modelo oficial para registrar nuevos asesores. La <b className="text-white">cédula</b> es el campo de identidad; si ya existe, el registro se omitirá para evitar duplicados.
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 items-end bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full space-y-2">
-            <label className="text-sm font-medium text-slate-700">Archivo CSV de Asesores</label>
-            <Input type="file" accept=".csv" onChange={handleFileChange} ref={fileInputRef} className="bg-white border-slate-200" />
+            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Archivo CSV de Asesores</label>
+            <Input 
+              type="file" 
+              accept=".csv" 
+              onChange={handleFileChange} 
+              ref={fileInputRef} 
+              className="text-white bg-black/20 border-white/10 file:bg-white/10 file:text-white file:border-0 file:rounded-md file:mr-4 file:px-4 file:py-2 hover:file:bg-white/20 transition-all focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 cursor-pointer h-12 pt-2" 
+            />
           </div>
           <Button 
             onClick={handleImportSubmit} 
             disabled={isImporting || !file} 
-            className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md transition-all active:scale-95"
+            className="w-full md:w-auto h-12 px-6 bg-emerald-600/80 hover:bg-emerald-500 text-white font-black tracking-wide border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none"
           >
-            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />} 
+            {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} 
             Iniciar Carga
           </Button>
         </div>

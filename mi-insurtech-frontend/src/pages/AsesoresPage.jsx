@@ -27,7 +27,8 @@ function AsesoresPage({
 }) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Fuerza de Ventas</h2>
+      {/* CRISTAL: Título iluminado */}
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Fuerza de Ventas</h2>
       
       <AsesorForm 
         onAsesorSaved={handleAsesorSaved} 
