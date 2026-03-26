@@ -1,5 +1,5 @@
 // src/components/DashboardCharts.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   PieChart, Pie, Cell, 
@@ -8,29 +8,72 @@ import {
 } from 'recharts';
 import { Activity, ShieldAlert, Building2, Sparkles, Info, Lightbulb } from 'lucide-react';
 
-// 🚀 MICRO-COMPONENTE: TOOLTIP ESTRATÉGICO (GLASSMORPHISM)
-const TooltipEstrategico = ({ titulo, explicacion, tipMotivador }) => (
-  <div className="relative group inline-flex items-center ml-2 z-50">
-    <Info className="h-4 w-4 text-indigo-400 hover:text-indigo-300 cursor-help transition-colors" />
-    
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 p-4 bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
-      {/* Flechita apuntando hacia abajo */}
-      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900/95"></div>
-      
-      <p className="font-black text-white text-sm mb-1">{titulo}</p>
-      <p className="text-xs text-slate-300 mb-3 leading-relaxed">{explicacion}</p>
-      
-      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
-        <p className="font-bold text-emerald-400 text-xs flex items-center gap-1.5 mb-1">
-          <Lightbulb className="h-3.5 w-3.5" /> Visión de CEO
-        </p>
-        <p className="text-xs text-emerald-200/90 leading-relaxed italic">
-          "{tipMotivador}"
-        </p>
+// 🤖 SISTEMA DE FLOTACIÓN ANTIBLOQUEO (PORTAL FIX)
+// Este componente detecta dónde está el mouse y proyecta el tooltip por encima de todo.
+const TooltipEstrategico = ({ titulo, explicacion, tipMotivador }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const iconRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      // Calculamos la posición exacta en la pantalla (fixed)
+      setCoords({
+        x: rect.left + rect.width / 2, // Centro horizontal del ícono
+        y: rect.top - 10 // Justo arriba del ícono
+      });
+      setIsVisible(true);
+    }
+  };
+
+  return (
+    <>
+      {/* El ícono gatillo */}
+      <div 
+        ref={iconRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={() => setIsVisible(false)}
+        className="inline-flex items-center ml-2 cursor-help z-10"
+      >
+        <Info className="h-4 w-4 text-indigo-400 hover:text-indigo-300 transition-colors" />
       </div>
-    </div>
-  </div>
-);
+
+      {/* EL TOOLTIP FLOTANTE (ESTILO PORTAL FIJO) */}
+      {/* Se renderiza con position: fixed para ignorar overflow de tarjetas y grids */}
+      {isVisible && (
+        <div 
+          className="p-4 bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-200 pointer-events-none"
+          style={{
+            position: 'fixed',
+            // z-index nivel DIOS para estar sobre menús y modales
+            zIndex: 99999, 
+            width: '288px', // w-72
+            // Centrado horizontal y posicionado arriba usando las coordenadas calculadas
+            left: `${coords.x}px`,
+            top: `${coords.y}px`,
+            transform: 'translate(-50%, -100%)', // Centrar respecto al punto y subir
+          }}
+        >
+          {/* Flechita apuntando hacia abajo */}
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900/95"></div>
+          
+          <p className="font-black text-white text-sm mb-1">{titulo}</p>
+          <p className="text-xs text-slate-300 mb-3 leading-relaxed">{explicacion}</p>
+          
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
+            <p className="font-bold text-emerald-400 text-xs flex items-center gap-1.5 mb-1">
+              <Lightbulb className="h-3.5 w-3.5" /> Visión de CEO
+            </p>
+            <p className="text-xs text-emerald-200/90 leading-relaxed italic">
+              "{tipMotivador}"
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 export default function DashboardCharts({ polizas = [], reclamaciones = [], empresas = [] }) {
   
@@ -116,7 +159,7 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
 
   const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-  // Componente Reutilizable para la Etiqueta Flotante (Adaptado al cristal)
+  // Componente Reutilizable para la Etiqueta Flotante
   const SimulationBadge = () => (
     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
       <div className="bg-slate-800/90 text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/10 backdrop-blur-md transform -translate-y-4 transition-all">
@@ -127,10 +170,10 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 relative z-0">
       
-      {/* GRÁFICO 1: Salud de la Cartera - CRISTAL */}
-      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+      {/* GRÁFICO 1: Salud de la Cartera - CRISTAL (overflow-visible para las sombras) */}
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-visible transition-all duration-300 ease-in-out hover:!border-white/20">
         <CardHeader className="pb-4 pt-5 px-6">
           <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
             <div className="bg-emerald-500/15 p-2 rounded-lg border border-emerald-500/20">
@@ -141,7 +184,7 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
               <TooltipEstrategico 
                 titulo="Índice de Retención"
                 explicacion="Muestra la proporción de pólizas Activas frente a las Vencidas o Anuladas en tu cartera actual."
-                tipMotivador="¡Tu mina de oro está en las renovaciones! Mantén la zona verde dominante contactando a tus clientes 15 días antes de su vencimiento. Cuesta 5 veces más conseguir un cliente nuevo que retener a uno actual."
+                tipMotivador="¡Tu mina de oro está en las renovaciones! Cuesta 5 veces más conseguir un cliente nuevo que retener a uno actual."
               />
             </div>
           </CardTitle>
@@ -173,7 +216,7 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
       </Card>
 
       {/* GRÁFICO 2: Distribución por Aseguradora - CRISTAL */}
-      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl relative overflow-visible transition-all duration-300 ease-in-out hover:!border-white/20">
         <CardHeader className="pb-4 pt-5 px-6">
           <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
             <div className="bg-indigo-500/15 p-2 rounded-lg border border-indigo-500/20">
@@ -182,9 +225,9 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
             <div className="flex items-center">
               Top 5 Aseguradoras
               <TooltipEstrategico 
-                titulo="Concentración de Riesgo y Ventas"
-                explicacion="Identifica cuáles son las 5 compañías de seguros que concentran el mayor volumen de primas cobradas por tu agencia."
-                tipMotivador="Los verdaderos líderes diversifican. Usa esta data para exigir mejores comisiones a tu aseguradora principal, o diseña estrategias para impulsar las ventas en la tercera y así equilibrar tu poder de negociación."
+                titulo="Concentración de Riesgo"
+                explicacion="Identifica cuáles son las 5 compañías de seguros que concentran el mayor volumen de primas."
+                tipMotivador="Los líderes diversifican. Usa esta data para exigir mejores comisiones a tu aseguradora principal."
               />
             </div>
           </CardTitle>
@@ -205,8 +248,8 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
         </CardContent>
       </Card>
 
-      {/* GRÁFICO 3: Siniestralidad (Ancho completo) - CRISTAL */}
-      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl lg:col-span-2 relative overflow-hidden transition-all duration-300 ease-in-out hover:!border-white/20">
+      {/* GRÁFICO 3: Siniestralidad (overflow-visible) */}
+      <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl lg:col-span-2 relative overflow-visible transition-all duration-300 ease-in-out hover:!border-white/20">
         <CardHeader className="pb-4 pt-5 px-6">
           <CardTitle className="text-sm font-black text-slate-100 uppercase tracking-widest flex items-center gap-2.5">
             <div className="bg-red-500/15 p-2 rounded-lg border border-red-500/20">
@@ -216,8 +259,8 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
               Índice de Siniestralidad
               <TooltipEstrategico 
                 titulo="Balance de Loss Ratio"
-                explicacion="Compara el volumen de siniestros reportados contra el dinero que las aseguradoras han tenido que pagar a tus clientes."
-                tipMotivador="Un índice de siniestralidad controlado demuestra que tus clientes son altamente rentables. ¡Imprime este gráfico a fin de año y úsalo como carta de presentación para exigir bonos de rentabilidad a las aseguradoras!"
+                explicacion="Compara el volumen de siniestros reportados contra el dinero que las aseguradoras han pagado."
+                tipMotivador="Un índice controlado demuestra que tus clientes son rentables. ¡Úsalo para exigir bonos de rentabilidad!"
               />
             </div>
           </CardTitle>
