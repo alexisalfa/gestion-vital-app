@@ -117,100 +117,114 @@ function PolizaForm({ onPolizaSaved, editingPoliza, setEditingPoliza, apiBaseUrl
   const empresaOptions = useMemo(() => empresasAseguradoras.map(e => ({ id: e.id, nombre: e.nombre })), [empresasAseguradoras]);
   const asesorOptions = useMemo(() => asesores.map(a => ({ id: a.id, nombre: `${a.nombre} ${a.apellido || ''}`.trim() })), [asesores]);
 
+  // Constante para estilos de los selectores Headless
+  const selectStylesClass = "[&_button]:!bg-black/20 [&_button]:!border-white/10 [&_button]:!text-white hover:[&_button]:!border-indigo-400 focus:[&_button]:!ring-indigo-400 [&_div[role='listbox']]:!bg-slate-800 [&_div[role='listbox']]:!border-white/10 [&_li]:!text-slate-200 hover:[&_li]:!bg-indigo-500/20 hover:[&_li]:!text-indigo-300";
+
   return (
-    <Card className="mb-8 border-none shadow-xl rounded-xl overflow-hidden">
-      <div className={`p-6 ${editingPoliza ? 'bg-gradient-to-r from-amber-500 to-orange-600' : 'bg-gradient-to-r from-indigo-600 to-violet-700'} text-white flex justify-between items-center`}>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm"><Shield className="h-6 w-6" /></div>
+    <Card className="mb-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden transition-all duration-300">
+      {/* Cabecera Ciberpunk Índigo */}
+      <div className={`p-6 ${editingPoliza ? 'bg-gradient-to-r from-amber-500/20 to-orange-600/20 border-b border-amber-500/30' : 'bg-gradient-to-r from-indigo-600/20 to-violet-700/20 border-b border-indigo-500/30'} flex justify-between items-center`}>
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-xl backdrop-blur-md border ${editingPoliza ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400'}`}><Shield className="h-6 w-6" /></div>
           <div>
-            <h2 className="text-xl font-bold">{editingPoliza ? 'Editando Póliza' : 'Emitir Nueva Póliza'}</h2>
-            <p className="text-indigo-100 text-sm opacity-90">{editingPoliza ? `Modificando ${poliza.numero_poliza}` : 'Complete los datos para el nuevo contrato.'}</p>
+            <h2 className="text-xl font-black text-white drop-shadow-md">{editingPoliza ? 'Editando Póliza' : 'Emitir Nueva Póliza'}</h2>
+            <p className="text-slate-300 text-sm font-medium mt-0.5">{editingPoliza ? `Modificando ${poliza.numero_poliza}` : 'Complete los datos para el nuevo contrato.'}</p>
           </div>
         </div>
-        {editingPoliza && <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={() => setEditingPoliza(null)}><X className="h-5 w-5" /></Button>}
+        {editingPoliza && <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors" onClick={() => setEditingPoliza(null)}><X className="h-5 w-5" /></Button>}
       </div>
 
-      <CardContent className="p-6 bg-white">
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6">
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
           <div className="space-y-2 relative">
-            <Label className="text-gray-600 font-semibold">N° de Póliza</Label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input name="numero_poliza" value={poliza.numero_poliza} onChange={handleChange} required placeholder="EJ: POL-100" className="pl-10 bg-gray-50 uppercase" />
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider">N° de Póliza</Label>
+            <div className="relative group">
+              <FileText className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <Input name="numero_poliza" value={poliza.numero_poliza} onChange={handleChange} required placeholder="EJ: POL-100" className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 placeholder:text-slate-600 uppercase transition-all" />
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-gray-600 font-semibold flex items-center gap-2"><Tag className="h-4 w-4 text-gray-400"/> Tipo de Póliza</Label>
-            <HeadlessSafeSelect id="tipo_poliza" label="Tipo" value={poliza.tipo_poliza} onChange={(v) => handleSelectChange('tipo_poliza', v)} options={tipoPolizaOptions} className="bg-gray-50" />
-          </div>
-
-          <div className="space-y-2 relative">
-            <Label className="text-gray-600 font-semibold">Prima Anual</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input name="prima" type="number" step="0.01" value={poliza.prima} onChange={handleChange} required placeholder="0.00" className="pl-10 bg-gray-50" />
+          <div className="space-y-2 relative group">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 mb-2"><Tag className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors"/> Tipo de Póliza</Label>
+            <div className={selectStylesClass}>
+              <HeadlessSafeSelect id="tipo_poliza" label="Tipo" value={poliza.tipo_poliza} onChange={(v) => handleSelectChange('tipo_poliza', v)} options={tipoPolizaOptions} />
             </div>
           </div>
 
-          {/* INJERTO DE COBERTURA FINANCIERA */}
           <div className="space-y-2 relative">
-            <Label className="text-emerald-700 font-bold">Suma Asegurada</Label>
-            <div className="relative">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Prima Anual</Label>
+            <div className="relative group">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <Input name="prima" type="number" step="0.01" value={poliza.prima} onChange={handleChange} required placeholder="0.00" className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 placeholder:text-slate-600 transition-all" />
+            </div>
+          </div>
+
+          {/* INJERTO DE COBERTURA FINANCIERA - Colores Neón Específicos */}
+          <div className="space-y-2 relative">
+            <Label className="text-emerald-400 font-bold text-xs uppercase tracking-wider">Suma Asegurada</Label>
+            <div className="relative group">
               <Shield className="absolute left-3 top-2.5 h-4 w-4 text-emerald-500" />
-              <Input name="suma_asegurada" type="number" step="0.01" value={poliza.suma_asegurada} onChange={handleChange} placeholder="0.00" className="pl-10 bg-emerald-50/50 font-bold text-emerald-700 border-emerald-200 focus:ring-emerald-500" />
+              <Input name="suma_asegurada" type="number" step="0.01" value={poliza.suma_asegurada} onChange={handleChange} placeholder="0.00" className="pl-10 bg-emerald-500/10 font-bold text-emerald-400 border-emerald-500/30 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all placeholder:text-emerald-700/50" />
             </div>
           </div>
           
           <div className="space-y-2 relative">
-            <Label className="text-rose-700 font-bold">Deducible</Label>
-            <div className="relative">
+            <Label className="text-rose-400 font-bold text-xs uppercase tracking-wider">Deducible</Label>
+            <div className="relative group">
               <AlertCircle className="absolute left-3 top-2.5 h-4 w-4 text-rose-500" />
-              <Input name="deducible" type="number" step="0.01" value={poliza.deducible} onChange={handleChange} placeholder="0.00" className="pl-10 bg-rose-50/50 font-bold text-rose-700 border-rose-200 focus:ring-rose-500" />
+              <Input name="deducible" type="number" step="0.01" value={poliza.deducible} onChange={handleChange} placeholder="0.00" className="pl-10 bg-rose-500/10 font-bold text-rose-400 border-rose-500/30 focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-rose-700/50" />
             </div>
           </div>
           {/* FIN INJERTO */}
           
           <div className="space-y-2 relative">
-            <Label className="text-gray-600 font-semibold">Fecha Inicio</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input name="fecha_inicio" type="date" value={poliza.fecha_inicio} onChange={handleChange} required className="pl-10 bg-gray-50" />
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Fecha Inicio</Label>
+            <div className="relative group">
+              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <Input name="fecha_inicio" type="date" value={poliza.fecha_inicio} onChange={handleChange} required className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all [&::-webkit-calendar-picker-indicator]:invert" />
             </div>
           </div>
           
           <div className="space-y-2 relative">
-            <Label className="text-gray-600 font-semibold">Vencimiento</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input name="fecha_fin" type="date" value={poliza.fecha_fin} onChange={handleChange} required className="pl-10 bg-gray-50" />
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Vencimiento</Label>
+            <div className="relative group">
+              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <Input name="fecha_fin" type="date" value={poliza.fecha_fin} onChange={handleChange} required className="pl-10 text-white bg-black/20 border-white/10 focus:bg-black/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all [&::-webkit-calendar-picker-indicator]:invert" />
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-gray-600 font-semibold flex items-center gap-2"><Activity className="h-4 w-4 text-gray-400"/> Estado</Label>
-            <HeadlessSafeSelect id="estado" label="Estado" value={poliza.estado} onChange={(v) => handleSelectChange('estado', v)} options={[{id: 'Activa', nombre: 'Activa'}, {id: 'Inactiva', nombre: 'Inactiva'}, {id: 'Vencida', nombre: 'Vencida'}, {id: 'Pendiente', nombre: 'Pendiente de Pago'}]} className="bg-gray-50" />
+          <div className="space-y-2 relative group">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 mb-2"><Activity className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors"/> Estado</Label>
+            <div className={selectStylesClass}>
+              <HeadlessSafeSelect id="estado" label="Estado" value={poliza.estado} onChange={(v) => handleSelectChange('estado', v)} options={[{id: 'Activa', nombre: 'Activa'}, {id: 'Inactiva', nombre: 'Inactiva'}, {id: 'Vencida', nombre: 'Vencida'}, {id: 'Pendiente', nombre: 'Pendiente de Pago'}]} />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-gray-600 font-semibold">Titular del Seguro</Label>
-            <HeadlessSafeSelect id="cliente_id" label="Cliente" value={poliza.cliente_id} onChange={(v) => handleSelectChange('cliente_id', v)} options={clienteOptions} loading={isLoadingClients} className="bg-gray-50" />
+          <div className="space-y-2 relative group">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 block">Titular del Seguro</Label>
+            <div className={selectStylesClass}>
+              <HeadlessSafeSelect id="cliente_id" label="Cliente" value={poliza.cliente_id} onChange={(v) => handleSelectChange('cliente_id', v)} options={clienteOptions} loading={isLoadingClients} />
+            </div>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-gray-600 font-semibold">Compañía Aseguradora</Label>
-            <HeadlessSafeSelect id="empresa_aseguradora_id" label="Empresa" value={poliza.empresa_aseguradora_id} onChange={(v) => handleSelectChange('empresa_aseguradora_id', v)} options={empresaOptions} loading={isLoadingCompanies} className="bg-gray-50" />
+          <div className="space-y-2 relative group">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 block">Compañía Aseguradora</Label>
+            <div className={selectStylesClass}>
+              <HeadlessSafeSelect id="empresa_aseguradora_id" label="Empresa" value={poliza.empresa_aseguradora_id} onChange={(v) => handleSelectChange('empresa_aseguradora_id', v)} options={empresaOptions} loading={isLoadingCompanies} />
+            </div>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-gray-600 font-semibold">Asesor Responsable</Label>
-            <HeadlessSafeSelect id="asesor_id" label="Asesor" value={poliza.asesor_id} onChange={(v) => handleSelectChange('asesor_id', v)} options={asesorOptions} loading={isLoadingAdvisors} className="bg-gray-50" />
+          <div className="space-y-2 relative group">
+            <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider mb-2 block">Asesor Responsable</Label>
+            <div className={selectStylesClass}>
+              <HeadlessSafeSelect id="asesor_id" label="Asesor" value={poliza.asesor_id} onChange={(v) => handleSelectChange('asesor_id', v)} options={asesorOptions} loading={isLoadingAdvisors} />
+            </div>
           </div>
 
-          <div className="md:col-span-2 lg:col-span-3 flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-100">
-            {editingPoliza && <Button type="button" variant="outline" onClick={() => setEditingPoliza(null)}>Descartar Cambios</Button>}
-            <Button type="submit" disabled={isSubmitting} className={`shadow-lg text-white font-bold transition-all active:scale-95 ${editingPoliza ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-              {isSubmitting ? 'Guardando...' : <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> {editingPoliza ? 'Actualizar Contrato' : 'Emitir Póliza'}</span>}
+          <div className="md:col-span-2 lg:col-span-3 flex justify-end space-x-4 mt-4 pt-6 border-t border-white/10">
+            {editingPoliza && <Button type="button" variant="outline" className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white transition-all" onClick={() => setEditingPoliza(null)}>Descartar Cambios</Button>}
+            <Button type="submit" disabled={isSubmitting} className={`shadow-lg font-black tracking-wide border transition-all active:scale-95 ${editingPoliza ? 'bg-amber-600/80 hover:bg-amber-500 border-amber-500/50 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'bg-indigo-600/80 hover:bg-indigo-500 border-indigo-500/50 text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]'}`}>
+              {isSubmitting ? 'Guardando...' : <span className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> {editingPoliza ? 'Actualizar Contrato' : 'Emitir Póliza'}</span>}
             </Button>
           </div>
         </form>
