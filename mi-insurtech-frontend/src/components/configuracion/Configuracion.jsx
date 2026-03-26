@@ -1,3 +1,4 @@
+// src/components/Configuracion.jsx
 import React, { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle, Zap, Clock, PartyPopper } from 'lucide-react';
 
@@ -44,58 +45,58 @@ const Configuracion = ({ userConfig }) => {
   const isPro = userConfig?.plan_tipo === 'PRO_ANNUAL';
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen relative">
+    <div className="p-6 relative"> {/* Eliminado bg-gray-50 y min-h-screen para que se vea el cristal */}
       
-      {/* ALERTA FLOTANTE DE ÉXITO */}
+      {/* ALERTA FLOTANTE DE ÉXITO - MODO CIBERPUNK */}
       {showSuccessAlert && (
-        <div className="fixed top-5 right-5 z-50 animate-bounce">
-          <div className="bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 border-2 border-green-400">
-            <div className="bg-white p-2 rounded-full">
-              <PartyPopper className="text-green-600" size={24} />
+        <div className="fixed top-5 right-5 z-[100] animate-bounce">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center space-x-4 border border-emerald-500/50">
+            <div className="bg-emerald-500/20 p-2 rounded-full border border-emerald-500/40">
+              <PartyPopper className="text-emerald-400" size={24} />
             </div>
             <div>
-              <p className="font-bold text-lg">¡Pago Confirmado!</p>
-              <p className="text-sm opacity-90">Tu cuenta ahora es Insurtech PRO. ¡Disfrútala!</p>
+              <p className="font-black text-lg text-emerald-400 drop-shadow-md">¡Pago Confirmado!</p>
+              <p className="text-sm font-medium text-slate-200">Tu cuenta ahora es Insurtech PRO. ¡Disfrútala!</p>
             </div>
-            <button onClick={() => setShowSuccessAlert(false)} className="ml-4 hover:scale-110">✕</button>
+            <button onClick={() => setShowSuccessAlert(false)} className="ml-4 text-slate-400 hover:text-white hover:scale-110 transition-all">✕</button>
           </div>
         </div>
       )}
 
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Configuración de Cuenta</h2>
+      <h2 className="text-2xl font-black mb-6 text-white drop-shadow-md">Suscripción y Facturación</h2>
 
-      {/* CARD DE SUSCRIPCIÓN */}
-      <div className="max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div className={`p-1 ${isPro ? 'bg-green-500' : 'bg-indigo-600'}`}></div>
+      {/* CARD DE SUSCRIPCIÓN - CRISTAL AHUMADO */}
+      <div className="max-w-md bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] overflow-hidden border border-white/10 transition-all duration-300 hover:border-white/20">
+        <div className={`p-1 ${isPro ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}></div>
         
         <div className="p-8">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Plan Actual</p>
-              <h3 className="text-3xl font-extrabold text-gray-900 mt-1">
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Plan Actual</p>
+              <h3 className="text-3xl font-black text-white mt-1 drop-shadow-md">
                 {isPro ? 'Insurtech PRO' : 'Prueba Gratuita'}
               </h3>
             </div>
-            <div className={`p-2 rounded-lg ${isPro ? 'bg-green-100' : 'bg-indigo-100'}`}>
-              {isPro ? <Zap className="text-green-600" /> : <Clock className="text-indigo-600" />}
+            <div className={`p-3 rounded-xl border backdrop-blur-md ${isPro ? 'bg-emerald-500/20 border-emerald-500/40' : 'bg-indigo-500/20 border-indigo-500/40'}`}>
+              {isPro ? <Zap className="text-emerald-400 h-6 w-6" /> : <Clock className="text-indigo-400 h-6 w-6" />}
             </div>
           </div>
 
           <div className="space-y-4 mb-8">
-            <div className="flex items-center text-gray-600 text-sm">
-              <CheckCircle size={16} className="mr-2 text-green-500" />
+            <div className="flex items-center text-slate-300 text-sm font-medium">
+              <CheckCircle size={18} className="mr-3 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]" />
               <span>Acceso ilimitado a aseguradoras</span>
             </div>
-            <div className="flex items-center text-gray-600 text-sm">
-              <CheckCircle size={16} className="mr-2 text-green-500" />
+            <div className="flex items-center text-slate-300 text-sm font-medium">
+              <CheckCircle size={18} className="mr-3 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]" />
               <span>Soporte técnico prioritario</span>
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-6">
-            <div className="flex justify-between text-sm mb-6">
-              <span className="text-gray-500">Estado:</span>
-              <span className={`font-bold ${isPro ? 'text-green-600' : 'text-indigo-600'}`}>
+          <div className="border-t border-white/10 pt-6">
+            <div className="flex justify-between items-center text-sm mb-6">
+              <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Estado:</span>
+              <span className={`font-black px-3 py-1 rounded-full border ${isPro ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
                 {isPro ? 'Activo hasta ' + new Date(userConfig?.fecha_vencimiento).toLocaleDateString() : 'Pendiente de activar'}
               </span>
             </div>
@@ -104,13 +105,13 @@ const Configuracion = ({ userConfig }) => {
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg shadow-indigo-200 active:scale-95"
+                className="w-full bg-indigo-600/80 hover:bg-indigo-500 text-white font-black py-4 px-4 rounded-xl transition-all flex items-center justify-center border border-indigo-500/50 shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-95 disabled:opacity-50 disabled:shadow-none"
               >
-                <CreditCard className="mr-2" size={20} />
+                <CreditCard className="mr-3" size={20} />
                 {loading ? 'Preparando pasarela...' : 'Mejorar a PRO ($99)'}
               </button>
             ) : (
-              <div className="w-full bg-green-50 text-green-700 font-bold py-4 px-4 rounded-xl border border-green-200 flex items-center justify-center">
+              <div className="w-full bg-emerald-500/10 text-emerald-400 font-black py-4 px-4 rounded-xl border border-emerald-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <CheckCircle className="mr-2" size={20} />
                 Licencia PRO Activada
               </div>
