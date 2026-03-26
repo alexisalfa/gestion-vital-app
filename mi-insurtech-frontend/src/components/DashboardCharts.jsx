@@ -6,7 +6,31 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   BarChart, Bar
 } from 'recharts';
-import { Activity, ShieldAlert, Building2, Sparkles } from 'lucide-react';
+import { Activity, ShieldAlert, Building2, Sparkles, Info, Lightbulb } from 'lucide-react';
+
+// 🚀 MICRO-COMPONENTE: TOOLTIP ESTRATÉGICO (GLASSMORPHISM)
+const TooltipEstrategico = ({ titulo, explicacion, tipMotivador }) => (
+  <div className="relative group inline-flex items-center ml-2 z-50">
+    <Info className="h-4 w-4 text-indigo-400 hover:text-indigo-300 cursor-help transition-colors" />
+    
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 p-4 bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
+      {/* Flechita apuntando hacia abajo */}
+      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900/95"></div>
+      
+      <p className="font-black text-white text-sm mb-1">{titulo}</p>
+      <p className="text-xs text-slate-300 mb-3 leading-relaxed">{explicacion}</p>
+      
+      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
+        <p className="font-bold text-emerald-400 text-xs flex items-center gap-1.5 mb-1">
+          <Lightbulb className="h-3.5 w-3.5" /> Visión de CEO
+        </p>
+        <p className="text-xs text-emerald-200/90 leading-relaxed italic">
+          "{tipMotivador}"
+        </p>
+      </div>
+    </div>
+  </div>
+);
 
 export default function DashboardCharts({ polizas = [], reclamaciones = [], empresas = [] }) {
   
@@ -112,7 +136,14 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
             <div className="bg-emerald-500/15 p-2 rounded-lg border border-emerald-500/20">
               <Activity className="h-4 w-4 text-emerald-400" />
             </div>
-            Salud de la Cartera (Pólizas)
+            <div className="flex items-center">
+              Salud de la Cartera
+              <TooltipEstrategico 
+                titulo="Índice de Retención"
+                explicacion="Muestra la proporción de pólizas Activas frente a las Vencidas o Anuladas en tu cartera actual."
+                tipMotivador="¡Tu mina de oro está en las renovaciones! Mantén la zona verde dominante contactando a tus clientes 15 días antes de su vencimiento. Cuesta 5 veces más conseguir un cliente nuevo que retener a uno actual."
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="h-80 relative px-6 pb-6">
@@ -148,7 +179,14 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
             <div className="bg-indigo-500/15 p-2 rounded-lg border border-indigo-500/20">
               <Building2 className="h-4 w-4 text-indigo-400" />
             </div>
-            Top 5 Aseguradoras (Volumen)
+            <div className="flex items-center">
+              Top 5 Aseguradoras
+              <TooltipEstrategico 
+                titulo="Concentración de Riesgo y Ventas"
+                explicacion="Identifica cuáles son las 5 compañías de seguros que concentran el mayor volumen de primas cobradas por tu agencia."
+                tipMotivador="Los verdaderos líderes diversifican. Usa esta data para exigir mejores comisiones a tu aseguradora principal, o diseña estrategias para impulsar las ventas en la tercera y así equilibrar tu poder de negociación."
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="h-80 relative px-6 pb-6">
@@ -174,7 +212,14 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
             <div className="bg-red-500/15 p-2 rounded-lg border border-red-500/20">
               <ShieldAlert className="h-4 w-4 text-red-400" />
             </div>
-            Siniestralidad: Reportes vs Montos Pagados
+            <div className="flex items-center">
+              Índice de Siniestralidad
+              <TooltipEstrategico 
+                titulo="Balance de Loss Ratio"
+                explicacion="Compara el volumen de siniestros reportados contra el dinero que las aseguradoras han tenido que pagar a tus clientes."
+                tipMotivador="Un índice de siniestralidad controlado demuestra que tus clientes son altamente rentables. ¡Imprime este gráfico a fin de año y úsalo como carta de presentación para exigir bonos de rentabilidad a las aseguradoras!"
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="h-80 relative px-6 pb-6">
