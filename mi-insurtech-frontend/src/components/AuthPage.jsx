@@ -1,16 +1,36 @@
 // src/components/AuthPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
-import loginIllustration from '../assets/login-illustration.png'; 
+
+// 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM
+// Cambie los nombres o extensiones (.jpg / .png / .webp) si es necesario
+import img1 from '../assets/imagen1.jpg'; 
+import img2 from '../assets/imagen2.jpg';
+import img3 from '../assets/imagen4.jpg'; 
+import img4 from '../assets/imagen5.jpg';
+import img5 from '../assets/imagen6.jpg';
+import img6 from '../assets/imagen7.jpg';
+import img7 from '../assets/login-illustration.png';
+
+// 2. LISTA DEL CARRUSEL (Aquí puede agregar la imagen 8, 9 o 10 en el futuro)
+const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6, img7];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  // Esta función recibe el token temporal de Google y lo envía a tu Backend en Python
+  // 🤖 3. EL MOTOR DEL CARRUSEL (Cambia cada 3 segundos / 3000ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImgIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_IMAGES.length);
+    }, 3000); 
+    return () => clearInterval(interval); // Limpiamos el reloj si cambiamos de pantalla
+  }, []);
+
   const handleGoogleSuccess = async (tokenResponse) => {
     try {
       const response = await fetch(`${apiBaseUrl}/google-login`, {
@@ -19,24 +39,18 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
         body: JSON.stringify({ access_token: tokenResponse.access_token }),
       });
 
-      if (!response.ok) {
-        throw new Error('Error al validar con el servidor.');
-      }
+      if (!response.ok) throw new Error('Error al validar con el servidor.');
 
       const data = await response.json();
       
-      // Guardamos la llave de la bóveda
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('token_type', data.token_type);
       
-      // 🦾 NUEVO: Guardamos el perfil del usuario completo para el Dashboard
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
       
-      // Le avisamos a App.jsx que abra las puertas
       onLoginSuccess();
-      
     } catch (error) {
       console.error("Error en Google Login:", error);
     }
@@ -45,26 +59,35 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   return (
     <div className="min-h-screen flex bg-slate-50 font-sans">
       
-      {/* --- PANEL IZQUIERDO (LA ILUSTRACIÓN) --- */}
-      <div className="hidden lg:flex lg:w-1/2 bg-blue-700 relative overflow-hidden items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-900"></div>
-        <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-white opacity-5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-indigo-400 opacity-20 rounded-full blur-3xl"></div>
+      {/* --- PANEL IZQUIERDO (EL CARRUSEL CINEMATOGRÁFICO) --- */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-slate-950">
         
-        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-center">
-          <div className="w-[85%] max-w-lg mb-8 animate-in fade-in slide-in-from-bottom-5 duration-500 relative">
-              <img 
-                  src={loginIllustration} 
-                  alt="Gestión Vital Protección SaaS" 
-                  className="w-full h-auto drop-shadow-2xl relative z-10" 
-              />
-          </div>
+        {/* Renderizado dinámico de las imágenes con fundido (Fade-in / Fade-out) */}
+        {CAROUSEL_IMAGES.map((img, index) => (
+          <img
+            key={index}
+            src={img}
+            alt={`Gestión Vital Premium ${index + 1}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+              index === currentImgIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))}
 
-          <div className="text-white p-6 max-w-lg text-center flex flex-col items-center mt-[-30px]">
-              <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center gap-3">
-                 <ShieldAlert className="h-9 w-9 text-blue-100" /> Gestión Vital
+        {/* Overlay de Cristal Oscuro para asegurar que el texto sea legible */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-indigo-900/60 to-slate-900/90 backdrop-blur-[2px]"></div>
+        
+        {/* Efectos de Luces Neón */}
+        <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        {/* Textos Flotantes sobre el Carrusel (Glassmorphism) */}
+        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-center">
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] max-w-lg text-center animate-in fade-in slide-in-from-bottom-5 duration-700">
+              <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center justify-center gap-3 text-white">
+                 <ShieldAlert className="h-9 w-9 text-indigo-400" /> Gestión Vital
               </h1>
-              <p className="text-blue-100 text-lg leading-relaxed font-semibold">
+              <p className="text-slate-200 text-lg leading-relaxed font-semibold">
                 El ecosistema Insurtech blindado para automatizar tu agencia, proteger tu cartera y multiplicar tus comisiones.
               </p>
           </div>
@@ -84,9 +107,7 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
             </p>
           </div>
 
-          {/* --- BOTÓN OFICIAL DE LOGIN CON GOOGLE --- */}
           <GoogleAuthButton onLoginSuccess={handleGoogleSuccess} />
-          {/* ----------------------------------------- */}
 
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-slate-200 opacity-60"></div>
