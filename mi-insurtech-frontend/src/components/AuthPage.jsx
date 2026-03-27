@@ -6,17 +6,17 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
 
-// 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM
+// 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM (SOLO LAS ESPECTACULARES)
 import img1 from '../assets/imagen1.jpg'; 
 import img2 from '../assets/imagen2.jpg';
 import img3 from '../assets/imagen4.jpg'; 
 import img4 from '../assets/imagen5.jpg';
 import img5 from '../assets/imagen6.jpg';
 import img6 from '../assets/imagen7.jpg';
-import img7 from '../assets/login-illustration.png';
+// 🗑️ La imagen vieja y 'chimba' ha sido eliminada de la existencia.
 
-// 2. LISTA DEL CARRUSEL
-const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6, img7];
+// 2. LISTA DEL CARRUSEL (Ahora solo 6 imágenes Nivel DIOS)
+const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -24,6 +24,9 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
 
   // 🤖 3. EL MOTOR DEL CARRUSEL (Cambia cada 3 segundos)
   useEffect(() => {
+    // Si no hay imágenes (seguridad), no iniciamos el reloj
+    if (CAROUSEL_IMAGES.length === 0) return;
+
     const interval = setInterval(() => {
       setCurrentImgIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_IMAGES.length);
     }, 3000); 
@@ -56,10 +59,16 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 font-sans">
+    <div className="min-h-screen flex bg-slate-50 font-sans relative overflow-hidden">
       
-      {/* --- PANEL IZQUIERDO (EL CARRUSEL CINEMATOGRÁFICO) --- */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-slate-950">
+      {/* Luces de Neón de Fondo para toda la página (Efecto Ciberpunk) */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-indigo-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-blue-100/30 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* --- PANEL IZQUIERDO (EL CARRUSEL CINEMATOGRÁFICO - NIVEL DIOS) --- */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-slate-950 z-10 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.5)]">
         
         {/* Renderizado dinámico de las imágenes con fundido */}
         {CAROUSEL_IMAGES.map((img, index) => (
@@ -73,17 +82,16 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
           />
         ))}
 
-        {/* Overlay de Cristal Oscuro */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-indigo-900/60 to-slate-900/90 backdrop-blur-[2px]"></div>
+        {/* Overlay de Cristal Oscuro y Degradado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-indigo-950/70 to-slate-950/95 backdrop-blur-[1px]"></div>
         
-        {/* Efectos de Luces Neón */}
-        <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Efectos de Luces Neón Internas */}
+        <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
         
-        {/* --- 🔄 TEXTOS FLOTANTES (MODIFICADO PARA MOVER ABAJO) --- */}
-        {/* Cambiado 'justify-center' por 'justify-end pb-20' (20 unidades de relleno abajo) */}
-        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-end pb-20">
-          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] max-w-lg text-center animate-in fade-in slide-in-from-bottom-5 duration-700">
+        {/* --- TEXTOS FLOTANTES EN LA PARTE INFERIOR --- */}
+        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-end pb-24">
+          <div className="bg-slate-950/50 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] max-w-lg text-center animate-in fade-in slide-in-from-bottom-5 duration-1000">
               <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center justify-center gap-3 text-white">
                  <ShieldAlert className="h-9 w-9 text-indigo-400" /> Gestión Vital
               </h1>
@@ -95,10 +103,10 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
       </div>
 
       {/* --- PANEL DERECHO (FORMULARIOS Y GOOGLE) --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-6 sm:p-12 lg:p-20 bg-white shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] relative z-20">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center p-6 sm:p-12 lg:p-20 bg-white shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] relative z-20 transition-all duration-500">
         <div className="max-w-md w-full mx-auto space-y-8">
 
-          <div className="text-center lg:text-left">
+          <div className="text-center lg:text-left animate-in fade-in slide-in-from-top-5 duration-700">
             <h2 className="text-3xl font-black text-slate-800 tracking-tight">
               {showRegisterForm ? "Crea tu Cuenta" : "Bienvenido de nuevo"}
             </h2>
@@ -115,7 +123,7 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
             <div className="flex-grow border-t border-slate-200 opacity-60"></div>
           </div>
 
-          <div className="bg-white">
+          <div className="bg-white rounded-xl">
             {showRegisterForm ? (
               <RegisterForm apiBaseUrl={apiBaseUrl} onRegisterSuccess={() => setShowRegisterForm(false)} />
             ) : (
