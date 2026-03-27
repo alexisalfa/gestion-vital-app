@@ -7,7 +7,6 @@ import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
 
 // 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM
-// Cambie los nombres o extensiones (.jpg / .png / .webp) si es necesario
 import img1 from '../assets/imagen1.jpg'; 
 import img2 from '../assets/imagen2.jpg';
 import img3 from '../assets/imagen4.jpg'; 
@@ -16,19 +15,19 @@ import img5 from '../assets/imagen6.jpg';
 import img6 from '../assets/imagen7.jpg';
 import img7 from '../assets/login-illustration.png';
 
-// 2. LISTA DEL CARRUSEL (Aquí puede agregar la imagen 8, 9 o 10 en el futuro)
+// 2. LISTA DEL CARRUSEL
 const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6, img7];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  // 🤖 3. EL MOTOR DEL CARRUSEL (Cambia cada 3 segundos / 3000ms)
+  // 🤖 3. EL MOTOR DEL CARRUSEL (Cambia cada 3 segundos)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImgIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_IMAGES.length);
     }, 3000); 
-    return () => clearInterval(interval); // Limpiamos el reloj si cambiamos de pantalla
+    return () => clearInterval(interval); 
   }, []);
 
   const handleGoogleSuccess = async (tokenResponse) => {
@@ -62,7 +61,7 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
       {/* --- PANEL IZQUIERDO (EL CARRUSEL CINEMATOGRÁFICO) --- */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-slate-950">
         
-        {/* Renderizado dinámico de las imágenes con fundido (Fade-in / Fade-out) */}
+        {/* Renderizado dinámico de las imágenes con fundido */}
         {CAROUSEL_IMAGES.map((img, index) => (
           <img
             key={index}
@@ -74,15 +73,16 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
           />
         ))}
 
-        {/* Overlay de Cristal Oscuro para asegurar que el texto sea legible */}
+        {/* Overlay de Cristal Oscuro */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-indigo-900/60 to-slate-900/90 backdrop-blur-[2px]"></div>
         
         {/* Efectos de Luces Neón */}
         <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
         
-        {/* Textos Flotantes sobre el Carrusel (Glassmorphism) */}
-        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-center">
+        {/* --- 🔄 TEXTOS FLOTANTES (MODIFICADO PARA MOVER ABAJO) --- */}
+        {/* Cambiado 'justify-center' por 'justify-end pb-20' (20 unidades de relleno abajo) */}
+        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-end pb-20">
           <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] max-w-lg text-center animate-in fade-in slide-in-from-bottom-5 duration-700">
               <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center justify-center gap-3 text-white">
                  <ShieldAlert className="h-9 w-9 text-indigo-400" /> Gestión Vital
