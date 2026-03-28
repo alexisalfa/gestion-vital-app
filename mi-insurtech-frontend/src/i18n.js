@@ -2,8 +2,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Aquí definimos los "diccionarios" para cada idioma.
-// Luego podremos separar esto en archivos .json si crecen mucho.
 const resources = {
   es: {
     translation: {
@@ -26,6 +24,19 @@ const resources = {
         limpiar: "Limpiar",
         guardar: "Guardar",
         cancelar: "Cancelar"
+      },
+      // 🌍 NUEVO: Textos de la pantalla de Autenticación
+      auth: {
+        welcome: "Bienvenido de nuevo",
+        createAccount: "Crea tu Cuenta",
+        subtitleLogin: "Ingresa tus credenciales para acceder a tu bóveda.",
+        subtitleRegister: "Comienza a gestionar tu agencia hoy mismo.",
+        orEmail: "O ingresa con tu correo",
+        alreadyAccount: "¿Ya tienes una cuenta?",
+        noAccount: "¿No tienes una cuenta?",
+        loginHere: "Inicia Sesión aquí",
+        registerNow: "Regístrate ahora",
+        slogan: "El ecosistema Insurtech blindado para automatizar tu agencia, proteger tu cartera y multiplicar tus comisiones."
       }
     }
   },
@@ -50,19 +61,32 @@ const resources = {
         limpiar: "Clear",
         guardar: "Save",
         cancelar: "Cancel"
+      },
+      // 🌍 NUEVO: Textos de la pantalla de Autenticación (Inglés)
+      auth: {
+        welcome: "Welcome back",
+        createAccount: "Create your Account",
+        subtitleLogin: "Enter your credentials to access your vault.",
+        subtitleRegister: "Start managing your agency today.",
+        orEmail: "Or log in with your email",
+        alreadyAccount: "Already have an account?",
+        noAccount: "Don't have an account?",
+        loginHere: "Log in here",
+        registerNow: "Register now",
+        slogan: "The bulletproof Insurtech ecosystem to automate your agency, protect your portfolio, and multiply your commissions."
       }
     }
   }
 };
 
 i18n
-  .use(initReactI18next) // Conecta i18n con React
+  .use(initReactI18next)
   .init({
     resources,
-    lng: "es", // Idioma de arranque por defecto
-    fallbackLng: "en", // Si falta una traducción en español, usa inglés
+    lng: "es", 
+    fallbackLng: "en", 
     interpolation: {
-      escapeValue: false // React ya protege contra inyecciones XSS
+      escapeValue: false 
     }
   });
 

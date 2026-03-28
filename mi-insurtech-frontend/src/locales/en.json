@@ -1,0 +1,9 @@
+{
+  "login": {
+    "welcome": "Welcome back",
+    "subtitle": "Enter your credentials to access your vault.",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "button": "Enter the Vault"
+  }
+}

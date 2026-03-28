@@ -1,0 +1,9 @@
+{
+  "login": {
+    "welcome": "Bienvenido de nuevo",
+    "subtitle": "Ingresa tus credenciales para acceder a tu bóveda.",
+    "emailLabel": "Correo Electrónico",
+    "passwordLabel": "Contraseña",
+    "button": "Ingresar a la Bóveda"
+  }
+}

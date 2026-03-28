@@ -5,6 +5,7 @@ import { ShieldAlert } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
+import { useTranslation } from 'react-i18next'; // 🌍 IMPORTANTE: Inyectamos el motor de idiomas
 
 // 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM (SOLO LAS ESPECTACULARES)
 import img1 from '../assets/imagen1.jpg'; 
@@ -13,12 +14,12 @@ import img3 from '../assets/imagen4.jpg';
 import img4 from '../assets/imagen5.jpg';
 import img5 from '../assets/imagen6.jpg';
 import img6 from '../assets/imagen7.jpg';
-// 🗑️ La imagen vieja y 'chimba' ha sido eliminada de la existencia.
 
 // 2. LISTA DEL CARRUSEL (Ahora solo 6 imágenes Nivel DIOS)
 const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
+  const { t } = useTranslation(); // 🌍 Activamos el traductor
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
@@ -95,8 +96,9 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
               <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center justify-center gap-3 text-white">
                  <ShieldAlert className="h-9 w-9 text-indigo-400" /> Gestión Vital
               </h1>
+              {/* 🌍 Texto dinámico del slogan */}
               <p className="text-slate-200 text-lg leading-relaxed font-semibold">
-                El ecosistema Insurtech blindado para automatizar tu agencia, proteger tu cartera y multiplicar tus comisiones.
+                {t('auth.slogan')}
               </p>
           </div>
         </div>
@@ -107,11 +109,12 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
         <div className="max-w-md w-full mx-auto space-y-8">
 
           <div className="text-center lg:text-left animate-in fade-in slide-in-from-top-5 duration-700">
+            {/* 🌍 Textos dinámicos del título */}
             <h2 className="text-3xl font-black text-slate-800 tracking-tight">
-              {showRegisterForm ? "Crea tu Cuenta" : "Bienvenido de nuevo"}
+              {showRegisterForm ? t('auth.createAccount') : t('auth.welcome')}
             </h2>
             <p className="text-slate-500 mt-2 font-semibold">
-              {showRegisterForm ? "Comienza a gestionar tu agencia hoy mismo." : "Ingresa tus credenciales para acceder a tu bóveda."}
+              {showRegisterForm ? t('auth.subtitleRegister') : t('auth.subtitleLogin')}
             </p>
           </div>
 
@@ -119,7 +122,8 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
 
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-slate-200 opacity-60"></div>
-            <span className="flex-shrink-0 mx-4 text-slate-400 text-sm font-semibold">O ingresa con tu correo</span>
+            {/* 🌍 Texto dinámico del separador */}
+            <span className="flex-shrink-0 mx-4 text-slate-400 text-sm font-semibold">{t('auth.orEmail')}</span>
             <div className="flex-grow border-t border-slate-200 opacity-60"></div>
           </div>
 
@@ -133,9 +137,10 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
 
           <div className="text-center pt-2">
             <p className="text-slate-600 text-sm font-semibold">
-              {showRegisterForm ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
+              {/* 🌍 Textos dinámicos del pie de página */}
+              {showRegisterForm ? t('auth.alreadyAccount') : t('auth.noAccount')}
               <Button variant="link" onClick={() => setShowRegisterForm(!showRegisterForm)} className="ml-2 text-indigo-600 hover:text-indigo-800 font-black p-0 text-sm">
-                {showRegisterForm ? 'Inicia Sesión aquí' : 'Regístrate ahora'}
+                {showRegisterForm ? t('auth.loginHere') : t('auth.registerNow')}
               </Button>
             </p>
           </div>
