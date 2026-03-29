@@ -57,8 +57,13 @@ export const useConfiguracion = (MASTER_LICENSE_KEY, i18n, API_BASE_URL) => {
     setSelectedCountry(newSelectedCountry);
     setLicenseKey(newLicenseKey);
 
-    const isValid = newLicenseKey === MASTER_LICENSE_KEY;
-    setIsLicenseValid(isValid);
+    // 🧠 CIRUGÍA DEL CEREBRITO: 
+    // Comparamos la clave del formulario.
+    const esClaveValida = newLicenseKey === MASTER_LICENSE_KEY;
+    
+    // El escudo: Si ya estaba activa (estadoAnterior === true) por el backend, 
+    // no dejamos que un cambio en la configuración lo baje a false.
+    setIsLicenseValid((estadoAnterior) => estadoAnterior || esClaveValida);
 
     toast({ title: "Configuración Guardada", variant: "success" });
   }, [toast, MASTER_LICENSE_KEY]);
