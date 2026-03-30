@@ -43,7 +43,13 @@ const EMPRESAS_ASEGURADORAS_PER_PAGE = 10;
 const ASESORES_PER_PAGE = 10;
 const COMISIONES_PER_PAGE = 10;
 
-const LANGUAGE_OPTIONS = [{ id: 'es', nombre: 'Español' }, { id: 'en', nombre: 'English' }];
+const LANGUAGE_OPTIONS = [
+  { id: 'es', nombre: 'Español' }, 
+  { id: 'en', nombre: 'English' },
+  { id: 'zh', nombre: '中文 (Mandarín)' }, // 🐉 El gigante asiático
+  { id: 'de', nombre: 'Deutsch' },
+  { id: 'fr', nombre: 'Français' }
+];
 const DATE_FORMAT_OPTIONS = [{ id: 'DD/MM/YYYY', nombre: 'DD/MM/YYYY' }, { id: 'MM/DD/YYYY', nombre: 'MM/DD/YYYY' }, { id: 'YYYY-MM-DD', nombre: 'YYYY-MM-DD' }];
 const CURRENCY_SYMBOL_OPTIONS = [{ id: '$', nombre: '$ (Dólar)' }, { id: 'Bs', nombre: 'Bs (Bolívar Soberano)' }, { id: '€', nombre: '€ (Euro)' }, { id: 'S/', nombre: 'S/ (Sol Peruano)' }, { id: 'COP', nombre: 'COP (Peso Colombiano)' }];
 const COUNTRY_OPTIONS = [{ id: 'VE', nombre: 'Venezuela' }, { id: 'CO', nombre: 'Colombia' }, { id: 'PE', nombre: 'Perú' }, { id: 'US', nombre: 'Estados Unidos' }, { id: 'ES', nombre: 'España' }, { id: 'MX', nombre: 'México' }, { id: 'AR', nombre: 'Argentina' }, { id: 'CL', nombre: 'Chile' }, { id: 'EC', nombre: 'Ecuador' }, { id: 'PA', nombre: 'Panamá' }];

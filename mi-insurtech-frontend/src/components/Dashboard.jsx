@@ -32,10 +32,11 @@ const Dashboard = ({
 }) => {
   const [timeLeft, setTimeLeft] = useState("Cargando...");
   
-  const { i18n } = useTranslation();
+  // 🌍 Inyectamos 't' (el traductor) y 'i18n' (el controlador del idioma actual)
+  const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'es';
 
-  // --- LÓGICA DEL RELOJ DINÁMICO (Intacta) ---
+  // --- LÓGICA DEL RELOJ DINÁMICO (Intacta, se maneja el estado interno igual) ---
   useEffect(() => {
     if (isLoadingStats) {
       setTimeLeft("Cargando...");
@@ -63,7 +64,7 @@ const Dashboard = ({
         clearInterval(timer);
         setTimeLeft("EXPIRADO");
         return;
-          }
+      }
 
       const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -100,22 +101,23 @@ const Dashboard = ({
   const userName = getUserDisplayName();
   // -----------------------------------------------------------
 
+  // 🌍 Gráficos reactivos al idioma
   const pieData = useMemo(() => [
-    { name: 'Primas Activas', value: statistics?.total_primas || 0, color: '#10b981' }, 
-    { name: 'Reclamaciones', value: statistics?.total_reclamaciones_pendientes || 0, color: '#ef4444' }     
-  ], [statistics]);
+    { name: t('dashboard.activePremiums'), value: statistics?.total_primas || 0, color: '#10b981' }, 
+    { name: t('dashboard.claims'), value: statistics?.total_reclamaciones_pendientes || 0, color: '#ef4444' }     
+  ], [statistics, t]);
 
   const barData = useMemo(() => [
-    { name: 'Clientes', total: statistics?.total_clientes_activos || 0 },
-    { name: 'Pólizas', total: statistics?.total_polizas_activas || 0 },
-    { name: 'Asesores', total: statistics?.total_asesores_activos || 0 },
-    { name: 'Empresas', total: statistics?.total_empresas_activas || 0 }
-  ], [statistics]);
+    { name: t('dashboard.clients'), total: statistics?.total_clientes_activos || 0 },
+    { name: t('dashboard.policies'), total: statistics?.total_polizas_activas || 0 },
+    { name: t('dashboard.advisors'), total: statistics?.total_asesores_activos || 0 },
+    { name: t('dashboard.companies'), total: statistics?.total_empresas_activas || 0 }
+  ], [statistics, t]);
 
   const hasPieData = (statistics?.total_primas > 0 || statistics?.total_reclamaciones_pendientes > 0);
   const hasBarData = barData.some(item => item.total > 0);
 
-  // --- LÓGICA DE COLORES DE RATIO (Adaptada para fondo oscuro) ---
+  // --- LÓGICA DE COLORES DE RATIO ---
   const getRatioColor = (ratio) => {
     if (ratio < 30) return 'text-emerald-400 bg-emerald-500/20';
     if (ratio < 60) return 'text-orange-400 bg-orange-500/20';
@@ -132,12 +134,19 @@ const Dashboard = ({
     }
 
     const tlfLimpio = telefono.replace(/\D/g, '');
-    const fechaFin = new Date(poliza.fecha_fin).toLocaleDateString('es-ES');
+    const fechaFin = new Date(poliza.fecha_fin).toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'es-ES');
     
-    const mensaje = `Hola ${nombre.trim()}, soy tu asesor de Gestión Vital 🛡️. Me comunico contigo para recordarte que tu póliza Nro: *${poliza.numero_poliza}* vence el próximo *${fechaFin}*. ¿Deseas que te apoye gestionando la renovación para mantener tu cobertura activa?`;
+    // 🌍 Mensaje de WhatsApp Bilingüe
+    const mensaje = `${t('dashboard.waGreeting')} ${nombre.trim()}, ${t('dashboard.waMessage1')} *${poliza.numero_poliza}* ${t('dashboard.waMessage2')} *${fechaFin}*. ${t('dashboard.waMessage3')}`;
     
     window.open(`https://wa.me/${tlfLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
   };
+
+  // Traducción visual dinámica del reloj sin romper estados
+  const displayTimeLeft = timeLeft === "Cargando..." ? t('dashboard.loading') : 
+                          timeLeft === "EXPIRADO" ? t('dashboard.expired') : 
+                          timeLeft === "LICENCIA ACTIVA" ? t('dashboard.licenseActive') : 
+                          timeLeft;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -156,18 +165,18 @@ const Dashboard = ({
           </div>
           <div>
             <p className="text-sm font-bold uppercase tracking-tight flex items-center gap-2">
-              {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? "Licencia de Prueba" : "Licencia Profesional"}
+              {statistics?.plan_tipo === "TRIAL_24H" || statistics?.es_prueba ? t('dashboard.trialLicense') : t('dashboard.proLicense')}
               <span className="text-blue-200">|</span> 
-              <span className="text-emerald-400 normal-case tracking-normal font-black text-base">¡Hola, {userName} 👋!</span>
+              <span className="text-emerald-400 normal-case tracking-normal font-black text-base">{t('dashboard.hello')}, {userName} 👋!</span>
             </p>
             <p className="text-xs text-indigo-200 font-medium">
-              {timeLeft === "EXPIRADO" ? "Acceso restringido. Contacte a soporte." : "Tiempo restante para la activación total."}
+              {timeLeft === "EXPIRADO" ? t('dashboard.restrictedAccess') : t('dashboard.timeRemaining')}
             </p>
           </div>
         </div>
         <div className="text-right bg-black/20 p-3 rounded-xl backdrop-blur-sm border border-white/10">
-          <p className="text-2xl font-mono font-black">{timeLeft}</p>
-          <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-300">Estado del Servicio</p>
+          <p className="text-2xl font-mono font-black">{displayTimeLeft}</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-300">{t('dashboard.serviceStatus')}</p>
         </div>
       </div>
 
@@ -176,7 +185,7 @@ const Dashboard = ({
         
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 border-l-4 border-l-blue-500 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:!-translate-y-1 hover:!border-white/20 group rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Clientes</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.clients')}</CardTitle>
             <div className="bg-blue-500/15 p-2.5 rounded-xl border border-blue-500/20 group-hover:scale-110 transition-transform">
               <Users size={20} className="text-blue-400" />
             </div>
@@ -188,19 +197,19 @@ const Dashboard = ({
 
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 border-l-4 border-l-emerald-500 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:!-translate-y-1 hover:!border-white/20 group rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pólizas & Ganancia</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.policiesProfit')}</CardTitle>
             <div className="bg-emerald-500/15 p-2.5 rounded-xl border border-emerald-500/20 group-hover:scale-110 transition-transform">
               <ShieldCheck size={20} className="text-emerald-400" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-white mb-2 drop-shadow-md">{statistics?.total_polizas_activas || 0} <span className="text-sm font-normal text-slate-400 tracking-normal ml-1">registradas</span></div>
+            <div className="text-2xl font-black text-white mb-2 drop-shadow-md">{statistics?.total_polizas_activas || 0} <span className="text-sm font-normal text-slate-400 tracking-normal ml-1">{t('dashboard.registered')}</span></div>
             <div className="flex flex-col space-y-1 mt-1 bg-white/5 p-2.5 rounded-lg border border-white/10">
               <span className="text-sm text-emerald-400 font-extrabold uppercase tracking-wide">
-                Primas: <span className="text-lg ml-1 text-white">{formatMoney(statistics?.total_primas || 0, currencySymbol, currentLanguage)}</span>
+                {t('dashboard.premiums')} <span className="text-lg ml-1 text-white">{formatMoney(statistics?.total_primas || 0, currencySymbol, currentLanguage)}</span>
               </span>
               <span className="text-sm text-indigo-400 font-extrabold uppercase tracking-wide">
-                Comisión: <span className="text-lg ml-1 text-white">{formatMoney(statistics?.total_comisiones || 0, currencySymbol, currentLanguage)}</span>
+                {t('dashboard.commission')} <span className="text-lg ml-1 text-white">{formatMoney(statistics?.total_comisiones || 0, currencySymbol, currentLanguage)}</span>
               </span>
             </div>
           </CardContent>
@@ -208,35 +217,35 @@ const Dashboard = ({
 
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 border-l-4 border-l-red-500 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:!-translate-y-1 hover:!border-white/20 group rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Siniestros</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.claims')}</CardTitle>
             <div className="bg-red-500/15 p-2.5 rounded-xl border border-red-500/20 group-hover:scale-110 transition-transform">
               <AlertCircle size={20} className="text-red-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-red-400 tracking-tight drop-shadow-md">{statistics?.total_reclamaciones_pendientes || 0}</div>
-            <p className="text-[10px] text-red-300 italic font-medium uppercase tracking-tighter mt-1">Trámite pendiente</p>
+            <p className="text-[10px] text-red-300 italic font-medium uppercase tracking-tighter mt-1">{t('dashboard.pendingProcess')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 border-l-4 border-l-indigo-500 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:!-translate-y-1 hover:!border-white/20 group rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Red Operativa</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.operativeNetwork')}</CardTitle>
             <div className="bg-indigo-500/15 p-2.5 rounded-xl border border-indigo-500/20 group-hover:scale-110 transition-transform">
               <Building2 size={20} className="text-indigo-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col text-sm font-bold space-y-1.5">
-              <span className="text-white bg-white/5 p-2 rounded-lg border border-white/10 flex justify-between">{statistics?.total_asesores_activos || 0} <span className="font-normal text-slate-400 tracking-normal text-xs mt-1">Asesores</span></span>
-              <span className="text-indigo-300 bg-white/5 p-2 rounded-lg border border-white/10 flex justify-between">{statistics?.total_empresas_activas || 0} <span className="font-normal text-indigo-400 tracking-normal text-xs mt-1">Aseguradoras</span></span>
+              <span className="text-white bg-white/5 p-2 rounded-lg border border-white/10 flex justify-between">{statistics?.total_asesores_activos || 0} <span className="font-normal text-slate-400 tracking-normal text-xs mt-1">{t('dashboard.advisors')}</span></span>
+              <span className="text-indigo-300 bg-white/5 p-2 rounded-lg border border-white/10 flex justify-between">{statistics?.total_empresas_activas || 0} <span className="font-normal text-indigo-400 tracking-normal text-xs mt-1">{t('dashboard.insurers')}</span></span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 border-l-4 border-l-rose-500 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:!-translate-y-1 hover:!border-white/20 group rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Siniestralidad</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.lossRatio')}</CardTitle>
             <div className="bg-rose-500/15 p-2.5 rounded-xl border border-rose-500/20 group-hover:scale-110 transition-transform">
               <Activity size={20} className="text-rose-400" />
             </div>
@@ -247,7 +256,7 @@ const Dashboard = ({
             </div>
             <div className="mt-2 space-y-2 bg-white/5 p-2.5 rounded-lg border border-white/10">
                 <div className="flex justify-between text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                    <span>Pagado:</span>
+                    <span>{t('dashboard.paid')}</span>
                     <span className="text-rose-400">{formatMoney(lossRatio.totalSiniestros, currencySymbol, currentLanguage)}</span>
                 </div>
                 <div className="w-full bg-slate-800/60 rounded-full h-1.5 overflow-hidden border border-white/5 shadow-inner">
@@ -267,14 +276,14 @@ const Dashboard = ({
         
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl p-5 h-[360px] relative transition-all duration-300 ease-in-out hover:!border-white/20">
           <h4 className="text-sm font-black mb-6 flex items-center gap-2.5 text-slate-100 uppercase tracking-widest">
-            <div className="bg-indigo-500/15 p-2 rounded-lg border border-indigo-500/20"><PieChartIcon size={16} className="text-indigo-400"/></div> Ratio Primas vs Siniestros
+            <div className="bg-indigo-500/15 p-2 rounded-lg border border-indigo-500/20"><PieChartIcon size={16} className="text-indigo-400"/></div> {t('dashboard.ratioPremiumsClaims')}
           </h4>
           
           <div className={`w-full h-full pb-14 transition-opacity duration-300 ${!hasPieData ? 'opacity-30' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie 
-                  data={hasPieData ? pieData : [{ name: 'Primas Activas', value: 50, color: '#10b981' }, { name: 'Reclamaciones', value: 50, color: '#ef4444' }]} 
+                  data={hasPieData ? pieData : [{ name: t('dashboard.activePremiums'), value: 50, color: '#10b981' }, { name: t('dashboard.claims'), value: 50, color: '#ef4444' }]} 
                   innerRadius={65} 
                   outerRadius={90} 
                   paddingAngle={5} 
@@ -295,7 +304,7 @@ const Dashboard = ({
           {!hasPieData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-slate-800 text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/5 backdrop-blur-sm">
-                ✨ Simulación de lo que esperas
+                {t('dashboard.simulation')}
               </div>
             </div>
           )}
@@ -303,16 +312,16 @@ const Dashboard = ({
 
         <Card className="bg-slate-900/40 backdrop-blur-xl !border !border-white/10 !shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl p-5 h-[360px] relative transition-all duration-300 ease-in-out hover:!border-white/20">
           <h4 className="text-sm font-black mb-6 flex items-center gap-2.5 text-slate-100 uppercase tracking-widest">
-            <div className="bg-blue-500/15 p-2 rounded-lg border border-blue-500/20"><BarChart3 size={16} className="text-blue-400"/></div> Distribución Operativa
+            <div className="bg-blue-500/15 p-2 rounded-lg border border-blue-500/20"><BarChart3 size={16} className="text-blue-400"/></div> {t('dashboard.operativeDistribution')}
           </h4>
           
           <div className={`w-full h-full pb-14 transition-opacity duration-300 ${!hasBarData ? 'opacity-30' : 'opacity-100'}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hasBarData ? barData : [
-                { name: 'Clientes', total: 4 },
-                { name: 'Pólizas', total: 2 },
-                { name: 'Asesores', total: 3 },
-                { name: 'Empresas', total: 1 }
+                { name: t('dashboard.clients'), total: 4 },
+                { name: t('dashboard.policies'), total: 2 },
+                { name: t('dashboard.advisors'), total: 3 },
+                { name: t('dashboard.companies'), total: 1 }
               ]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}} dy={10} />
@@ -326,7 +335,7 @@ const Dashboard = ({
           {!hasBarData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-slate-800 text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/5 backdrop-blur-sm">
-                ✨ Simulación de lo que esperas
+                {t('dashboard.simulation')}
               </div>
             </div>
           )}
@@ -338,24 +347,24 @@ const Dashboard = ({
         <CardHeader className="bg-amber-500/10 border-b border-white/10 pb-5">
           <CardTitle className="text-lg font-black text-amber-200 flex items-center gap-3">
             <div className="bg-amber-500/15 p-2 rounded-xl border border-amber-500/20"><CalendarDays className="h-6 w-6 text-amber-400" /></div>
-            Agenda Estratégica de Renovaciones Próximas (30 Días)
+            {t('dashboard.strategicAgenda')}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {upcomingPolicies.length === 0 ? (
             <div className="p-12 text-center text-slate-500 font-bold uppercase tracking-wider bg-transparent">
               <CheckCircle2 size={30} className="mx-auto mb-4 text-emerald-500 opacity-60" />
-              No tienes pólizas por vencer en los próximos 30 días. ¡Todo al día!
+              {t('dashboard.noPoliciesExpiring')}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse bg-transparent">
                 <thead className="bg-white/5 border-b border-white/10">
                   <tr>
-                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">Póliza / Contrato</th>
-                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">Plazo de Vencimiento</th>
-                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">Prima a Renovar</th>
-                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px] text-right">Ejecución</th>
+                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">{t('dashboard.policyContract')}</th>
+                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">{t('dashboard.expirationTerm')}</th>
+                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px]">{t('dashboard.premiumToRenew')}</th>
+                    <th className="p-5 font-black text-slate-300 uppercase tracking-widest text-[10px] text-right">{t('dashboard.execution')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -375,10 +384,10 @@ const Dashboard = ({
                         <td className="p-5">
                           <div className="flex items-center gap-3">
                             <span className={`px-3 py-1.5 rounded-lg text-xs font-black tracking-wider uppercase border ${esUrgente ? 'bg-red-500/20 text-red-200 border-red-500/30 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-amber-500/20 text-amber-200 border-amber-500/30'}`}>
-                              {diffDays > 0 ? `Quedan ${diffDays} días` : 'VENCE HOY'}
+                              {diffDays > 0 ? `${t('dashboard.daysRemaining')} ${diffDays} ${t('dashboard.days')}` : t('dashboard.expiresToday')}
                             </span>
                             <span className="text-slate-500 font-bold text-xs">
-                              ({fechaFin.toLocaleDateString('es-ES')})
+                              ({fechaFin.toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'es-ES')})
                             </span>
                           </div>
                         </td>
@@ -392,7 +401,7 @@ const Dashboard = ({
                             className="bg-[#25D366] hover:bg-[#1ea952] text-white shadow-lg font-bold rounded-xl px-4 py-5 transition-transform hover:-translate-y-0.5"
                           >
                             <MessageCircle className="h-5 w-5 mr-2" />
-                            Gestionar WA
+                            {t('dashboard.manageWA')}
                           </Button>
                         </td>
                       </tr>
