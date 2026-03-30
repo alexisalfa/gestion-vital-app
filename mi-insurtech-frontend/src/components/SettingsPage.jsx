@@ -148,8 +148,8 @@ function SettingsPage({
   const licenseStatusColor = effectivelyValid ? 'text-emerald-400' : 'text-orange-400';
   const licenseStatusText = effectivelyValid ? 'Licencia Válida (PRO)' : 'Periodo de Prueba';
 
-  // Estilos de los selectores para el modo oscuro
-  const selectStylesClass = "[&_button]:!bg-black/20 [&_button]:!border-white/10 [&_button]:!text-white hover:[&_button]:!border-indigo-400 focus:[&_button]:!ring-indigo-400 [&_div[role='listbox']]:!bg-slate-800 [&_div[role='listbox']]:!border-white/10 [&_li]:!text-slate-200 hover:[&_li]:!bg-indigo-500/20 hover:[&_li]:!text-indigo-300";
+  // 🛠️ CIRUGÍA ESTÉTICA: Se agregaron las clases para obligar a los <select> y <option> nativos a ser oscuros y legibles.
+  const selectStylesClass = "[&_button]:!bg-black/20 [&_button]:!border-white/10 [&_button]:!text-white hover:[&_button]:!border-indigo-400 focus:[&_button]:!ring-indigo-400 [&_div[role='listbox']]:!bg-slate-800 [&_div[role='listbox']]:!border-white/10 [&_li]:!text-slate-200 hover:[&_li]:!bg-indigo-500/20 hover:[&_li]:!text-indigo-300 [&_select]:!bg-slate-900 [&_select]:!text-white [&_option]:!bg-slate-800 [&_option]:!text-white";
 
   return (
     <div className="flex flex-col w-full space-y-6">
