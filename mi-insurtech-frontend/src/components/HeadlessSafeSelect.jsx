@@ -48,12 +48,12 @@ export function HeadlessSafeSelect({
   if (loading) {
     return (
       <div className="space-y-2">
-        {label && <Label className="text-sm font-medium text-gray-700">{label}</Label>}
+        {label && <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</Label>}
         <input
           type="text"
           value={`Cargando ${safeLabelLower}...`}
           disabled
-          className="w-full bg-gray-100 text-gray-500 px-3 py-2 rounded-md text-sm italic cursor-not-allowed"
+          className="w-full bg-slate-900/50 border border-white/10 text-slate-400 px-3 py-2 rounded-md text-sm italic cursor-not-allowed"
         />
       </div>
     );
@@ -62,12 +62,12 @@ export function HeadlessSafeSelect({
   if (options.length === 0 && !loading) {
     return (
       <div className="space-y-2">
-        {label && <Label className="text-sm font-medium text-gray-700">{label}</Label>}
+        {label && <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</Label>}
         <input
           type="text"
           value={`No hay ${safeLabelLower} disponibles.`}
           disabled
-          className="w-full bg-gray-100 text-gray-500 px-3 py-2 rounded-md text-sm italic cursor-not-allowed"
+          className="w-full bg-slate-900/50 border border-white/10 text-slate-400 px-3 py-2 rounded-md text-sm italic cursor-not-allowed"
         />
       </div>
     );
@@ -75,16 +75,17 @@ export function HeadlessSafeSelect({
 
   return (
     <div className="space-y-2">
-      {label && <Label className="text-sm font-medium text-gray-700">{label}</Label>}
+      {label && label !== "opción" && <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden">{label}</Label>}
       <Listbox value={selectedOption.id} onChange={onChange} disabled={disabled}>
         {({ open }) => (
           <div className="relative mt-1">
-            <Listbox.Button className="relative w-full cursor-default rounded-md border border-input bg-background py-2 pl-3 pr-10 text-left shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm">
+            {/* 🎨 CIRUGÍA: Botón oscuro con borde de cristal */}
+            <Listbox.Button className="relative w-full cursor-default rounded-md border border-white/10 bg-black/20 py-2 pl-3 pr-10 text-left text-white shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 sm:text-sm transition-all hover:bg-black/30">
               <span className="block truncate">
                 {selectedOption.nombre || selectedOption.label || placeholder}
               </span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <ChevronUpDownIcon className="h-5 w-5 text-slate-400" aria-hidden="true" />
               </span>
             </Listbox.Button>
 
@@ -95,21 +96,23 @@ export function HeadlessSafeSelect({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              {/* 🎨 CIRUGÍA: La caja desplegable ahora es bg-slate-900 (Ahumada) */}
+              <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-900 py-1 text-base shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                 {finalOptions
                   .filter(opt => opt && (typeof opt.id === 'number' || (typeof opt.id === 'string' && opt.id.trim() !== '')) || String(opt.id) === "")
                   .map((opt) => (
                     <Listbox.Option
                       key={String(opt.id)}
+                      // 🎨 CIRUGÍA: El texto base ahora es text-slate-200 (Blanco suave)
                       className={({ active }) =>
-                        `relative cursor-default select-none py-2 pl-3 pr-9 ${
-                          active ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                        `relative cursor-default select-none py-2 pl-3 pr-9 transition-colors ${
+                          active ? 'bg-indigo-600 text-white' : 'text-slate-200 hover:bg-slate-800'
                         }`
                       }
                       value={String(opt.id)}
                     >
                       {({ selected }) => (
-                        <span className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
+                        <span className={`block truncate ${selected ? 'font-black text-white' : 'font-medium'}`}>
                           {opt.nombre || opt.label || `ID ${opt.id}`}
                         </span>
                       )}
