@@ -49,6 +49,7 @@ const resources = {
         timeRemaining: "Tiempo restante para la activación total.",
         serviceStatus: "Estado del Servicio",
         clients: "Clientes",
+        policies: "Pólizas",
         policiesProfit: "Pólizas & Ganancia",
         registered: "registradas",
         premiums: "Primas:",
@@ -79,6 +80,29 @@ const resources = {
         waMessage1: "soy tu asesor de Gestión Vital 🛡️. Me comunico contigo para recordarte que tu póliza Nro:",
         waMessage2: "vence el próximo",
         waMessage3: "¿Deseas que te apoye gestionando la renovación para mantener tu cobertura activa?"
+      },
+      dashboardCharts: {
+        ceoVision: "Visión de CEO",
+        simulation: "✨ Simulación de lo que esperas",
+        portfolioHealth: "Salud de la Cartera",
+        retentionIndex: "Índice de Retención",
+        retentionDesc: "Muestra la proporción de pólizas Activas frente a las Vencidas o Anuladas en tu cartera actual.",
+        retentionTip: "¡Tu mina de oro está en las renovaciones! Cuesta 5 veces más conseguir un cliente nuevo que retener a uno actual.",
+        topInsurers: "Top 5 Aseguradoras",
+        riskConcentration: "Concentración de Riesgo",
+        riskDesc: "Identifica cuáles son las 5 compañías de seguros que concentran el mayor volumen de primas.",
+        riskTip: "Los líderes diversifican. Usa esta data para exigir mejores comisiones a tu aseguradora principal.",
+        lossRatioIndex: "Índice de Siniestralidad",
+        lossRatioBalance: "Balance de Loss Ratio",
+        lossRatioDesc: "Compara el volumen de siniestros reportados contra el dinero que las aseguradoras han pagado.",
+        lossRatioTip: "Un índice controlado demuestra que tus clientes son rentables. ¡Úsalo para exigir bonos de rentabilidad!",
+        active: "Activas",
+        expired: "Vencidas",
+        inactive: "Inactivas",
+        other: "Otra",
+        policies: "Pólizas",
+        casesNumber: "N° de Casos",
+        amountPaid: "Monto Pagado"
       }
     }
   },
@@ -129,6 +153,7 @@ const resources = {
         timeRemaining: "Time remaining for full activation.",
         serviceStatus: "Service Status",
         clients: "Clients",
+        policies: "Policies",
         policiesProfit: "Policies & Profit",
         registered: "registered",
         premiums: "Premiums:",
@@ -159,6 +184,29 @@ const resources = {
         waMessage1: "I am your Gestión Vital advisor 🛡️. I am contacting you to remind you that your policy No:",
         waMessage2: "expires next",
         waMessage3: "Would you like me to help you manage the renewal to keep your coverage active?"
+      },
+      dashboardCharts: {
+        ceoVision: "CEO Vision",
+        simulation: "✨ Simulation of what to expect",
+        portfolioHealth: "Portfolio Health",
+        retentionIndex: "Retention Index",
+        retentionDesc: "Shows the proportion of Active policies versus Expired or Cancelled ones in your current portfolio.",
+        retentionTip: "Your gold mine is in renewals! It costs 5 times more to get a new client than to retain a current one.",
+        topInsurers: "Top 5 Insurers",
+        riskConcentration: "Risk Concentration",
+        riskDesc: "Identifies which 5 insurance companies concentrate the highest volume of premiums.",
+        riskTip: "Leaders diversify. Use this data to demand better commissions from your main insurer.",
+        lossRatioIndex: "Loss Ratio Index",
+        lossRatioBalance: "Loss Ratio Balance",
+        lossRatioDesc: "Compares the volume of reported claims against the money insurers have paid out.",
+        lossRatioTip: "A controlled index proves your clients are profitable. Use it to demand profitability bonuses!",
+        active: "Active",
+        expired: "Expired",
+        inactive: "Inactive",
+        other: "Other",
+        policies: "Policies",
+        casesNumber: "Number of Cases",
+        amountPaid: "Amount Paid"
       }
     }
   },
@@ -209,6 +257,7 @@ const resources = {
         timeRemaining: "Verbleibende Zeit bis zur vollständigen Aktivierung.",
         serviceStatus: "Servicestatus",
         clients: "Kunden",
+        policies: "Policen",
         policiesProfit: "Policen & Gewinn",
         registered: "registriert",
         premiums: "Prämien:",
@@ -239,6 +288,29 @@ const resources = {
         waMessage1: "Ich bin Ihr Gestión Vital Berater 🛡️. Ich kontaktiere Sie, um Sie daran zu erinnern, dass Ihre Police Nr:",
         waMessage2: "am kommenden",
         waMessage3: "Möchten Sie, dass ich Sie bei der Verwaltung der Verlängerung unterstütze, um Ihre Deckung aktiv zu halten?"
+      },
+      dashboardCharts: {
+        ceoVision: "CEO-Vision",
+        simulation: "✨ Simulation Ihrer Erwartungen",
+        portfolioHealth: "Portfolio-Gesundheit",
+        retentionIndex: "Kundenbindungsindex",
+        retentionDesc: "Zeigt das Verhältnis von aktiven zu abgelaufenen oder stornierten Policen in Ihrem aktuellen Portfolio.",
+        retentionTip: "Ihre Goldmine liegt in den Verlängerungen! Einen neuen Kunden zu gewinnen kostet 5-mal mehr, als einen bestehenden zu halten.",
+        topInsurers: "Top 5 Versicherer",
+        riskConcentration: "Risikokonzentration",
+        riskDesc: "Identifiziert die 5 Versicherungsunternehmen mit dem höchsten Prämienvolumen.",
+        riskTip: "Führungskräfte diversifizieren. Nutzen Sie diese Daten, um bessere Provisionen von Ihrem Hauptversicherer zu fordern.",
+        lossRatioIndex: "Schadenquotenindex",
+        lossRatioBalance: "Schadenquoten-Bilanz",
+        lossRatioDesc: "Vergleicht das Volumen der gemeldeten Schäden mit dem Geld, das die Versicherer ausgezahlt haben.",
+        lossRatioTip: "Ein kontrollierter Index beweist, dass Ihre Kunden profitabel sind. Nutzen Sie dies, um Rentabilitätsboni zu fordern!",
+        active: "Aktiv",
+        expired: "Abgelaufen",
+        inactive: "Inaktiv",
+        other: "Andere",
+        policies: "Policen",
+        casesNumber: "Anzahl der Fälle",
+        amountPaid: "Gezahlter Betrag"
       }
     }
   },
@@ -289,6 +361,7 @@ const resources = {
         timeRemaining: "Temps restant pour l'activation totale.",
         serviceStatus: "État du Service",
         clients: "Clients",
+        policies: "Polices",
         policiesProfit: "Polices & Bénéfices",
         registered: "enregistrées",
         premiums: "Primes :",
@@ -319,9 +392,33 @@ const resources = {
         waMessage1: "Je suis votre conseiller Gestión Vital 🛡️. Je vous contacte pour vous rappeler que votre police N° :",
         waMessage2: "expire le",
         waMessage3: "Souhaitez-vous que je vous aide à gérer le renouvellement pour maintenir votre couverture active ?"
+      },
+      dashboardCharts: {
+        ceoVision: "Vision du PDG",
+        simulation: "✨ Simulation de ce à quoi vous vous attendez",
+        portfolioHealth: "Santé du Portefeuille",
+        retentionIndex: "Indice de Rétention",
+        retentionDesc: "Affiche la proportion de polices actives par rapport aux polices expirées ou annulées dans votre portefeuille actuel.",
+        retentionTip: "Votre mine d'or réside dans les renouvellements ! Obtenir un nouveau client coûte 5 fois plus cher que de fidéliser un client actuel.",
+        topInsurers: "Top 5 des Assureurs",
+        riskConcentration: "Concentration des Risques",
+        riskDesc: "Identifie les 5 compagnies d'assurance qui concentrent le plus grand volume de primes.",
+        riskTip: "Les leaders diversifient. Utilisez ces données pour exiger de meilleures commissions de votre assureur principal.",
+        lossRatioIndex: "Indice de Sinistralité",
+        lossRatioBalance: "Bilan du Ratio de Sinistralité",
+        lossRatioDesc: "Compare le volume des sinistres signalés à l'argent que les assureurs ont payé.",
+        lossRatioTip: "Un indice contrôlé prouve que vos clients sont rentables. Utilisez-le pour exiger des bonus de rentabilité !",
+        active: "Actives",
+        expired: "Expirées",
+        inactive: "Inactives",
+        other: "Autre",
+        policies: "Polices",
+        casesNumber: "Nombre de Cas",
+        amountPaid: "Montant Payé"
       }
     }
   },
+  
   // 🇨🇳 CHINO MANDARÍN
   zh: {
     translation: {
@@ -368,6 +465,7 @@ const resources = {
         timeRemaining: "完全激活的剩余时间。",
         serviceStatus: "服务状态",
         clients: "客户",
+        policies: "保单",
         policiesProfit: "保单与利润",
         registered: "已注册",
         premiums: "保费：",
@@ -398,6 +496,29 @@ const resources = {
         waMessage1: "我是您的 Gestión Vital 顾问 🛡️。我与您联系是为了提醒您，您的保单号：",
         waMessage2: "即将于",
         waMessage3: "到期。您希望我协助您管理续保以保持您的保障有效吗？"
+      },
+      dashboardCharts: {
+        ceoVision: "CEO 愿景",
+        simulation: "✨ 预期模拟",
+        portfolioHealth: "投资组合健康度",
+        retentionIndex: "留存指数",
+        retentionDesc: "显示当前投资组合中有效保单与过期或取消保单的比例。",
+        retentionTip: "您的金矿在于续保！获取新客户的成本是留住现有客户的 5 倍。",
+        topInsurers: "前 5 名保险公司",
+        riskConcentration: "风险集中度",
+        riskDesc: "确定集中了最大保费金额的 5 家保险公司。",
+        riskTip: "领导者懂得分散风险。利用这些数据要求您的主要保险公司提供更好的佣金。",
+        lossRatioIndex: "赔付率指数",
+        lossRatioBalance: "赔付率平衡",
+        lossRatioDesc: "比较已报案理赔数量与保险公司已支付金额。",
+        lossRatioTip: "受控的指数证明您的客户是盈利的。用它来要求盈利奖金！",
+        active: "有效",
+        expired: "已过期",
+        inactive: "未激活",
+        other: "其他",
+        policies: "保单",
+        casesNumber: "案件数量",
+        amountPaid: "已付金额"
       }
     }
   }
