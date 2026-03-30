@@ -9,8 +9,8 @@ import {
 import { Activity, ShieldAlert, Building2, Sparkles, Info, Lightbulb } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-// 🤖 SISTEMA DE FLOTACIÓN ANTIBLOQUEO (PORTAL FIX)
-const TooltipEstrategico = ({ titulo, explicacion, tipMotivador, textoCeo }) => {
+// 🤖 SISTEMA DE FLOTACIÓN ANTIBLOQUEO CON INTELIGENCIA ESPACIAL
+const TooltipEstrategico = ({ titulo, explicacion, tipMotivador, textoCeo, alinearIzquierda = false }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const iconRef = useRef(null);
@@ -46,10 +46,12 @@ const TooltipEstrategico = ({ titulo, explicacion, tipMotivador, textoCeo }) => 
             width: '288px', 
             left: `${coords.x}px`,
             top: `${coords.y}px`,
-            transform: 'translate(-50%, -100%)', 
+            // 📐 CIRUGÍA: Si pide alineación izquierda, empujamos el cuadro un 85% hacia atrás.
+            transform: alinearIzquierda ? 'translate(-85%, -100%)' : 'translate(-50%, -100%)', 
           }}
         >
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900/95"></div>
+          {/* 📐 CIRUGÍA: La flechita también se mueve para coincidir con el ícono */}
+          <div className={`absolute -bottom-2 border-8 border-transparent border-t-slate-900/95 ${alinearIzquierda ? 'left-[85%] -translate-x-1/2' : 'left-1/2 -translate-x-1/2'}`}></div>
           
           <p className="font-black text-white text-sm mb-1">{titulo}</p>
           <p className="text-xs text-slate-300 mb-3 leading-relaxed">{explicacion}</p>
@@ -129,7 +131,6 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
       const fecha = new Date(r.fecha_reclamacion);
       if (isNaN(fecha.getTime())) return;
       
-      // Magia: Extrae el nombre del mes automáticamente en el idioma actual (Inglés, Alemán, Chino, etc)
       let mesName = new Intl.DateTimeFormat(currentLanguage === 'zh' ? 'zh-CN' : currentLanguage, { month: 'short' }).format(fecha);
       mesName = mesName.charAt(0).toUpperCase() + mesName.slice(1);
       
@@ -155,7 +156,6 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
 
   const formatCurrency = (value) => new Intl.NumberFormat(currentLanguage === 'zh' ? 'zh-CN' : currentLanguage === 'de' ? 'de-DE' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US', { style: 'currency', currency: 'USD' }).format(value);
 
-  // Componente Reutilizable para la Etiqueta Flotante
   const SimulationBadge = () => (
     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
       <div className="bg-slate-800/90 text-amber-400 text-sm font-bold rounded-full px-6 py-3 shadow-xl flex items-center gap-2 border border-white/10 backdrop-blur-md transform -translate-y-4 transition-all">
@@ -226,6 +226,7 @@ export default function DashboardCharts({ polizas = [], reclamaciones = [], empr
                 titulo={t('dashboardCharts.riskConcentration')}
                 explicacion={t('dashboardCharts.riskDesc')}
                 tipMotivador={t('dashboardCharts.riskTip')}
+                alinearIzquierda={true} 
               />
             </div>
           </CardTitle>
