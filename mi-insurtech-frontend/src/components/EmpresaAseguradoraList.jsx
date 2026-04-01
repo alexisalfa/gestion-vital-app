@@ -8,6 +8,7 @@ import Pagination from './Pagination';
 import AseguradoraProfile360 from './AseguradoraProfile360';
 import { useConfirmation } from './ConfirmationContext'; 
 import useDebounce from '../hooks/useDebounce';
+import { useTranslation } from 'react-i18next';
 
 function EmpresaAseguradoraList({ 
   empresas = [], onSearch, searchTerm, setSearchTerm, 
@@ -16,9 +17,9 @@ function EmpresaAseguradoraList({
 }) {
   const [isExporting, setIsExporting] = useState(false);
   const { confirm } = useConfirmation(); 
+  const { t } = useTranslation();
   const [selectedAseguradora360, setSelectedAseguradora360] = useState(null);
 
-  // --- 🚀 MOTOR DE BÚSQUEDA EN TIEMPO REAL ---
   const [localSearch, setLocalSearch] = useState(searchTerm || '');
   const debouncedSearch = useDebounce(localSearch, 500);
 
@@ -31,15 +32,16 @@ function EmpresaAseguradoraList({
   useEffect(() => {
     setLocalSearch(searchTerm || '');
   }, [searchTerm]);
-  // ------------------------------------------
 
   const aseguradoraHeaders = [
-    { key: 'nombre', label: 'Razón Social' }, { key: 'rif', label: 'RIF / NIT' },
-    { key: 'telefono', label: 'Teléfono' }, { key: 'email_contacto', label: 'Correo Electrónico' }
+    { key: 'nombre', label: t('aseguradoras.companyName') }, 
+    { key: 'rif', label: t('aseguradoras.idDocument') },
+    { key: 'telefono', label: t('aseguradoras.phone') }, 
+    { key: 'email_contacto', label: t('aseguradoras.email') }
   ];
 
   const handleExportCsv = () => { setIsExporting(true); onExport(empresas, 'aseguradoras', aseguradoraHeaders); setIsExporting(false); };
-  const handleExportPdf = () => { setIsExporting(true); onExportPdf(empresas, 'aseguradoras', aseguradoraHeaders, 'Directorio de Aseguradoras'); setIsExporting(false); };
+  const handleExportPdf = () => { setIsExporting(true); onExportPdf(empresas, 'aseguradoras', aseguradoraHeaders, t('aseguradoras.exportPdfTitle')); setIsExporting(false); };
 
   const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
 
@@ -52,9 +54,9 @@ function EmpresaAseguradoraList({
               <div className="bg-indigo-500/20 p-2 rounded-lg border border-indigo-500/30">
                 <Building2 className="h-5 w-5 text-indigo-400" />
               </div>
-              <h3 className="text-xl font-black text-white drop-shadow-md">Red de Aseguradoras</h3>
+              <h3 className="text-xl font-black text-white drop-shadow-md">{t('aseguradoras.listTitle')}</h3>
               <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">
-                {totalItems} Registradas
+                {totalItems} {t('aseguradoras.registeredAmount')}
               </span>
             </div>
 
@@ -74,36 +76,35 @@ function EmpresaAseguradoraList({
               <Input 
                 value={localSearch} 
                 onChange={(e) => setLocalSearch(e.target.value)} 
-                placeholder="Buscar por Razón Social o RIF..." 
+                placeholder={t('aseguradoras.searchPlaceholder')} 
                 autoComplete="off"
                 className="pl-9 bg-black/20 focus:bg-black/40 border-white/10 text-white placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10" 
               />
             </div>
-            <Button type="submit" className="bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-[0_0_10px_rgba(79,70,229,0.3)] h-10 px-6 font-bold">Buscar</Button>
-            <Button type="button" variant="outline" onClick={() => { setLocalSearch(''); onSearch(''); }} className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10">Limpiar</Button>
+            <Button type="submit" className="bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-[0_0_10px_rgba(79,70,229,0.3)] h-10 px-6 font-bold">{t('aseguradoras.btnSearch')}</Button>
+            <Button type="button" variant="outline" onClick={() => { setLocalSearch(''); onSearch(''); }} className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10">{t('aseguradoras.btnClear')}</Button>
           </form>
 
           {empresas.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
               <div className="bg-white/5 p-4 rounded-full border border-white/10 mb-4"><Building2 className="h-10 w-10 text-slate-500" /></div>
-              <h3 className="text-lg font-bold text-white">Ninguna empresa registrada</h3>
-              <p className="text-sm text-slate-400 text-center mt-2 leading-relaxed">Agrega aseguradoras manualmente o utiliza la carga masiva.</p>
+              <h3 className="text-lg font-bold text-white">{t('aseguradoras.emptyTitle')}</h3>
+              <p className="text-sm text-slate-400 text-center mt-2 leading-relaxed">{t('aseguradoras.emptyDesc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-white/10 shadow-inner">
               <table className="min-w-full divide-y divide-white/10">
                 <thead className="bg-slate-900/50 backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresa & RIF</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto Operativo</th>
-                    <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('aseguradoras.thCompanyRif')}</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('aseguradoras.thContact')}</th>
+                    <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('aseguradoras.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-transparent divide-y divide-white/5">
                   {empresas.map((empresa) => (
                     <tr key={empresa.id} className="hover:bg-white/5 transition-colors duration-200 group">
                       
-                      {/* 1. EMPRESA & RIF */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-black text-sm border border-indigo-500/30 shadow-inner">
@@ -118,7 +119,6 @@ function EmpresaAseguradoraList({
                         </div>
                       </td>
 
-                      {/* 2. CONTACTO (Cajitas Translúcidas) */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1.5">
                           <div className="flex items-center bg-white/5 px-2.5 py-1 rounded-md border border-white/10 text-[11px] font-bold text-slate-300 tracking-wide w-fit">
@@ -130,15 +130,14 @@ function EmpresaAseguradoraList({
                         </div>
                       </td>
 
-                      {/* 3. ACCIONES */}
                       <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedAseguradora360(empresa.id)} className="text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors" title="Ver Balance 360°">
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedAseguradora360(empresa.id)} className="text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors" title={t('aseguradoras.btnView360')}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => onEdit && onEdit(empresa)} className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" title="Editar">
+                        <Button variant="ghost" size="icon" onClick={() => onEdit && onEdit(empresa)} className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" title={t('aseguradoras.btnEdit')}>
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Eliminar Aseguradora", message: "¿Estás seguro de eliminar esta empresa?", onConfirm: () => onDelete && onDelete(empresa.id) })} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" title="Eliminar">
+                        <Button variant="ghost" size="icon" onClick={() => confirm({ title: t('aseguradoras.confirmDeleteTitle'), message: t('aseguradoras.confirmDeleteMsg'), onConfirm: () => onDelete && onDelete(empresa.id) })} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" title={t('aseguradoras.btnDelete')}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </td>
@@ -164,7 +163,6 @@ function EmpresaAseguradoraList({
   );
 }
 
-// 🛡️ ESCUDO MEMO NIVEL DIOS
 export default React.memo(EmpresaAseguradoraList, (prev, next) => {
   return (
     prev.empresas === next.empresas &&

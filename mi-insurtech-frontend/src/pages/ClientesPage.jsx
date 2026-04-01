@@ -3,6 +3,7 @@ import React from 'react';
 import ClientForm from '../components/ClientForm';
 import ClienteImport from '../components/ClienteImport';
 import ClientList from '../components/ClientList';
+import { useTranslation } from 'react-i18next';
 
 function ClientesPage({
   apiBaseUrl,
@@ -26,11 +27,16 @@ function ClientesPage({
   getDateFormatOptions,
   itemsPerPage
 }) {
+  // 🚀 Encendemos el motor de idiomas para esta pantalla
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        {/* CRISTAL: Texto blanco, fuente más gruesa y sombra para resaltar sobre el fondo oscuro */}
-        <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Directorio de Clientes</h2>
+        {/* CRISTAL: El título ahora muta de idioma automáticamente */}
+        <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">
+          {t('clientes.pageTitle')}
+        </h2>
       </div>
       
       <ClientForm 

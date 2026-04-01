@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/lib/use-toast';
 import { UploadCloud, FileSpreadsheet, Loader2, Download, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function PolizaImport({ apiBaseUrl, onImportComplete }) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [file, setFile] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
@@ -38,7 +40,7 @@ function PolizaImport({ apiBaseUrl, onImportComplete }) {
         body: formData,
       });
       if (response.ok) {
-        toast({ title: "Éxito", description: "Pólizas cargadas correctamente.", variant: "success" });
+        toast({ title: t('polizas.toastSuccess'), description: t('polizas.toastImportSuccessDesc'), variant: "success" });
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         if (onImportComplete) onImportComplete();
@@ -47,7 +49,7 @@ function PolizaImport({ apiBaseUrl, onImportComplete }) {
         throw new Error(err.detail || "Error al procesar CSV");
       }
     } catch (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('polizas.toastValidation'), description: error.message, variant: "destructive" });
     } finally {
       setIsImporting(false);
     }
@@ -60,29 +62,27 @@ function PolizaImport({ apiBaseUrl, onImportComplete }) {
           <div className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-500/40 backdrop-blur-md">
             <FileSpreadsheet className="h-5 w-5 text-indigo-400" /> 
           </div>
-          Carga Masiva de Pólizas
+          {t('polizas.importTitle')}
         </h3>
         <Button variant="outline" size="sm" onClick={descargarPlantilla} className="bg-transparent border-indigo-400/50 text-indigo-300 hover:bg-indigo-500/20 hover:text-white font-bold shadow-sm transition-all w-full sm:w-auto">
-          <Download className="h-4 w-4 mr-2" /> Descargar Modelo
+          <Download className="h-4 w-4 mr-2" /> {t('polizas.downloadModel')}
         </Button>
       </div>
       <CardContent className="p-6">
-        
-        {/* LA CAJITA AZUL DE INSTRUCCIONES ADAPTADA A CIBERPUNK */}
         <div className="mb-6 flex items-start gap-3 p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl backdrop-blur-sm text-indigo-200">
           <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-indigo-400" />
           <div className="text-sm">
-            <p>Descarga el modelo, rellena los datos de tus pólizas y sube el archivo CSV. Asegúrate de que los <b className="text-white">IDs de cliente, aseguradora y asesor</b> ya existan en el sistema.</p>
+            <p>{t('polizas.importInfo')}</p>
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full space-y-2">
-            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Seleccionar archivo</label>
+            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">{t('polizas.selectFile')}</label>
             <Input type="file" accept=".csv" onChange={(e) => setFile(e.target.files[0])} ref={fileInputRef} className="text-white bg-black/20 border-white/10 file:bg-white/10 file:text-white file:border-0 file:rounded-md file:mr-4 file:px-4 file:py-2 hover:file:bg-white/20 transition-all focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 cursor-pointer h-12 pt-2" />
           </div>
           <Button onClick={handleImportSubmit} disabled={isImporting || !file} className="w-full md:w-auto h-12 px-6 bg-indigo-600/80 hover:bg-indigo-500 text-white font-black tracking-wide border border-indigo-500/50 shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none">
-            {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} Subir Archivo
+            {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} {t('polizas.startUpload')}
           </Button>
         </div>
       </CardContent>

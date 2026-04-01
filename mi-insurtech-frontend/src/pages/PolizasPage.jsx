@@ -3,6 +3,7 @@ import React from 'react';
 import PolizaForm from '../components/PolizaForm';
 import PolizaImport from '../components/PolizaImport';
 import PolizaList from '../components/PolizaList';
+import { useTranslation } from 'react-i18next';
 
 function PolizasPage({
   apiBaseUrl,
@@ -40,10 +41,11 @@ function PolizasPage({
   dateFormat,
   getDateFormatOptions
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* CRISTAL: Título iluminado */}
-      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Gestión de Pólizas</h2>
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">{t('polizas.pageTitle')}</h2>
       
       <PolizaForm 
         onPolizaSaved={handlePolizaSaved} 

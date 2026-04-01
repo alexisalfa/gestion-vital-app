@@ -7,6 +7,7 @@ import { useConfirmation } from './ConfirmationContext';
 import { Loader2, Search, FileDown, FileText, Edit2, Trash2, Users, Mail, Phone, Eye, AlertTriangle, CheckCircle2 } from 'lucide-react'; 
 import ClientProfile360 from './ClientProfile360';
 import useDebounce from '../hooks/useDebounce'; 
+import { useTranslation } from 'react-i18next'; // 🚀 Importamos traductor
 
 function ClientList({
   clients = [],
@@ -28,6 +29,7 @@ function ClientList({
 }) {
   const { toast } = useToast();
   const { confirm } = useConfirmation(); 
+  const { t } = useTranslation(); // 🚀 Iniciamos gancho de traducción
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isExporting, setIsExporting] = useState(false); 
@@ -50,7 +52,6 @@ function ClientList({
     return `${nombre?.charAt(0) || ''}${apellido?.charAt(0) || ''}`.toUpperCase();
   };
 
-  // AVATARES ADAPTADOS AL MODO OSCURO
   const getAvatarColor = (nombre) => {
     const colors = [
       'bg-blue-500/20 text-blue-300 border border-blue-500/30', 
@@ -63,12 +64,11 @@ function ClientList({
     return colors[index];
   };
 
-  // SEMÁFORO CRM INTELIGENTE (COLORES NEÓN OSCURO)
   const getCrmStatus = (dias) => {
-    if (dias === null || dias === undefined) return { label: 'Sin Pólizas', style: 'bg-white/5 text-slate-400 border-white/10', icon: null };
-    if (dias < 0) return { label: 'Vencida', style: 'bg-rose-500/20 text-rose-300 border-rose-500/30', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
-    if (dias <= 30) return { label: '¡Renovar Pronto!', style: 'bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.3)]', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
-    return { label: 'Al día', style: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', icon: <CheckCircle2 className="w-3 h-3 mr-1"/> };
+    if (dias === null || dias === undefined) return { label: t('clientes.crmNoPolicies'), style: 'bg-white/5 text-slate-400 border-white/10', icon: null };
+    if (dias < 0) return { label: t('clientes.crmExpired'), style: 'bg-rose-500/20 text-rose-300 border-rose-500/30', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
+    if (dias <= 30) return { label: t('clientes.crmRenewSoon'), style: 'bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.3)]', icon: <AlertTriangle className="w-3 h-3 mr-1"/> };
+    return { label: t('clientes.crmUpToDate'), style: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', icon: <CheckCircle2 className="w-3 h-3 mr-1"/> };
   };
 
   useEffect(() => {
@@ -108,8 +108,8 @@ function ClientList({
 
   const handleDeleteClick = (client) => {
     confirm({
-      title: "⚠️ ¿Eliminar Cliente Definitivamente?",
-      message: `¿Quiere borrar a ${client.nombre} ${client.apellido}? Perderá todo su historial.\n\nIMPORTANTE: Si quiere eliminarlo, por favor elimine primero sus pólizas asociadas.`,
+      title: t('clientes.deleteConfirmTitle'),
+      message: `${t('clientes.deleteConfirmMsg1')}${client.nombre} ${client.apellido}${t('clientes.deleteConfirmMsg2')}`,
       onConfirm: () => onDeleteClient(client.id),
     });
   };
@@ -148,35 +148,31 @@ function ClientList({
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    // CRISTAL: Contenedor Principal de la Lista
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] border border-white/10 mt-6 p-6 relative">
       
-      {/* 🔍 Cabecera de Lista y Filtros */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-6 gap-5 relative">
         <div className="w-full lg:w-2/3">
           <h3 className="text-xl font-black text-white mb-4 flex items-center gap-3 drop-shadow-md">
             <div className="bg-indigo-500/20 p-2 rounded-lg border border-indigo-500/30">
               <Users className="h-5 w-5 text-indigo-400" />
             </div>
-            Directorio CRM 360°
-            <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">{totalItems} Registros</span>
+            {t('clientes.listTitle')}
+            <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">{totalItems} {t('clientes.records')}</span>
           </h3>
           
           <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 relative z-20"> 
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              {/* Buscador Ciberpunk */}
               <Input
                 type="text"
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                placeholder="Buscar por nombre o cédula..."
+                placeholder={t('clientes.searchPlaceholder')}
                 autoComplete="off" 
                 className="pl-9 bg-black/20 focus:bg-black/40 border-white/10 text-white placeholder:text-slate-500 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10"
                 onFocus={() => { if (localSearch.length >= 2 && suggestions.length > 0) setShowSuggestions(true); }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
-              {/* Sugerencias estilo Neón */}
               {showSuggestions && suggestions.length > 0 && (
                 <ul className="absolute z-30 w-full bg-slate-800 border border-white/10 rounded-xl shadow-2xl mt-2 max-h-48 overflow-y-auto custom-scrollbar backdrop-blur-xl">
                   {suggestions.map((s) => (
@@ -198,16 +194,15 @@ function ClientList({
             
             <div className="flex gap-2">
               <Button type="submit" className="bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-[0_0_10px_rgba(79,70,229,0.3)] h-10 px-6 font-bold">
-                Filtrar
+                {t('clientes.filter')}
               </Button>
               <Button type="button" variant="outline" className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10" onClick={handleClearFilters}>
-                Limpiar
+                {t('clientes.clear')}
               </Button>
             </div>
           </form>
         </div>
 
-        {/* 📉 Botones de Exportación Premium */}
         <div className="flex gap-3 w-full lg:w-auto relative">
           <Button 
             onClick={handleExportCsv} 
@@ -230,15 +225,14 @@ function ClientList({
         </div>
       </div>
 
-      {/* 📊 Tabla Premium o Empty State */}
       {clients.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
           <div className="bg-white/5 p-4 rounded-full border border-white/10 mb-4">
             <Users className="h-10 w-10 text-slate-500" />
           </div>
-          <h3 className="text-lg font-bold text-white">Directorio vacío</h3>
+          <h3 className="text-lg font-bold text-white">{t('clientes.emptyTitle')}</h3>
           <p className="text-sm text-slate-400 max-w-sm text-center mt-2 leading-relaxed">
-            Parece que aún no tienes clientes registrados o la búsqueda no arrojó resultados.
+            {t('clientes.emptyDesc')}
           </p>
         </div>
       ) : (
@@ -246,11 +240,11 @@ function ClientList({
           <table className="min-w-full divide-y divide-white/10">
             <thead className="bg-slate-900/50 backdrop-blur-sm">
               <tr>
-                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Perfil del Cliente</th>
-                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto</th>
-                <th className="px-6 py-4 text-left text-[10px] font-black text-indigo-400 uppercase tracking-widest">Cartera (USD)</th>
-                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Estatus CRM</th>
-                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('clientes.thProfile')}</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('clientes.thContact')}</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-indigo-400 uppercase tracking-widest">{t('clientes.thPortfolio')}</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('clientes.thCrmStatus')}</th>
+                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('clientes.thActions')}</th>
               </tr>
             </thead>
             <tbody className="bg-transparent divide-y divide-white/5">
@@ -269,7 +263,7 @@ function ClientList({
                           </div>
                           <div className="text-xs text-slate-400 flex items-center mt-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
-                            Activo
+                            {t('clientes.statusActive')}
                           </div>
                         </div>
                       </div>
@@ -291,7 +285,7 @@ function ClientList({
                           ${(client.valor_cartera || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
                         </span>
                         <span className="text-xs font-medium text-slate-500 mt-0.5">
-                          {client.polizas_activas || 0} Póliza(s)
+                          {client.polizas_activas || 0} {t('clientes.policiesWord')}
                         </span>
                       </div>
                     </td>
@@ -306,7 +300,7 @@ function ClientList({
                         size="icon" 
                         onClick={() => setSelectedClient360(client.id)} 
                         className="text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-colors" 
-                        title="Ver Perfil 360"
+                        title={t('clientes.btnViewProfile')}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -315,7 +309,7 @@ function ClientList({
                         size="icon" 
                         onClick={() => onEditClient(client)} 
                         className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" 
-                        title="Editar"
+                        title={t('clientes.btnEdit')}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -324,7 +318,7 @@ function ClientList({
                         size="icon" 
                         onClick={() => handleDeleteClick(client)} 
                         className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" 
-                        title="Eliminar"
+                        title={t('clientes.btnDelete')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -337,7 +331,6 @@ function ClientList({
         </div>
       )}
 
-      {/* 📄 Paginación Ciberpunk */}
       {totalPages > 1 && (
         <nav className="flex justify-center mt-6">
           <ul className="flex items-center space-x-1 bg-black/20 p-1.5 rounded-xl border border-white/10 shadow-sm backdrop-blur-sm">
@@ -348,7 +341,7 @@ function ClientList({
                 onClick={() => onPageChange(currentPage - 1)} 
                 disabled={currentPage === 1}
               >
-                Anterior
+                {t('clientes.btnPrev')}
               </Button>
             </li>
             {pages.map(page => (
@@ -369,14 +362,13 @@ function ClientList({
                 onClick={() => onPageChange(currentPage + 1)} 
                 disabled={currentPage === totalPages}
               >
-                Siguiente
+                {t('clientes.btnNext')}
               </Button>
             </li>
           </ul>
         </nav>
       )}
 
-      {/* 🔮 Modal 360 */}
       {selectedClient360 && (
         <ClientProfile360 
           clientId={selectedClient360} 
@@ -388,7 +380,6 @@ function ClientList({
   );
 }
 
-// 🛡️ ESCUDO MEMO NIVEL DIOS (Cortesía de la auditoría técnica)
 export default React.memo(ClientList, (prev, next) => {
   return (
     prev.clients === next.clients &&

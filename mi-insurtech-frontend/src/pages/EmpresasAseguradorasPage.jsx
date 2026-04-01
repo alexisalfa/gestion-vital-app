@@ -3,6 +3,7 @@ import React from 'react';
 import EmpresaAseguradoraForm from '../components/EmpresaAseguradoraForm';
 import EmpresaAseguradoraImport from '../components/EmpresaAseguradoraImport';
 import EmpresaAseguradoraList from '../components/EmpresaAseguradoraList';
+import { useTranslation } from 'react-i18next'; // 🚀 Traductor
 
 function EmpresasAseguradorasPage({
   apiBaseUrl,
@@ -23,10 +24,12 @@ function EmpresasAseguradorasPage({
   dateFormat,
   getDateFormatOptions
 }) {
+  const { t } = useTranslation(); // 🚀 Encendemos motor
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* CRISTAL: Título iluminado */}
-      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Red de Aseguradoras</h2>
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">{t('aseguradoras.pageTitle')}</h2>
       
       <EmpresaAseguradoraForm 
         onEmpresaAseguradoraSaved={handleEmpresaAseguradoraSaved} 

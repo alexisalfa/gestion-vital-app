@@ -9,6 +9,7 @@ import { PencilIcon, Trash2Icon, Loader2, Shield, Search, FileDown, FileText, Ba
 import { useConfirmation } from './ConfirmationContext'; 
 import Pagination from './Pagination'; 
 import { useToast } from '@/lib/use-toast'; 
+import { useTranslation } from 'react-i18next';
 
 import PagoManualModal from './PagoManualModal';
 import ClientProfile360 from './ClientProfile360';
@@ -23,13 +24,13 @@ function PolizaList({
 }) {
   const { confirm } = useConfirmation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
 
   const [isPagoModalOpen, setIsPagoModalOpen] = useState(false);
   const [polizaToPay, setPolizaToPay] = useState(null);
   const [selectedClient360, setSelectedClient360] = useState(null);
 
-  // --- 🚀 MOTOR DE BÚSQUEDA EN TIEMPO REAL ---
   const [localSearch, setLocalSearch] = useState(searchTerm || '');
   const debouncedSearch = useDebounce(localSearch, 500);
 
@@ -43,7 +44,6 @@ function PolizaList({
   useEffect(() => {
     setLocalSearch(searchTerm || '');
   }, [searchTerm]);
-  // ------------------------------------------
 
   const formatDisplayDate = (isoString) => {
     if (!isoString) return 'N/A';
@@ -93,7 +93,7 @@ function PolizaList({
     const telefono = cliente?.telefono ? cliente.telefono.replace(/\D/g, '') : '';
 
     if (!telefono) {
-      toast({ title: "Teléfono no encontrado", description: `El cliente no tiene teléfono registrado.`, variant: "destructive" });
+      toast({ title: "Error", description: t('polizas.waClientNoPhone'), variant: "destructive" });
       return;
     }
 
@@ -101,14 +101,14 @@ function PolizaList({
     const isVencida = poliza.estado === 'Vencida';
     
     let mensaje = isVencida 
-      ? `Hola ${nombreCliente}, soy tu asesor de Gestión Vital 🛡️. Me comunico porque tu póliza Nro: *${poliza.numero_poliza}* se encuentra vencida desde el *${fechaVencimiento}*. ¿Deseas que te apoye gestionando la renovación?`
-      : `Hola ${nombreCliente}, te saluda tu asesor de Gestión Vital 🛡️. Te escribo en relación a tu póliza Nro: *${poliza.numero_poliza}*. ¿En qué te puedo ayudar hoy?`;
+      ? `${t('polizas.waExpired1')}${nombreCliente}${t('polizas.waExpired2')}${poliza.numero_poliza}${t('polizas.waExpired3')}${fechaVencimiento}${t('polizas.waExpired4')}`
+      : `${t('polizas.waActive1')}${nombreCliente}${t('polizas.waActive2')}${poliza.numero_poliza}${t('polizas.waActive3')}`;
 
     window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
   };
 
-  const clienteOptions = useMemo(() => [{ id: '', nombre: 'Todos los Clientes' }, ...clients.map(c => ({ id: c.id, nombre: `${c.nombre} ${c.apellido || ''}`.trim() }))], [clients]);
-  const estadoOptions = [{ id: '', nombre: 'Todos' }, { id: 'Activa', nombre: 'Activa' }, { id: 'Inactiva', nombre: 'Inactiva' }, { id: 'Vencida', nombre: 'Vencida' }, { id: 'Pendiente', nombre: 'Pendiente de Pago' }];
+  const clienteOptions = useMemo(() => [{ id: '', nombre: 'Todos' }, ...clients.map(c => ({ id: c.id, nombre: `${c.nombre} ${c.apellido || ''}`.trim() }))], [clients]);
+  const estadoOptions = [{ id: '', nombre: 'Todos' }, { id: 'Activa', nombre: t('polizas.statusActive') }, { id: 'Inactiva', nombre: t('polizas.statusInactive') }, { id: 'Vencida', nombre: t('polizas.statusExpired') }, { id: 'Pendiente', nombre: t('polizas.statusPending') }];
 
   const handleSearchSubmit = (e) => { 
     e.preventDefault(); 
@@ -128,7 +128,7 @@ function PolizaList({
   ], []);
 
   const handleExportCsv = () => { setIsExporting(true); onExport(polizas.map(p => ({ ...p, cliente_nombre: getClienteNombre(p), empresa_nombre: getEmpresaNombre(p) })), 'cartera_polizas', polizaCsvHeaders); setIsExporting(false); };
-  const handleExportPdf = () => { setIsExporting(true); onExportPdf(polizas.map(p => ({ ...p, cliente_nombre: getClienteNombre(p), empresa_nombre: getEmpresaNombre(p) })), 'cartera_polizas', polizaCsvHeaders, 'Reporte de Pólizas'); setIsExporting(false); };
+  const handleExportPdf = () => { setIsExporting(true); onExportPdf(polizas.map(p => ({ ...p, cliente_nombre: getClienteNombre(p), empresa_nombre: getEmpresaNombre(p) })), 'cartera_polizas', polizaCsvHeaders, t('polizas.exportPdfTitle')); setIsExporting(false); };
 
   const handleOpenPagoModal = (poliza) => { setPolizaToPay(poliza); setIsPagoModalOpen(true); };
 
@@ -147,7 +147,6 @@ function PolizaList({
   const totalPages = Math.ceil((totalItems || 0) / (itemsPerPage || 1));
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  // Constante para estilos de los selectores Headless en los filtros
   const filterSelectStylesClass = "[&_button]:!bg-black/40 [&_button]:!border-white/10 [&_button]:!text-white hover:[&_button]:!border-indigo-400 focus:[&_button]:!ring-indigo-400 [&_div[role='listbox']]:!bg-slate-800 [&_div[role='listbox']]:!border-white/10 [&_li]:!text-slate-200 hover:[&_li]:!bg-indigo-500/20 hover:[&_li]:!text-indigo-300 h-10";
 
   return (
@@ -159,8 +158,8 @@ function PolizaList({
               <div className="bg-indigo-500/20 p-2 rounded-lg border border-indigo-500/30">
                 <Shield className="h-5 w-5 text-indigo-400" />
               </div>
-              Cartera de Pólizas
-              <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">{totalItems} Contratos</span>
+              {t('polizas.listTitle')}
+              <span className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1 px-3 rounded-full ml-2 font-bold">{totalItems} {t('polizas.contractsCount')}</span>
             </h3>
             <div className="flex gap-3 w-full lg:w-auto">
               <Button onClick={handleExportCsv} variant="outline" className="flex-1 lg:flex-none border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/50 transition-all h-10 font-bold" disabled={isExporting || polizas.length === 0}><FileDown className="h-4 w-4 mr-2" /> CSV</Button>
@@ -168,11 +167,10 @@ function PolizaList({
             </div>
           </div>
 
-          {/* Filtros Ciberpunk */}
           <form onSubmit={handleSearchSubmit} className="mb-6 bg-black/20 p-5 rounded-xl border border-white/10 backdrop-blur-md space-y-4 z-20 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">N° Póliza / Cliente</Label>
+                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterSearch')}</Label>
                 <Input 
                   value={localSearch} 
                   onChange={e => setLocalSearch(e.target.value)} 
@@ -181,16 +179,16 @@ function PolizaList({
                   className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 placeholder:text-slate-600 transition-all h-10" 
                 />
               </div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</Label><Input value={tipoFilter} onChange={e => setTipoFilter(e.target.value)} placeholder="Ej. Salud" className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 placeholder:text-slate-600 transition-all h-10" /></div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Estado</Label><div className={filterSelectStylesClass}><HeadlessSafeSelect id="filtro-estado" value={estadoFilter} onChange={setEstadoFilter} options={estadoOptions} /></div></div>
-              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</Label><div className={filterSelectStylesClass}><HeadlessSafeSelect id="filtro-cliente" value={clienteIdFilter} onChange={setClienteIdFilter} options={clienteOptions} /></div></div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterType')}</Label><Input value={tipoFilter} onChange={e => setTipoFilter(e.target.value)} placeholder="Ej. Salud" className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 placeholder:text-slate-600 transition-all h-10" /></div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterStatus')}</Label><div className={filterSelectStylesClass}><HeadlessSafeSelect id="filtro-estado" value={estadoFilter} onChange={setEstadoFilter} options={estadoOptions} /></div></div>
+              <div className="space-y-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterClient')}</Label><div className={filterSelectStylesClass}><HeadlessSafeSelect id="filtro-cliente" value={clienteIdFilter} onChange={setClienteIdFilter} options={clienteOptions} /></div></div>
             </div>
             <div className="flex flex-col md:flex-row gap-4 items-end pt-2">
-              <div className="space-y-1 flex-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vencimiento Desde</Label><Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10 [&::-webkit-calendar-picker-indicator]:invert"/></div>
-              <div className="space-y-1 flex-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vencimiento Hasta</Label><Input type="date" value={fechaFinFilter} onChange={e => setFechaFinFilter(e.target.value)} className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10 [&::-webkit-calendar-picker-indicator]:invert"/></div>
+              <div className="space-y-1 flex-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterStart')}</Label><Input type="date" value={fechaInicioFilter} onChange={e => setFechaInicioFilter(e.target.value)} className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10 [&::-webkit-calendar-picker-indicator]:invert"/></div>
+              <div className="space-y-1 flex-1"><Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('polizas.filterEnd')}</Label><Input type="date" value={fechaFinFilter} onChange={e => setFechaFinFilter(e.target.value)} className="bg-black/40 text-white border-white/10 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all h-10 [&::-webkit-calendar-picker-indicator]:invert"/></div>
               <div className="flex gap-3 w-full md:w-auto">
-                <Button type="submit" className="flex-1 md:flex-none bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-[0_0_10px_rgba(79,70,229,0.3)] h-10 px-6 font-bold"><Search className="h-4 w-4 mr-2"/> Filtrar</Button>
-                <Button type="button" variant="outline" onClick={handleClearFilters} className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10">Limpiar</Button>
+                <Button type="submit" className="flex-1 md:flex-none bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-[0_0_10px_rgba(79,70,229,0.3)] h-10 px-6 font-bold"><Search className="h-4 w-4 mr-2"/> {t('polizas.btnFilter')}</Button>
+                <Button type="button" variant="outline" onClick={handleClearFilters} className="text-slate-300 border-white/20 bg-transparent hover:bg-white/10 hover:text-white h-10">{t('polizas.btnClear')}</Button>
               </div>
             </div>
           </form>
@@ -198,20 +196,20 @@ function PolizaList({
           {polizas.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
               <div className="bg-white/5 p-4 rounded-full border border-white/10 mb-4"><Shield className="h-10 w-10 text-slate-500" /></div>
-              <h3 className="text-lg font-bold text-white">Cartera vacía</h3>
-              <p className="text-sm text-slate-400 text-center mt-2 leading-relaxed">No se encontraron pólizas con los filtros actuales.</p>
+              <h3 className="text-lg font-bold text-white">{t('polizas.emptyTitle')}</h3>
+              <p className="text-sm text-slate-400 text-center mt-2 leading-relaxed">{t('polizas.emptyDesc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-white/10 shadow-inner">
               <table className="min-w-full divide-y divide-white/10">
                 <thead className="bg-slate-900/50 backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contrato / Cliente</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo & Aseguradora</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Valores</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Prima & Vencimiento</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
-                    <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thContractClient')}</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thTypeInsurer')}</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thValues')}</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thPremiumExpiration')}</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thStatus')}</th>
+                    <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('polizas.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-transparent divide-y divide-white/5">
@@ -245,11 +243,11 @@ function PolizaList({
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col gap-1.5">
                             <div className="flex items-center justify-between bg-white/5 px-2.5 py-1 rounded-md border border-white/10 text-[11px] tracking-wide">
-                              <span className="text-slate-400 font-bold mr-3">Cobertura:</span>
+                              <span className="text-slate-400 font-bold mr-3">{t('polizas.coverage')}:</span>
                               <span className="font-black text-emerald-400">{poliza.suma_asegurada != null ? `${currencySymbol} ${formatCurrency(poliza.suma_asegurada)}` : 'N/A'}</span>
                             </div>
                             <div className="flex items-center justify-between bg-white/5 px-2.5 py-1 rounded-md border border-white/10 text-[11px] tracking-wide">
-                              <span className="text-slate-400 font-bold mr-3">Deducible:</span>
+                              <span className="text-slate-400 font-bold mr-3">{t('polizas.deductible')}:</span>
                               <span className="font-black text-rose-400">{poliza.deducible != null ? `${currencySymbol} ${formatCurrency(poliza.deducible)}` : 'N/A'}</span>
                             </div>
                           </div>
@@ -258,7 +256,7 @@ function PolizaList({
                         <td className="px-6 py-4 whitespace-nowrap">
                           <p className="text-sm font-black text-white drop-shadow-md">{poliza.prima != null ? `${currencySymbol} ${formatCurrency(poliza.prima)}` : 'N/A'}</p>
                           <p className={`text-xs flex items-center gap-1.5 mt-1 font-bold ${isVencida ? 'text-rose-400' : 'text-slate-400'}`}>
-                            <Calendar className="h-3.5 w-3.5"/> Vence: {formatDisplayDate(poliza.fecha_fin)}
+                            <Calendar className="h-3.5 w-3.5"/> {t('polizas.expires')}: {formatDisplayDate(poliza.fecha_fin)}
                           </p>
                         </td>
 
@@ -269,24 +267,24 @@ function PolizaList({
                               isPendiente ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 
                               'bg-white/10 text-slate-300 border-white/20'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.5)] ${isActiva ? 'bg-emerald-400' : isVencida ? 'bg-rose-400' : isPendiente ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
-                            {poliza.estado}
+                            {poliza.estado === 'Activa' ? t('polizas.statusActive') : poliza.estado === 'Inactiva' ? t('polizas.statusInactive') : poliza.estado === 'Vencida' ? t('polizas.statusExpired') : poliza.estado === 'Pendiente' ? t('polizas.statusPending') : poliza.estado}
                           </span>
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                          <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(poliza.cliente_id)} className="text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors" title="Ver Expediente CRM 360">
+                          <Button variant="ghost" size="icon" onClick={() => setSelectedClient360(poliza.cliente_id)} className="text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-full transition-colors" title={t('polizas.actionViewCRM')}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleWhatsAppClick(poliza)} className="text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-full transition-colors" title="Contactar por WhatsApp">
+                          <Button variant="ghost" size="icon" onClick={() => handleWhatsAppClick(poliza)} className="text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-full transition-colors" title={t('polizas.actionWhatsApp')}>
                             <MessageCircle className="h-4 w-4" />
                           </Button>
                           {!isActiva && (
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenPagoModal(poliza)} className="text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-colors" title="Registrar Pago">
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenPagoModal(poliza)} className="text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-colors" title={t('polizas.actionRegisterPayment')}>
                               <Banknote className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => onEditPoliza(poliza)} className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" title="Editar Póliza"><PencilIcon className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Borrar", onConfirm: () => onDeletePoliza(poliza.id) })} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" title="Eliminar Póliza"><Trash2Icon className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => onEditPoliza(poliza)} className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors" title={t('polizas.actionEdit')}><PencilIcon className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => confirm({ title: "Borrar", onConfirm: () => onDeletePoliza(poliza.id) })} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors" title={t('polizas.actionDelete')}><Trash2Icon className="h-4 w-4" /></Button>
                         </td>
                       </tr>
                     );
@@ -306,7 +304,7 @@ function PolizaList({
 
       <PagoManualModal 
         isOpen={isPagoModalOpen} onClose={() => setIsPagoModalOpen(false)} onConfirm={handleConfirmPago}
-        titulo="Registrar Pago del Cliente" montoSugerido={polizaToPay?.prima || 0} currencySymbol={currencySymbol}
+        titulo={t('polizas.actionRegisterPayment')} montoSugerido={polizaToPay?.prima || 0} currencySymbol={currencySymbol}
       />
 
       {selectedClient360 && (
@@ -316,7 +314,6 @@ function PolizaList({
   );
 }
 
-// 🛡️ ESCUDO MEMO NIVEL DIOS (Múltiple validación de props)
 export default React.memo(PolizaList, (prev, next) => {
   return (
     prev.polizas === next.polizas &&

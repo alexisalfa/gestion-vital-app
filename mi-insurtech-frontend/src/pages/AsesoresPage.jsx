@@ -3,6 +3,7 @@ import React from 'react';
 import AsesorForm from '../components/AsesorForm';
 import AsesorImport from '../components/AsesorImport';
 import AsesorList from '../components/AsesorList';
+import { useTranslation } from 'react-i18next'; // 🚀 Traductor
 
 function AsesoresPage({
   apiBaseUrl,
@@ -25,10 +26,11 @@ function AsesoresPage({
   dateFormat,
   getDateFormatOptions
 }) {
+  const { t } = useTranslation(); // 🚀 Encendemos el motor
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* CRISTAL: Título iluminado */}
-      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Fuerza de Ventas</h2>
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">{t('asesores.pageTitle')}</h2>
       
       <AsesorForm 
         onAsesorSaved={handleAsesorSaved} 

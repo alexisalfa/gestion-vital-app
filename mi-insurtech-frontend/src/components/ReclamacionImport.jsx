@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/lib/use-toast';
 import { UploadCloud, FileSpreadsheet, Loader2, Info, Download } from 'lucide-react';
+import { useTranslation } from 'react-i18next'; // 🚀 Traductor
 
 function ReclamacionImport({ apiBaseUrl, onImportComplete }) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [file, setFile] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
@@ -26,7 +28,7 @@ function ReclamacionImport({ apiBaseUrl, onImportComplete }) {
     link.click();
     document.body.removeChild(link);
     
-    toast({ title: "Plantilla descargada", description: "Completa los datos de los siniestros y súbelos." });
+    toast({ title: t('reclamaciones.toastTemplateTitle'), description: t('reclamaciones.toastTemplateDesc') });
   };
 
   const handleFileChange = (e) => {
@@ -50,13 +52,13 @@ function ReclamacionImport({ apiBaseUrl, onImportComplete }) {
       });
 
       if (response.ok) {
-        toast({ title: "Éxito", description: "Reclamaciones importadas correctamente.", variant: "success" });
+        toast({ title: t('reclamaciones.toastImportSuccess'), description: t('reclamaciones.toastImportSuccessDesc'), variant: "success" });
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         if (onImportComplete) onImportComplete();
       } else {
         const err = await response.json();
-        throw new Error(err.detail || "Error al procesar el archivo");
+        throw new Error(err.detail || t('reclamaciones.toastImportError'));
       }
     } catch (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -72,30 +74,28 @@ function ReclamacionImport({ apiBaseUrl, onImportComplete }) {
           <div className="p-2.5 rounded-xl bg-red-500/20 border border-red-500/40 backdrop-blur-md">
             <FileSpreadsheet className="h-5 w-5 text-red-400" />
           </div>
-          Importación de Siniestros
+          {t('reclamaciones.importTitle')}
         </h3>
         <Button variant="outline" size="sm" onClick={descargarPlantilla} className="bg-transparent border-red-400/50 text-red-300 hover:bg-red-500/20 hover:text-white font-bold shadow-sm transition-all w-full sm:w-auto">
-          <Download className="h-4 w-4 mr-2" /> Descargar Modelo
+          <Download className="h-4 w-4 mr-2" /> {t('reclamaciones.downloadModel')}
         </Button>
       </div>
 
       <CardContent className="p-6">
-        
-        {/* LA CAJITA DE INSTRUCCIONES EN TONOS ROJOS */}
         <div className="mb-6 flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 backdrop-blur-sm">
           <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-red-400" />
           <div className="text-sm">
-            <p>Descarga el modelo, rellena los datos de los siniestros y sube el archivo CSV. Verifica que los <b className="text-white">IDs de Póliza y Cliente</b> ya existan en el sistema. Las fechas deben seguir el formato <b className="text-white">AAAA-MM-DD</b>.</p>
+            <p>{t('reclamaciones.importInfo1')} <b className="text-white">{t('reclamaciones.importInfoBold')}</b> {t('reclamaciones.importInfo2')} <b className="text-white">{t('reclamaciones.importInfoFormat')}</b>.</p>
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full space-y-2">
-            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Seleccionar archivo CSV</label>
+            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">{t('reclamaciones.selectFile')}</label>
             <Input type="file" accept=".csv" onChange={handleFileChange} ref={fileInputRef} className="text-white bg-black/20 border-white/10 file:bg-white/10 file:text-white file:border-0 file:rounded-md file:mr-4 file:px-4 file:py-2 hover:file:bg-white/20 transition-all focus:border-red-400 focus:ring-1 focus:ring-red-400 cursor-pointer h-12 pt-2" />
           </div>
           <Button onClick={handleImportSubmit} disabled={isImporting || !file} className="w-full md:w-auto h-12 px-6 bg-red-600/80 hover:bg-red-500 text-white font-black tracking-wide border border-red-500/50 shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none">
-            {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} Subir Siniestros
+            {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} {t('reclamaciones.startUpload')}
           </Button>
         </div>
       </CardContent>

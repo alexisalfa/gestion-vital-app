@@ -3,12 +3,14 @@ import React from 'react';
 import ComisionForm from '../components/ComisionForm';
 import ComisionImport from '../components/ComisionImport';
 import ComisionList from '../components/ComisionList';
+import { useTranslation } from 'react-i18next'; // 🚀 Traductor Inyectado
 
 function ComisionesPage(props) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* CRISTAL: Título iluminado */}
-      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Liquidación de Comisiones</h2>
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">{t('comisiones.pageTitle')}</h2>
       
       <ComisionForm 
         onComisionSaved={props.handleComisionSaved} 
@@ -35,12 +37,11 @@ function ComisionesPage(props) {
         getDateFormatOptions={props.getDateFormatOptions}
         dateFormat={props.dateFormat} 
         
-        // 🚀 ALINEACIÓN CRÍTICA: Los nombres exactos que pide ComisionList.jsx
         totalItems={props.totalComisiones} 
         onPageChange={props.setComisionCurrentPage} 
         onExport={props.exportToCsv} 
         onExportPdf={props.exportToPdf} 
-        onSearch={() => {}} // Función de seguridad
+        onSearch={() => {}} 
         
         onEditComision={props.handleEditComision} 
         onDeleteComision={props.handleDeleteComision}
@@ -48,13 +49,11 @@ function ComisionesPage(props) {
         currentPage={props.comisionCurrentPage} 
         itemsPerPage={props.itemsPerPage}
         
-        // Valores de los filtros (para que no estén vacíos)
         asesorIdFilter={props.comisionAsesorIdFilter} 
         estadoPagoFilter={props.comisionEstadoPagoFilter} 
         fechaInicioFilter={props.comisionFechaInicioFilter} 
         fechaFinFilter={props.comisionFechaFinFilter}
         
-        // Setters de los filtros
         setAsesorIdFilter={props.setComisionAsesorIdFilter} 
         setEstadoPagoFilter={props.setComisionEstadoPagoFilter} 
         setFechaInicioFilter={props.setComisionFechaInicioFilter} 

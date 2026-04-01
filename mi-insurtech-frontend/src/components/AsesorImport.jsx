@@ -5,14 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/lib/use-toast';
 import { UploadCloud, FileSpreadsheet, Loader2, Download, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function AsesorImport({ apiBaseUrl, onImportComplete }) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [file, setFile] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
 
-  // --- FUNCIÓN PARA DESCARGAR LA PLANTILLA MODELO ---
   const descargarPlantilla = () => {
     const headers = ["nombre", "apellido", "cedula", "email", "telefono", "empresa_aseguradora_id"].join(",");
     const ejemplo = ["Eduardo", "Cañas", "V87654321", "eduardo.canas@email.com", "0424-9998877", "1"].join(",");
@@ -28,7 +29,7 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
     link.click();
     document.body.removeChild(link);
     
-    toast({ title: "Plantilla descargada", description: "Completa los datos de tus asesores y súbelos." });
+    toast({ title: t('asesores.toastTemplateTitle'), description: t('asesores.toastTemplateDesc') });
   };
 
   const handleFileChange = (e) => {
@@ -52,16 +53,16 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
       });
 
       if (response.ok) {
-        toast({ title: "Importación Exitosa", description: "La red de asesores ha sido actualizada.", variant: "success" });
+        toast({ title: t('asesores.toastImportSuccess'), description: t('asesores.toastImportSuccessDesc'), variant: "success" });
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         if (onImportComplete) onImportComplete();
       } else {
         const err = await response.json();
-        throw new Error(err.detail || "Error procesando el archivo CSV");
+        throw new Error(err.detail || t('asesores.toastImportError'));
       }
     } catch (error) {
-      toast({ title: "Atención con la Importación", description: error.message, variant: "destructive" });
+      toast({ title: t('asesores.toastImportAttention'), description: error.message, variant: "destructive" });
     } finally {
       setIsImporting(false);
     }
@@ -69,14 +70,12 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
 
   return (
     <Card className="mb-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden transition-all duration-300">
-      
-      {/* Cabecera Ciberpunk Esmeralda */}
       <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border-b border-emerald-500/30 p-5 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-md">
             <FileSpreadsheet className="h-5 w-5 text-emerald-400" />
           </div>
-          <h3 className="text-lg font-black text-white drop-shadow-md tracking-wide">Gestión de Fuerza de Ventas</h3>
+          <h3 className="text-lg font-black text-white drop-shadow-md tracking-wide">{t('asesores.importTitle')}</h3>
         </div>
         <Button 
           variant="outline" 
@@ -84,7 +83,7 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
           onClick={descargarPlantilla}
           className="bg-transparent border-emerald-400/50 text-emerald-300 hover:bg-emerald-500/20 hover:text-white font-bold shadow-sm transition-all"
         >
-          <Download className="h-4 w-4 mr-2" /> Descargar Modelo
+          <Download className="h-4 w-4 mr-2" /> {t('asesores.downloadModel')}
         </Button>
       </div>
 
@@ -92,13 +91,13 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
         <div className="mb-6 flex items-start gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl backdrop-blur-sm">
           <Info className="h-5 w-5 text-emerald-400 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-emerald-200">
-            Utiliza el modelo oficial para registrar nuevos asesores. La <b className="text-white">cédula</b> es el campo de identidad; si ya existe, el registro se omitirá para evitar duplicados.
+            {t('asesores.importInfo1')} <b className="text-white">{t('asesores.importInfoBold')}</b>{t('asesores.importInfo2')}
           </p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full space-y-2">
-            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">Archivo CSV de Asesores</label>
+            <label className="text-slate-300 font-bold text-xs uppercase tracking-wider">{t('asesores.fileLabel')}</label>
             <Input 
               type="file" 
               accept=".csv" 
@@ -113,7 +112,7 @@ function AsesorImport({ apiBaseUrl, onImportComplete }) {
             className="w-full md:w-auto h-12 px-6 bg-emerald-600/80 hover:bg-emerald-500 text-white font-black tracking-wide border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none"
           >
             {isImporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />} 
-            Iniciar Carga
+            {t('asesores.startUpload')}
           </Button>
         </div>
       </CardContent>

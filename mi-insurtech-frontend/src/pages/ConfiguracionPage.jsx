@@ -1,36 +1,20 @@
 // src/pages/ConfiguracionPage.jsx
 import React from 'react';
 import SettingsPage from '../components/SettingsPage';
+import { useTranslation } from 'react-i18next'; // 🚀 Inyectado
 
-/**
- * ConfiguracionPage - El Orquestador
- * Responsabilidad: Recibir la gestión del Líder (App.jsx / useConfiguracion) 
- * y delegar la renderización a la UI (SettingsPage.jsx).
- */
 function ConfiguracionPage({
-  selectedLanguage,
-  currencySymbol,
-  dateFormat,
-  selectedCountry,
-  licenseKey,
-  isLicenseValid, // Verdad absoluta proveniente del Cerebrito
-  setSelectedLanguage,
-  setCurrencySymbol,
-  setDateFormat,
-  setSelectedCountry,
-  setLicenseKey,
-  saveSettings,
-  LANGUAGE_OPTIONS,
-  CURRENCY_SYMBOL_OPTIONS,
-  DATE_FORMAT_OPTIONS,
-  COUNTRY_OPTIONS,
-  MASTER_LICENSE_KEY
+  selectedLanguage, currencySymbol, dateFormat, selectedCountry, licenseKey,
+  isLicenseValid, setSelectedLanguage, setCurrencySymbol, setDateFormat,
+  setSelectedCountry, setLicenseKey, saveSettings, LANGUAGE_OPTIONS,
+  CURRENCY_SYMBOL_OPTIONS, DATE_FORMAT_OPTIONS, COUNTRY_OPTIONS, MASTER_LICENSE_KEY
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* CRISTAL: Título iluminado */}
       <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">
-        Preferencias del Sistema
+        {t('configuracion.pageTitle')}
       </h2>
       
       <SettingsPage
@@ -39,7 +23,7 @@ function ConfiguracionPage({
         dateFormat={dateFormat}
         selectedCountry={selectedCountry} 
         licenseKey={licenseKey} 
-        isLicenseValid={isLicenseValid} // Pasamos la validación sin parpadeos
+        isLicenseValid={isLicenseValid} 
         setSelectedLanguage={setSelectedLanguage} 
         setCurrencySymbol={setCurrencySymbol} 
         setDateFormat={setDateFormat}

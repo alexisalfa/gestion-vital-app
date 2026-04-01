@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-r
 import { useGlobal } from './context/GlobalContext';
 
 import AuthPage from './components/AuthPage';
+import HeroSection from './components/HeroSection';
 import ClientesPage from './pages/ClientesPage';
 import AsesoresPage from './pages/AsesoresPage';
 import PolizasPage from './pages/PolizasPage';
@@ -297,7 +298,14 @@ function App() {
   if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="*" element={<><AuthPage onLoginSuccess={handleLoginSuccess} apiBaseUrl={API_BASE_URL} /><Toaster /></>} />
+        {/* LA NUEVA VITRINA PÚBLICA (Video de Fondo) */}
+        <Route path="/" element={<HeroSection />} />
+        
+        {/* LA PUERTA DE LA BÓVEDA PRIVADA */}
+        <Route path="/login" element={<><AuthPage onLoginSuccess={handleLoginSuccess} apiBaseUrl={API_BASE_URL} /><Toaster /></>} />
+        
+        {/* Si intentan ir a cualquier otro lado oculto, de vuelta a la vitrina */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }

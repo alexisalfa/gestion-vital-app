@@ -1,37 +1,35 @@
 // src/components/AuthPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert } from 'lucide-react';
+import { Globe2 } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
-import { useTranslation } from 'react-i18next'; // 🌍 IMPORTANTE: Inyectamos el motor de idiomas
+import { useTranslation } from 'react-i18next'; 
 
-// 🖼️ 1. IMPORTACIÓN DE SU COLECCIÓN DE IMÁGENES PREMIUM (SOLO LAS ESPECTACULARES)
-import img1 from '../assets/imagen1.jpg'; 
-import img2 from '../assets/imagen2.jpg';
-import img3 from '../assets/imagen4.jpg'; 
-import img4 from '../assets/imagen5.jpg';
-import img5 from '../assets/imagen6.jpg';
-import img6 from '../assets/imagen7.jpg';
+// 🚀 1. IMPORTAMOS TODOS LOS VIDEOS QUE QUIERA
+import video1 from '../assets/video/nexus-hero.mp4';
+import video2 from '../assets/video/nexus-hero2.mp4';
+// Puede agregar video3, video4...
 
-// 2. LISTA DEL CARRUSEL (Ahora solo 6 imágenes Nivel DIOS)
-const CAROUSEL_IMAGES = [img1, img2, img3, img4, img5, img6];
+// 🚀 2. CREAMOS LA LISTA DE REPRODUCCIÓN (PLAYLIST)
+const CAROUSEL_VIDEOS = [video1, video2];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
-  const { t } = useTranslation(); // 🌍 Activamos el traductor
+  const { t } = useTranslation(); 
   const [showRegisterForm, setShowRegisterForm] = useState(false);
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  
+  // 🚀 3. EL CEREBRO DEL CARRUSEL
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
-  // 🤖 3. EL MOTOR DEL CARRUSEL (Cambia cada 3 segundos)
   useEffect(() => {
-    // Si no hay imágenes (seguridad), no iniciamos el reloj
-    if (CAROUSEL_IMAGES.length === 0) return;
-
-    const interval = setInterval(() => {
-      setCurrentImgIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_IMAGES.length);
-    }, 3000); 
-    return () => clearInterval(interval); 
+    // Cambia de video automáticamente cada 10 segundos (10000 milisegundos)
+    if (CAROUSEL_VIDEOS.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_VIDEOS.length);
+      }, 10000); 
+      return () => clearInterval(interval); 
+    }
   }, []);
 
   const handleGoogleSuccess = async (tokenResponse) => {
@@ -60,93 +58,105 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 font-sans relative overflow-hidden">
+    <div className="relative min-h-screen w-full overflow-hidden bg-black font-sans md:grid md:grid-cols-2">
       
-      {/* Luces de Neón de Fondo para toda la página (Efecto Ciberpunk) */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-indigo-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-blue-100/30 rounded-full blur-3xl"></div>
-      </div>
-
-      {/* --- PANEL IZQUIERDO (EL CARRUSEL CINEMATOGRÁFICO - NIVEL DIOS) --- */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-slate-950 z-10 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.5)]">
+      {/* ========================================================== */}
+      {/* 🚀 LADO 1 (IZQUIERDO): El Carrusel de Videos Animados */}
+      {/* ========================================================== */}
+      <div className="relative hidden md:block h-screen overflow-hidden group bg-black">
         
-        {/* Renderizado dinámico de las imágenes con fundido */}
-        {CAROUSEL_IMAGES.map((img, index) => (
-          <img
+        {/* Renderizamos todos los videos pero solo mostramos el activo */}
+        {CAROUSEL_VIDEOS.map((vid, index) => (
+          <video 
             key={index}
-            src={img}
-            alt={`Gestión Vital Premium ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
-              index === currentImgIndex ? 'opacity-100' : 'opacity-0'
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className={`absolute inset-0 w-full h-full object-cover z-0 transition-all duration-[2000ms] ease-in-out group-hover:scale-105 ${
+              index === currentVideoIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
             }`}
-          />
+          >
+            <source src={vid} type="video/mp4" />
+          </video>
         ))}
+        
+        {/* Sutil gradiente sobre el video para enmarcarlo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-10 pointer-events-none" />
+        
+        {/* Texto flotante corporativo */}
+        <div className="absolute bottom-10 left-10 z-20 animate-in fade-in duration-1000 delay-500">
+           <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">VitalNexus Core</h3>
+           <p className="text-slate-200 text-sm max-w-sm mt-1">El centro de conexiones multi-tenant de alto rendimiento.</p>
+           
+           {/* Indicadores visuales del carrusel (Puntitos) */}
+           <div className="flex gap-2 mt-4">
+             {CAROUSEL_VIDEOS.map((_, idx) => (
+               <div 
+                 key={idx} 
+                 className={`h-1.5 rounded-full transition-all duration-500 ${
+                   idx === currentVideoIndex ? 'w-8 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]' : 'w-2 bg-white/30'
+                 }`}
+               />
+             ))}
+           </div>
+        </div>
+      </div>
 
-        {/* Overlay de Cristal Oscuro y Degradado */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-indigo-950/70 to-slate-950/95 backdrop-blur-[1px]"></div>
+      {/* =========================================================== */}
+      {/* 🔐 LADO 2 (DERECHO): La Bóveda de Accesso (Login/Register) */}
+      {/* =========================================================== */}
+      <div className="relative z-20 flex flex-col items-center justify-center p-6 sm:p-10 min-h-screen bg-black shadow-[-20px_0_50px_-10px_rgba(0,0,0,0.8)]">
         
-        {/* Efectos de Luces Neón Internas */}
-        <div className="absolute top-[-10%] left-[-10%] w-[32rem] h-[32rem] bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        
-        {/* --- TEXTOS FLOTANTES EN LA PARTE INFERIOR --- */}
-        <div className="relative z-10 p-12 w-full h-full flex flex-col items-center justify-end pb-24">
-          <div className="bg-slate-950/50 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] max-w-lg text-center animate-in fade-in slide-in-from-bottom-5 duration-1000">
-              <h1 className="text-4xl font-black mb-6 tracking-tight flex items-center justify-center gap-3 text-white">
-                 <ShieldAlert className="h-9 w-9 text-indigo-400" /> Gestión Vital
+        <div className="w-full max-w-lg animate-in zoom-in-95 duration-700">
+          
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-8 sm:p-12 rounded-3xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)] hover:border-cyan-500/20 transition-colors duration-300">
+            
+            <div className="text-center mb-10 flex flex-col items-center gap-3">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-widest uppercase mb-2 backdrop-blur-md shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                <Globe2 className="h-4 w-4" /> La Siguiente Generación SaaS
+              </span>
+              
+              <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-tight drop-shadow-2xl">
+                vital<span className="text-cyan-400">.</span>nexus
               </h1>
-              {/* 🌍 Texto dinámico del slogan */}
-              <p className="text-slate-200 text-lg leading-relaxed font-semibold">
-                {t('auth.slogan')}
+              
+              <p className="text-slate-300 text-sm font-medium mt-1">
+                {showRegisterForm ? t('auth.subtitleRegister') : t('auth.subtitleLogin')}
               </p>
+            </div>
+
+            <div className="mb-6 hover:scale-105 transition-transform">
+               <GoogleAuthButton onLoginSuccess={handleGoogleSuccess} />
+            </div>
+
+            <div className="relative flex items-center mb-6">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-bold tracking-widest uppercase">{t('auth.orEmail')}</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-inner mb-6">
+              {showRegisterForm ? (
+                <RegisterForm apiBaseUrl={apiBaseUrl} onRegisterSuccess={() => setShowRegisterForm(false)} />
+              ) : (
+                <LoginForm onLoginSuccess={onLoginSuccess} apiBaseUrl={apiBaseUrl} />
+              )}
+            </div>
+
+            <div className="text-center pt-2 border-t border-white/10 mt-6">
+              <p className="text-slate-300 text-sm font-medium">
+                {showRegisterForm ? t('auth.alreadyAccount') : t('auth.noAccount')}
+                <Button variant="link" onClick={() => setShowRegisterForm(!showRegisterForm)} className="ml-2 text-cyan-400 hover:text-cyan-300 font-black p-0 text-sm transition-colors">
+                  {showRegisterForm ? t('auth.loginHere') : t('auth.registerNow')}
+                </Button>
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* --- PANEL DERECHO (FORMULARIOS Y GOOGLE) --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-6 sm:p-12 lg:p-20 bg-white shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] relative z-20 transition-all duration-500">
-        <div className="max-w-md w-full mx-auto space-y-8">
-
-          <div className="text-center lg:text-left animate-in fade-in slide-in-from-top-5 duration-700">
-            {/* 🌍 Textos dinámicos del título */}
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight">
-              {showRegisterForm ? t('auth.createAccount') : t('auth.welcome')}
-            </h2>
-            <p className="text-slate-500 mt-2 font-semibold">
-              {showRegisterForm ? t('auth.subtitleRegister') : t('auth.subtitleLogin')}
-            </p>
-          </div>
-
-          <GoogleAuthButton onLoginSuccess={handleGoogleSuccess} />
-
-          <div className="relative flex items-center">
-            <div className="flex-grow border-t border-slate-200 opacity-60"></div>
-            {/* 🌍 Texto dinámico del separador */}
-            <span className="flex-shrink-0 mx-4 text-slate-400 text-sm font-semibold">{t('auth.orEmail')}</span>
-            <div className="flex-grow border-t border-slate-200 opacity-60"></div>
-          </div>
-
-          <div className="bg-white rounded-xl">
-            {showRegisterForm ? (
-              <RegisterForm apiBaseUrl={apiBaseUrl} onRegisterSuccess={() => setShowRegisterForm(false)} />
-            ) : (
-              <LoginForm onLoginSuccess={onLoginSuccess} apiBaseUrl={apiBaseUrl} />
-            )}
-          </div>
-
-          <div className="text-center pt-2">
-            <p className="text-slate-600 text-sm font-semibold">
-              {/* 🌍 Textos dinámicos del pie de página */}
-              {showRegisterForm ? t('auth.alreadyAccount') : t('auth.noAccount')}
-              <Button variant="link" onClick={() => setShowRegisterForm(!showRegisterForm)} className="ml-2 text-indigo-600 hover:text-indigo-800 font-black p-0 text-sm">
-                {showRegisterForm ? t('auth.loginHere') : t('auth.registerNow')}
-              </Button>
-            </p>
-          </div>
-
-        </div>
-      </div>
     </div>
   );
 }

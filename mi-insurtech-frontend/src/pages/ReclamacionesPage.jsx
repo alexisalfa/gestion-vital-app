@@ -3,6 +3,7 @@ import React from 'react';
 import ReclamacionForm from '../components/ReclamacionForm';
 import ReclamacionImport from '../components/ReclamacionImport';
 import ReclamacionList from '../components/ReclamacionList';
+import { useTranslation } from 'react-i18next'; // 🚀 Traductor Inyectado
 
 function ReclamacionesPage({
   apiBaseUrl,
@@ -40,10 +41,11 @@ function ReclamacionesPage({
   dateFormat,
   getDateFormatOptions
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* CRISTAL: Título iluminado */}
-      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Control de Siniestros</h2>
+      <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">{t('reclamaciones.pageTitle')}</h2>
       
       <ReclamacionForm 
         onReclamacionSaved={handleReclamacionSaved} 
