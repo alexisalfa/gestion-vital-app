@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-r
 import { useGlobal } from './context/GlobalContext';
 
 import AuthPage from './components/AuthPage';
-import HeroSection from './components/HeroSection';
 import ClientesPage from './pages/ClientesPage';
 import AsesoresPage from './pages/AsesoresPage';
 import PolizasPage from './pages/PolizasPage';
@@ -47,7 +46,7 @@ const COMISIONES_PER_PAGE = 10;
 const LANGUAGE_OPTIONS = [
   { id: 'es', nombre: 'Español' }, 
   { id: 'en', nombre: 'English' },
-  { id: 'zh', nombre: '中文 (Mandarín)' }, // 🐉 El gigante asiático
+  { id: 'zh', nombre: '中文 (Mandarín)' }, 
   { id: 'de', nombre: 'Deutsch' },
   { id: 'fr', nombre: 'Français' }
 ];
@@ -85,18 +84,24 @@ function App() {
   const [polizasPendientesDashboard, setPolizasPendientesDashboard] = useState(0);
   const [isLoadingPolizasProximasAVencer, setIsLoadingPolizasProximasAVencer] = useState(true);
 
+  // 🚀 Cierre de Sesión Elegante (Con Toast Variante Success)
   const handleLogout = useCallback(() => {
     localStorage.removeItem('access_token');
     setIsAuthenticated(false);
     navigate('/');
-    toast({ title: "Sesión Cerrada", description: "Has cerrado tu sesión exitosamente.", variant: "info" });
+    toast({ 
+      title: "Sesión Cerrada", 
+      description: "Has cerrado tu sesión exitosamente.", 
+      variant: "success" // <--- Agregado para que se vea elegante
+    });
   }, [toast, navigate]);
 
+  // 🚀 Inicio de Sesión Limpio (El Toast ahora está en LoginForm)
   const handleLoginSuccess = useCallback(() => {
     setIsAuthenticated(true);
     navigate('/dashboard');
-    toast({ title: "Inicio de Sesión Exitoso", description: "¡Bienvenido de nuevo!", variant: "success" });
-  }, [toast, navigate]);
+    // Se eliminó el toast de aquí porque ya está en LoginForm.jsx
+  }, [navigate]);
 
   useEffect(() => {
     const originalFetch = window.fetch;
@@ -298,13 +303,8 @@ function App() {
   if (!isAuthenticated) {
     return (
       <Routes>
-        {/* LA NUEVA VITRINA PÚBLICA (Video de Fondo) */}
-        <Route path="/" element={<HeroSection />} />
-        
-        {/* LA PUERTA DE LA BÓVEDA PRIVADA */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<><AuthPage onLoginSuccess={handleLoginSuccess} apiBaseUrl={API_BASE_URL} /><Toaster /></>} />
-        
-        {/* Si intentan ir a cualquier otro lado oculto, de vuelta a la vitrina */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -349,8 +349,6 @@ function App() {
               <DashboardCharts polizas={polizas} reclamaciones={reclamaciones} empresas={empresasAseguradoras} />
             </div>
           } />
-          
-          {/* 🔥 SECCIÓN DE MÓDULOS CON FILTROS REPARADOS Y BLINDADOS 🔥 */}
           
           <Route path="/clientes" element={
             <ClientesPage 

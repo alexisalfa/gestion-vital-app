@@ -24,8 +24,8 @@ const MainLayout = ({
   setIsMobileMenuOpen,
   isAlertsOpen,
   setIsAlertsOpen,
-  statisticsSummaryData, // RECUPERADO: Faltaba esta línea
-  polizasPendientesDashboard, // RECUPERADO: Faltaba esta línea
+  statisticsSummaryData, 
+  polizasPendientesDashboard, 
   dineroEnLaCalle,
   currencySymbol,
   polizasProximasAVencer,
@@ -40,17 +40,13 @@ const MainLayout = ({
         backgroundImage: "url('/colibri_insurtech.png')" 
       }}
     >
-      {/* --- SOBRECAPA OSCURA --- */}
       <div className="absolute inset-0 bg-[#0A0F1C]/85 pointer-events-none"></div>
 
-      {/* --- CONTENEDOR PRINCIPAL SUPERPUESTO AL FONDO --- */}
       <div className="relative z-10 flex flex-col min-h-screen">
         
-        {/* 🔵 NAVEGACIÓN MAESTRA - Cristal Ciberpunk */}
         <nav className="bg-slate-900/40 backdrop-blur-2xl text-slate-200 sticky top-0 z-50 border-b border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <div className="w-full px-4 sm:px-8 h-[72px] flex items-center justify-between gap-6">
             
-            {/* LADO IZQUIERDO: Logo (Empujado a la izquierda) */}
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -66,7 +62,6 @@ const MainLayout = ({
               </Link>
             </div>
 
-            {/* CENTRO: Menú con Scrollbar Elegante */}
             <div className="hidden lg:flex items-center justify-start xl:justify-center gap-1.5 flex-1 overflow-x-auto pb-2 pt-2 px-2 
               [&::-webkit-scrollbar]:h-1.5 
               [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-full 
@@ -94,7 +89,6 @@ const MainLayout = ({
               ))}
             </div>
 
-            {/* LADO DERECHO: Notificaciones y Perfil (Empujado a la derecha) */}
             <div className="flex items-center gap-4 shrink-0">
               <button
                 onClick={() => setIsAlertsOpen(true)}
@@ -123,7 +117,6 @@ const MainLayout = ({
           {children}
         </main>
 
-        {/* 🔔 PANEL DE ALERTAS - Cristal Ciberpunk Ahumado */}
         {isAlertsOpen && (
           <div className="fixed inset-0 z-[100] flex justify-end">
             <div

@@ -9,6 +9,21 @@ import deTranslation from './locales/de.json';
 import frTranslation from './locales/fr.json';
 import zhTranslation from './locales/zh.json';
 
+// 🕵️‍♂️ EL DETECTIVE DE IDIOMAS (Zero Costo, 100% Nativo)
+const detectBrowserLanguage = () => {
+  // 1. Leemos la configuración del navegador (ej. 'es-VE', 'en-US', 'zh-CN')
+  const browserLang = navigator.language || navigator.userLanguage;
+  
+  // 2. Extraemos solo las dos primeras letras (ej. 'es', 'en', 'zh')
+  const baseLang = browserLang.split('-')[0];
+  
+  // 3. Verificamos si tenemos ese idioma en nuestra bóveda
+  const supportedLangs = ['es', 'en', 'de', 'fr', 'zh'];
+  
+  // 4. Si lo tenemos, lo usamos. Si entra alguien de Rusia ('ru') y no lo tenemos, le mostramos Español por defecto
+  return supportedLangs.includes(baseLang) ? baseLang : 'es';
+};
+
 i18n
   .use(initReactI18next)
   .init({
@@ -19,7 +34,8 @@ i18n
       fr: { translation: frTranslation },
       zh: { translation: zhTranslation }
     },
-    lng: "es", // Idioma por defecto
+    // 🚀 AQUÍ INYECTAMOS LA MAGIA (Llamamos al detective en vez de forzar "es")
+    lng: detectBrowserLanguage(), 
     fallbackLng: "en", // Si falla algo, muestra Inglés
     interpolation: {
       escapeValue: false 

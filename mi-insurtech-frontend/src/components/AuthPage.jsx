@@ -1,29 +1,28 @@
 // src/components/AuthPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Globe2 } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import GoogleAuthButton from './GoogleAuthButton';
 import { useTranslation } from 'react-i18next'; 
 
-// 🚀 1. IMPORTAMOS TODOS LOS VIDEOS QUE QUIERA
+// 🚀 IMPORTAMOS LOS DOS VIDEOS PARA EL CARRUSEL
 import video1 from '../assets/video/nexus-hero.mp4';
 import video2 from '../assets/video/nexus-hero2.mp4';
-// Puede agregar video3, video4...
 
-// 🚀 2. CREAMOS LA LISTA DE REPRODUCCIÓN (PLAYLIST)
+// 🎬 LA LISTA DE REPRODUCCIÓN
 const CAROUSEL_VIDEOS = [video1, video2];
 
 function AuthPage({ onLoginSuccess, apiBaseUrl }) {
   const { t } = useTranslation(); 
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   
-  // 🚀 3. EL CEREBRO DEL CARRUSEL
+  // 🧠 ESTADO PARA CONTROLAR EL CARRUSEL
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
+  // ⏱️ EL TEMPORIZADOR DEL CARRUSEL (Gira cada 10 segundos)
   useEffect(() => {
-    // Cambia de video automáticamente cada 10 segundos (10000 milisegundos)
     if (CAROUSEL_VIDEOS.length > 1) {
       const interval = setInterval(() => {
         setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_VIDEOS.length);
@@ -39,18 +38,13 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ access_token: tokenResponse.access_token }),
       });
-
       if (!response.ok) throw new Error('Error al validar con el servidor.');
-
       const data = await response.json();
-      
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('token_type', data.token_type);
-      
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      
       onLoginSuccess();
     } catch (error) {
       console.error("Error en Google Login:", error);
@@ -64,8 +58,6 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
       {/* 🚀 LADO 1 (IZQUIERDO): El Carrusel de Videos Animados */}
       {/* ========================================================== */}
       <div className="relative hidden md:block h-screen overflow-hidden group bg-black">
-        
-        {/* Renderizamos todos los videos pero solo mostramos el activo */}
         {CAROUSEL_VIDEOS.map((vid, index) => (
           <video 
             key={index}
@@ -81,16 +73,17 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
           </video>
         ))}
         
-        {/* Sutil gradiente sobre el video para enmarcarlo */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none" />
         
-        {/* Texto flotante corporativo */}
+        {/* Texto enfocado 100% en Seguros (Gestión Vital) */}
         <div className="absolute bottom-10 left-10 z-20 animate-in fade-in duration-1000 delay-500">
-           <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">VitalNexus Core</h3>
-           <p className="text-slate-200 text-sm max-w-sm mt-1">El centro de conexiones multi-tenant de alto rendimiento.</p>
+           <h3 className="text-3xl font-black text-white tracking-tight drop-shadow-lg flex items-center gap-3">
+             <ShieldAlert className="h-8 w-8 text-cyan-400" /> Gestión Vital
+           </h3>
+           <p className="text-slate-200 text-sm max-w-sm mt-2">El ecosistema Insurtech blindado para automatizar tu agencia y proteger tu cartera.</p>
            
-           {/* Indicadores visuales del carrusel (Puntitos) */}
-           <div className="flex gap-2 mt-4">
+           {/* Puntitos indicadores del carrusel en Cyan */}
+           <div className="flex gap-2 mt-5">
              {CAROUSEL_VIDEOS.map((_, idx) => (
                <div 
                  key={idx} 
@@ -104,7 +97,7 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
       </div>
 
       {/* =========================================================== */}
-      {/* 🔐 LADO 2 (DERECHO): La Bóveda de Accesso (Login/Register) */}
+      {/* 🔐 LADO 2 (DERECHO): La Bóveda de Accesso */}
       {/* =========================================================== */}
       <div className="relative z-20 flex flex-col items-center justify-center p-6 sm:p-10 min-h-screen bg-black shadow-[-20px_0_50px_-10px_rgba(0,0,0,0.8)]">
         
@@ -112,17 +105,18 @@ function AuthPage({ onLoginSuccess, apiBaseUrl }) {
           
           <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-8 sm:p-12 rounded-3xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)] hover:border-cyan-500/20 transition-colors duration-300">
             
+            {/* Título y Branding - Puro Gestión Vital */}
             <div className="text-center mb-10 flex flex-col items-center gap-3">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-widest uppercase mb-2 backdrop-blur-md shadow-[0_0_15px_rgba(34,211,238,0.2)]">
-                <Globe2 className="h-4 w-4" /> La Siguiente Generación SaaS
+                <ShieldAlert className="h-4 w-4" /> Bóveda Segura
               </span>
               
               <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-tight drop-shadow-2xl">
-                vital<span className="text-cyan-400">.</span>nexus
+                Gestión Vital
               </h1>
               
               <p className="text-slate-300 text-sm font-medium mt-1">
-                {showRegisterForm ? t('auth.subtitleRegister') : t('auth.subtitleLogin')}
+                {showRegisterForm ? t('auth.subtitleRegister', 'Crea tu cuenta de asesor') : t('auth.subtitleLogin', 'Ingresa tus credenciales para acceder')}
               </p>
             </div>
 
